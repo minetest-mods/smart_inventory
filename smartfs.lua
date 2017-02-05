@@ -192,7 +192,7 @@ smartfs._ldef.player = {
 smartfs._ldef.inventory = {
 	set_inventory = function(form)
 		if sfinv and sfinv.enabled then
-			sfinv.enabled = false
+			sfinv.enabled = nil
 		end
 		minetest.register_on_joinplayer(function(player)
 			local name = player:get_player_name()
@@ -200,7 +200,9 @@ smartfs._ldef.inventory = {
 			local state = smartfs._makeState_(form, nil, statelocation, name)
 			if form.form_setup_callback(state) ~= false then
 				smartfs.inv[name] = state
-				minetest.after(0, state.show, state)
+-- can be back to direct call if the issue is solved https://github.com/minetest/minetest_game/issues/1546
+--				state:show()
+				minetest.after(1, state.show, state)
 			end
 		end)
 		minetest.register_on_leaveplayer(function(player)
