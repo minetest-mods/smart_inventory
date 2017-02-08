@@ -85,10 +85,12 @@ function cache:get_recipes_craftable(player)
 			local in_inventory = false
 			if item:sub(1, 6) == "group:" then
 				local group_name = item:sub(7)
-				for group_item, def in pairs(self.groups[group_name]) do
-					if items_in_inventory[group_item] then
-						in_inventory = true
-						out_recipe.items[idx] = group_item
+				if self.groups[group_name] then
+					for group_item, def in pairs(self.groups[group_name]) do
+						if items_in_inventory[group_item] then
+							in_inventory = true
+							out_recipe.items[idx] = group_item
+						end
 					end
 				end
 			elseif items_in_inventory[item] then
