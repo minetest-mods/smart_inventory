@@ -3,7 +3,13 @@ local modpath = minetest.get_modpath(minetest.get_current_modname())
 smart_inventory = {}
 smart_inventory.registered_pages = {}
 smart_inventory.smartfs = dofile(modpath.."/smartfs.lua")
+smart_inventory.smartfs_elements = dofile(modpath.."/smartfs-elements.lua")
 smartfs = smart_inventory.smartfs
+
+
+-- start with empty group items replacement table.
+-- Will be filled at runtime with used items. partially independend on user
+smart_inventory.group_items = {}
 
 local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	-- tabbed view controller
@@ -61,24 +67,25 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 		end
 		button_x = button_x + 2
 	end
-
 end)
 
 smartfs.set_player_inventory(inventory_form)
 
 
 function smart_inventory.register_page(name, def)
+	--[[ API:
+	smart_inventory.register_page(name, {
+		icon | label = *.png | text
+		check_active = (optional: function to check if active) (TODO)
+		smartfs_callback = smartfs callback function
+	})
+	]]
 	smart_inventory.registered_pages[name] = def
 end
---[[
-API: 
-smart_inventory.register_page(name, {
-	icon | label = 
-	check_active = (optional: function to check if active)
-	smartfs_callback = 
-})
-
-]]
 
 
+-- build up caches
+smart_inventory.cache = dofile(modpath.."/cache.lua")
+
+-- register pages
 dofile(modpath.."/crafting.lua")
