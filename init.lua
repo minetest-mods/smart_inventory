@@ -42,8 +42,20 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	state:label(1,0.2,"header","Smart Inventory")
 	state:image(0,0,1,1,"header_logo", "logo.png")
 	local button_x = 0.1
-	for name, def in pairs(smart_inventory.registered_pages) do
+	table.sort(smart_inventory.registered_pages, function(a,b)
+		if not a.sequence then
+			return false
+		elseif not b.sequence then
+			return true
+		elseif a.sequence > b.sequence then
+			return false
+		else
+			return true
+		end
+	end)
+	for _, def in ipairs(smart_inventory.registered_pages) do
 		assert(def.smartfs_callback, "Callback function needed")
+		assert(def.name, "Name is needed")
 		local tabdef = {}
 		local label
 		if not def.label then
@@ -51,36 +63,36 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 		else
 			label = def.label
 		end
-		tabdef.button = state:button(button_x,9.2,1,1,name.."_button",label)
+		tabdef.button = state:button(button_x,9.2,1,1,def.name.."_button",label)
 		if def.icon then
 			tabdef.button:setImage(def.icon)
 		end
 		tabdef.button:onClick(function(self)
-			tab_controller:set_active(name)
+			tab_controller:set_active(def.name)
 		end)
-		tabdef.view = state:container(0,1,name.."_container")
+		tabdef.view = state:container(0,1,def.name.."_container")
 		tabdef.viewstate = tabdef.view:getContainerState()
 		tabdef.viewstate:loadTemplate(def.smartfs_callback)
-		tab_controller:tab_add(name, tabdef)
-		if button_x < 1 then
-			tab_controller:set_active(name)
-		end
-		button_x = button_x + 2
+		tab_controller:tab_add(def.name, tabdef)
+		button_x = button_x + 1
 	end
+	tab_controller:set_active(smart_inventory.registered_pages[1].name)
 end)
 
 smartfs.set_player_inventory(inventory_form)
 
 
-function smart_inventory.register_page(name, def)
+function smart_inventory.register_page(def)
 	--[[ API:
-	smart_inventory.register_page(name, {
-		icon | label = *.png | text
+	smart_inventory.register_page({
+		name         = name
+		icon | label = *.png|text
 		check_active = (optional: function to check if active) (TODO)
 		smartfs_callback = smartfs callback function
+		sequence = number
 	})
 	]]
-	smart_inventory.registered_pages[name] = def
+	table.insert(smart_inventory.registered_pages, def)
 end
 
 

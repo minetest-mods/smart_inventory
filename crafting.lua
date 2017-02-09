@@ -127,7 +127,9 @@ local function crafting_callback(state)
 	update_craftable_list(state)
 end
 
-smart_inventory.register_page("crafting", {
+smart_inventory.register_page({
+	name = "crafting",
 	icon = "inventory_btn.png",
-	smartfs_callback = crafting_callback
+	smartfs_callback = crafting_callback,
+	sequence = 10
 })
