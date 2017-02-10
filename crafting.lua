@@ -1,16 +1,21 @@
 local cache = smart_inventory.cache
 
-
 local function on_item_select(state, itemdef, recipe)
 	if itemdef then
 		state:get("info1"):setText(itemdef.description)
 		state:get("info2"):setText("("..itemdef.name..")")
-		state:get("info3"):setText("crafting type: "..recipe.type)
+		state:get("info3"):setText("")
+		if recipe.type ~="normal" then
+			state:get("cr_type"):setText(recipe.type)
+		else
+			state:get("cr_type"):setText("")
+		end
 		state:get("craft_preview"):setCraft(recipe)
 	else
 		state:get("info1"):setText("")
 		state:get("info2"):setText("")
 		state:get("info3"):setText("")
+		state:get("cr_type"):setText("")
 		state:get("craft_preview"):setCraft(nil)
 	end
 end
@@ -87,41 +92,42 @@ local function update_craftable_list(state)
 	end
 end
 
-
 local function crafting_callback(state)
 	local player = state.location.rootState.location.player
 	--Inventorys / left site
-	state:inventory(0, 4, 8, 4,"main")
-	state:inventory(0.2, 0.5, 3, 3,"craft")
-	state:inventory(3.4, 2.5, 1, 1,"craftpreview")
-	state:background(0.1, 0.1, 4.7, 3.8, "img1", "menu_bg.png")
+	state:inventory(0.7, 6, 8, 4,"main")
+	state:inventory(0.7, 0.5, 3, 3,"craft")
+	state:inventory(4.1, 2.5, 1, 1,"craftpreview")
+	state:background(0.6, 0.1, 4.6, 3.8, "img1", "menu_bg.png")
 
-	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 8, 0.5, 6 , 7, "buttons_grid")
+	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 9, 5.5, 10 , 5, "buttons_grid")
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.craftable_list[index]
 		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
 	end)
 
-	local group_dropdown = state:dropdown(8, 7.2, 4, 0.5, "groups")
+	local group_dropdown = state:dropdown(5, 5, 4, 0.5, "groups")
 	group_dropdown:onSelect(function(self, state, field, player)
 		state.param.selected_group = state.param.group_list_labels[field]
 		--TODO: BUG in case the list content is changed the formspec send the old id's, resulting the dropdown does not work
 		--print("group selected", state.param.selected_group, field, dump(state.param.group_list_labels), dump(self.data.items))
 		update_craftable_list(state)
 	end)
+	group_dropdown:setIsHidden(true) --not usable :(
 
-
-	local refresh_button = state:button(12, 7.3, 2, 0.5, "refresh", "Refresh")
+	local refresh_button = state:button(17, 4.3, 2, 0.5, "refresh", "Refresh")
 	refresh_button:onClick(function(self, state, player)
 		update_craftable_list(state)
 	end)
 
 	-- preview part
-	state:background(4.9, 0.1, 3, 3.8, "craft_img1", "minimap_overlay_square.png")
-	state:label(5,0.1,"info1", "")
-	state:label(5,0.6,"info2", "")
-	state:label(5,1.1,"info3", "")
-	smart_inventory.smartfs_elements.craft_preview(state, 5, 2, "craft_preview")
+	state:label(10.5,0.5,"info1", "")
+	state:label(10.5,1.0,"info2", "")
+	state:label(10.5,1.5,"info3", "")
+	state:background(5.4, 0.1, 3.5, 3.8, "craft_img1", "menu_bg.png")
+	state:background(9.0, 0.1, 10, 3.8, "craft_img2", "minimap_overlay_square.png")
+	smart_inventory.smartfs_elements.craft_preview(state, 5.5, 0.5, "craft_preview")
+	state:label(5.7,3,"cr_type", "")
 
 	-- initial values
 	update_craftable_list(state)
@@ -131,5 +137,6 @@ smart_inventory.register_page({
 	name = "crafting",
 	icon = "inventory_btn.png",
 	smartfs_callback = crafting_callback,
-	sequence = 10
+	sequence = 10,
+	on_button_click = update_craftable_list
 })

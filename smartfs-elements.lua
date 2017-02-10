@@ -13,10 +13,18 @@ function craft_preview:onCreate()
 	smartfs._edef.container.onCreate(self)
 	for x = 1, 3 do
 		for y = 1, 3 do
-			self._state:item_image((x-1)/2,(y-1)/2,0.5,0.5,"craft:"..x..":"..y,nil):setIsHidden(true)
+			self._state:item_image(
+					(x-1)*self.data.zoom+self.data.pos.x,
+					(y-1)*self.data.zoom+self.data.pos.y,
+					self.data.zoom, self.data.zoom,
+					"craft:"..x..":"..y,nil):setIsHidden(true)
 		end
 	end
-	self._state:item_image(2,0.5,0.8,0.8,"craft_result",nil):setIsHidden(true)
+	self._state:item_image(
+			self.data.pos.x+(4*self.data.zoom),
+			self.data.pos.y+self.data.zoom,
+			self.data.zoom, self.data.zoom,
+			"craft_result",nil):setIsHidden(true)
 	if self.data.recipe then
 		self:setCraft(self.data.recipe)
 	end
@@ -64,13 +72,20 @@ function craft_preview:setCraft(craft)
 	end
 end
 
+	-- redefinition without container[] to be able move with less steps as 1
+function craft_preview:build()
+	return self:getBackgroundString()..self:getContainerState():_buildFormspec_(false)
+end
+
+
 smartfs.element("craft_preview", craft_preview)
 
-function elements:craft_preview(x, y, name, recipe)
+function elements:craft_preview(x, y, name, zoom, recipe)
 	return self:element("craft_preview", { 
 		pos  = {x=x, y=y},
 		name = name,
-		recipe = recipe
+		recipe = recipe,
+		zoom = zoom or 1
 	})
 end
 
@@ -90,6 +105,9 @@ local buttons_grid = table.copy(smartfs._edef.container)
 function buttons_grid:onCreate()
 	assert(self.data.size and self.data.size.w and self.data.size.h, "button needs valid size")
 	smartfs._edef.container.onCreate(self)
+
+	self:setSize(self.data.size.w, self.data.size.h) -- view size for background
+
 	self.data.list_start = 1
 	self.data.list = {}
 	for x = 1, self.data.size.w do
@@ -104,10 +122,12 @@ function buttons_grid:onCreate()
 				end
 				if rel == 1 and parent_element.data.list_start > 1 then
 					-- page back
-					if parent_element.data.list_start <= parent_element.data.pagesize+2 then
+					local full_pagesize = parent_element.data.size.w * parent_element.data.size.h
+					if parent_element.data.list_start <= full_pagesize then
 						parent_element.data.list_start = 1
 					else
-						parent_element.data.list_start = parent_element.data.list_start-parent_element.data.pagesize+1
+						--prev page use allways 2x navigation buttons at list_start > 1 and the next page (we navigate from) exists
+						parent_element.data.list_start = parent_element.data.list_start - (full_pagesize-2)
 					end
 					parent_element:update()
 				elseif rel == (parent_element.data.size.w * parent_element.data.size.h) and 
@@ -158,7 +178,7 @@ function buttons_grid:update()
 			-- setup back button
 			button:setIsHidden(false)
 			button:setImage("left_arrow.png")
-			button:setText(tostring(self.data.list_start))
+			button:setText(tostring(self.data.list_start-1))
 			self.data.pagesize = self.data.pagesize - 1
 		elseif btnid == self.data.size.w * self.data.size.h and self.data.list[itemindex+1] then
 			-- setup next button

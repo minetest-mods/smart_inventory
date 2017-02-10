@@ -29,7 +29,7 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 			self.active_name = tabname
 		end,
 		tab_add = function(self, name, def)
-			def.viewstate:size(12,8) --size of tab view
+			def.viewstate:size(20,10) --size of tab view
 			self._tabs[name] = def
 		end,
 		get_active_name = function(self)
@@ -38,7 +38,7 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	}
 
 	--set screen size
-	state:size(14,10)
+	state:size(20,12)
 	state:label(1,0.2,"header","Smart Inventory")
 	state:image(0,0,1,1,"header_logo", "logo.png")
 	local button_x = 0.1
@@ -63,12 +63,15 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 		else
 			label = def.label
 		end
-		tabdef.button = state:button(button_x,9.2,1,1,def.name.."_button",label)
+		tabdef.button = state:button(button_x,11.2,1,1,def.name.."_button",label)
 		if def.icon then
 			tabdef.button:setImage(def.icon)
 		end
 		tabdef.button:onClick(function(self)
 			tab_controller:set_active(def.name)
+			if def.on_button_click then
+				def.on_button_click(tabdef.viewstate)
+			end
 		end)
 		tabdef.view = state:container(0,1,def.name.."_container")
 		tabdef.viewstate = tabdef.view:getContainerState()
@@ -90,6 +93,7 @@ function smart_inventory.register_page(def)
 		check_active = (optional: function to check if active) (TODO)
 		smartfs_callback = smartfs callback function
 		sequence = number
+		on_button_click = function called after set active page state will be available
 	})
 	]]
 	table.insert(smart_inventory.registered_pages, def)
@@ -98,6 +102,10 @@ end
 
 -- build up caches
 smart_inventory.cache = dofile(modpath.."/cache.lua")
-
+--smart_inventory.filter = dofile(modpath.."/filter.lua")
 -- register pages
 dofile(modpath.."/crafting.lua")
+
+--if minetest.get_modpath("3d_armor") then
+--	dofile(modpath.."/armor.lua")
+--end
