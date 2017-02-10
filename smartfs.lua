@@ -603,7 +603,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 					self.data.hidden = hidden
 				end,
 				getIsHidden = function(self)
-					return self.data.hidden
+					return self.data.hidden or false
 				end,
 				getAbsName = function(self)
 					return self.root:getNamespace()..self.name
@@ -792,10 +792,11 @@ function smartfs._makeState_(form, params, location, newplayer)
 				name = name
 			})
 		end,
-		container = function(self, x, y, name)
+		container = function(self, x, y, name, relative)
 			return self:element("container", { 
 				pos  = {x=x, y=y},
-				name = name
+				name = name,
+				relative = relative
 			})
 		end,
 	}
@@ -1336,10 +1337,19 @@ smartfs.element("container", {
 	-- element interface methods
 	build = function(self)
 		--the background string is "under" the container. Parts of this background can be overriden by elements (with background) from container
-		return self:getBackgroundString()..
-				"container["..self.data.pos.x..","..self.data.pos.y.."]"..
-				self:getContainerState():_buildFormspec_(false)..
-				"container_end[]"
+		print("smartfs build:", self.name, self:getIsHidden())
+		if self:getIsHidden() == false then
+			if self.data.relative ~= true then
+				return self:getBackgroundString()..
+						"container["..self.data.pos.x..","..self.data.pos.y.."]"..
+						self:getContainerState():_buildFormspec_(false)..
+						"container_end[]"
+			else
+				return self:getBackgroundString()..self:getContainerState():_buildFormspec_(false)
+			end
+		else
+			return ""
+		end
 	end,
 	getContainerState = function(self)
 		return self._state

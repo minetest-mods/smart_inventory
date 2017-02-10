@@ -10,6 +10,7 @@ local elements = {}
 
 local craft_preview = table.copy(smartfs._edef.container)
 function craft_preview:onCreate()
+	self.data.relative = true
 	smartfs._edef.container.onCreate(self)
 	for x = 1, 3 do
 		for y = 1, 3 do
@@ -71,12 +72,6 @@ function craft_preview:setCraft(craft)
 		res:setIsHidden(true)
 	end
 end
-
-	-- redefinition without container[] to be able move with less steps as 1
-function craft_preview:build()
-	return self:getBackgroundString()..self:getContainerState():_buildFormspec_(false)
-end
-
 
 smartfs.element("craft_preview", craft_preview)
 
@@ -211,11 +206,12 @@ end
 
 smartfs.element("buttons_grid", buttons_grid)
 
-function elements:buttons_grid(x, y, w, h, name)
+function elements:buttons_grid(x, y, w, h, name, relative)
 	return self:element("buttons_grid", { 
 		pos  = {x=x, y=y},
 		size = {w=w, h=h},
-		name = name
+		name = name,
+		relative = relative
 	})
 end
 

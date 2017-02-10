@@ -1,22 +1,23 @@
 local cache = smart_inventory.cache
 
 local function on_item_select(state, itemdef, recipe)
+	local inf_state = state:get("inf_area"):getContainerState()
 	if itemdef then
-		state:get("info1"):setText(itemdef.description)
-		state:get("info2"):setText("("..itemdef.name..")")
-		state:get("info3"):setText("")
+		inf_state:get("info1"):setText(itemdef.description)
+		inf_state:get("info2"):setText("("..itemdef.name..")")
+		inf_state:get("info3"):setText("")
 		if recipe.type ~="normal" then
-			state:get("cr_type"):setText(recipe.type)
+			inf_state:get("cr_type"):setText(recipe.type)
 		else
-			state:get("cr_type"):setText("")
+			inf_state:get("cr_type"):setText("")
 		end
-		state:get("craft_preview"):setCraft(recipe)
+		inf_state:get("craft_preview"):setCraft(recipe)
 	else
-		state:get("info1"):setText("")
-		state:get("info2"):setText("")
-		state:get("info3"):setText("")
-		state:get("cr_type"):setText("")
-		state:get("craft_preview"):setCraft(nil)
+		inf_state:get("info1"):setText("")
+		inf_state:get("info2"):setText("")
+		inf_state:get("info3"):setText("")
+		inf_state:get("cr_type"):setText("")
+		inf_state:get("craft_preview"):setCraft(nil)
 	end
 end
 
@@ -73,8 +74,8 @@ local function update_craftable_list(state)
 
 	-- set group dropdown list
 
-	local dropdown = state:get("groups")
-	dropdown:clearItems()
+	local groups_sel = state:get("groups_sel")
+	groups_sel:clearItems()
 	local group_tmp = {}
 	for group, count in pairs(group_list) do
 		if count > 1 then
@@ -85,10 +86,10 @@ local function update_craftable_list(state)
 		return a.label < b.label
 	end)
 
-	dropdown:addItem("all")
+	groups_sel:addItem("all")
 	for _, group in ipairs(group_tmp) do
-		state.param.group_list_labels[group.label] = group.group
-		dropdown:addItem(group.label)
+		local idx = groups_sel:addItem(group.label)
+		state.param.group_list_labels[idx] = group.group
 	end
 end
 
@@ -100,34 +101,57 @@ local function crafting_callback(state)
 	state:inventory(4.1, 2.5, 1, 1,"craftpreview")
 	state:background(0.6, 0.1, 4.6, 3.8, "img1", "menu_bg.png")
 
-	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 9, 5.5, 10 , 5, "buttons_grid")
-	grid:onClick(function(self, state, index, player)
-		local listentry = state.param.craftable_list[index]
-		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
-	end)
-
-	local group_dropdown = state:dropdown(5, 5, 4, 0.5, "groups")
-	group_dropdown:onSelect(function(self, state, field, player)
-		state.param.selected_group = state.param.group_list_labels[field]
-		--TODO: BUG in case the list content is changed the formspec send the old id's, resulting the dropdown does not work
-		--print("group selected", state.param.selected_group, field, dump(state.param.group_list_labels), dump(self.data.items))
-		update_craftable_list(state)
-	end)
-	group_dropdown:setIsHidden(true) --not usable :(
-
+	-- functional buttons right site
 	local refresh_button = state:button(17, 4.3, 2, 0.5, "refresh", "Refresh")
 	refresh_button:onClick(function(self, state, player)
 		update_craftable_list(state)
 	end)
 
-	-- preview part
-	state:label(10.5,0.5,"info1", "")
-	state:label(10.5,1.0,"info2", "")
-	state:label(10.5,1.5,"info3", "")
+	-- functional buttons right site
+	local groups_button = state:button(9, 4.3, 4, 0.5, "groups_btn", "All items")
+	groups_button:onClick(function(self, state, player)
+		if state:get("groups_sel"):getIsHidden() == true then
+			state:get("inf_area"):setIsHidden(true)
+			state:get("groups_sel"):setIsHidden(false)
+		else
+			state:get("inf_area"):setIsHidden(false)
+			state:get("groups_sel"):setIsHidden(true)
+		end
+	end)
+
+	-- preview area / multifunctional
 	state:background(5.4, 0.1, 3.5, 3.8, "craft_img1", "menu_bg.png")
 	state:background(9.0, 0.1, 10, 3.8, "craft_img2", "minimap_overlay_square.png")
-	smart_inventory.smartfs_elements.craft_preview(state, 5.5, 0.5, "craft_preview")
-	state:label(5.7,3,"cr_type", "")
+	local inf_area = state:container(5.4, 0.1, "inf_area", true)
+	local inf_state = inf_area:getContainerState()
+	inf_state:label(10.5,0.5,"info1", "")
+	inf_state:label(10.5,1.0,"info2", "")
+	inf_state:label(10.5,1.5,"info3", "")
+	smart_inventory.smartfs_elements.craft_preview(inf_state, 5.5, 0.5, "craft_preview")
+	inf_state:label(5.7,3,"cr_type", "")
+
+	local group_sel = state:listbox(9.2, 0.1, 9.6, 3.5, "groups_sel",nil, true)
+	group_sel:onClick(function(self, state, index, player)
+		state.param.selected_group = state.param.group_list_labels[index]
+		print("selected", index, state.param.selected_group)
+		update_craftable_list(state)
+		if state.param.selected_group then
+			state:get("groups_btn"):setText(state.param.selected_group)
+		else
+			state:get("groups_btn"):setText("All items")
+		end
+	end)
+	group_sel:setIsHidden(true)
+
+	-- craftable items grid
+	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 9, 5.5, 10 , 5, "buttons_grid")
+	grid:onClick(function(self, state, index, player)
+		local listentry = state.param.craftable_list[index]
+		print(dump(listentry.itemdef)) --DEBUG
+		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
+	end)
+
+
 
 	-- initial values
 	update_craftable_list(state)
