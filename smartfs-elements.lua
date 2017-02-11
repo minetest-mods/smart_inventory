@@ -21,11 +21,6 @@ function craft_preview:onCreate()
 					"craft:"..x..":"..y,nil):setIsHidden(true)
 		end
 	end
-	self._state:item_image(
-			self.data.pos.x+(4*self.data.zoom),
-			self.data.pos.y+self.data.zoom,
-			self.data.zoom, self.data.zoom,
-			"craft_result",nil):setIsHidden(true)
 	if self.data.recipe then
 		self:setCraft(self.data.recipe)
 	end
@@ -39,6 +34,10 @@ function craft_preview:setCraft(craft)
 			if craft then
 				if not craft.width or craft.width == 0 then
 					item = craft.items[(y-1)*3+x]
+				elseif craft.width == 1 then
+					if x == 2 then
+						item = craft.items[y]
+					end
 				elseif x <= craft.width then
 					item = craft.items[(y-1)*craft.width+x]
 				end
@@ -63,13 +62,6 @@ function craft_preview:setCraft(craft)
 				img:setIsHidden(true)
 			end
 		end
-	end
-	local res = self._state:get("craft_result")
-	if craft then 
-		res:setImage(craft.output)
-		res:setIsHidden(false)
-	else
-		res:setIsHidden(true)
 	end
 end
 

@@ -1337,7 +1337,6 @@ smartfs.element("container", {
 	-- element interface methods
 	build = function(self)
 		--the background string is "under" the container. Parts of this background can be overriden by elements (with background) from container
-		print("smartfs build:", self.name, self:getIsHidden())
 		if self:getIsHidden() == false then
 			if self.data.relative ~= true then
 				return self:getBackgroundString()..
