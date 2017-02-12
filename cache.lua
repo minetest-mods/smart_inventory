@@ -169,7 +169,6 @@ function cache.get_recipes_craftable_atnext(player)
 			end
 		end
 	end
-	print(dump(recipe_with_one_item_in_inventory))
 	return recipe_with_one_item_in_inventory, items_in_inventory
 end
 
