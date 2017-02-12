@@ -29,27 +29,15 @@ local function on_item_select(state, itemdef, recipe)
 end
 
 local function update_group_selection(state)
-	state.param.craftable_list = nil
-	-- get grouped
 	local grouped = state.param.grouped_items
-	if grouped[state.param.selected_filter] then
-		state.param.craftable_list = grouped[state.param.selected_filter].items
-	else
-		 --reset if unknown selection
-		state.param.craftable_list = grouped.all.items
-		state.param.selected_filter = "all"
-	end
-
-	table.sort(state.param.craftable_list, function(a,b)
-		return a.item < b.item
-	end)
-	local grid = state:get("buttons_grid")
-	grid:setList(state.param.craftable_list)
-
-	-- set group dropdown list
 	local groups_sel = state:get("groups_sel")
+	-- save old selection
+	local sel_id = groups_sel:getSelected()
+	local sel_grp
+	if sel_id then
+		sel_grp = state.param.group_list[sel_id]
+	end
 	groups_sel:clearItems()
-
 	local group_sorted = {}
 	for _, group in pairs(grouped) do
 		table.insert(group_sorted, group)
@@ -65,17 +53,40 @@ local function update_group_selection(state)
 		end
 	end)
 
+	state.param.group_list = {}
 	for _, group in ipairs(group_sorted) do
 		if #group.items > 0 then
 			local idx = groups_sel:addItem(group.group_desc.." ("..#group.items..")")
 			state.param.group_list[idx] = group.name
+			if sel_grp == group.name then
+				sel_id = idx
+			end
 		end
+	end
+
+	-- restore selection
+	if not state.param.group_list[sel_id] then
+		sel_id = 1
+	end
+	groups_sel:setSelected(sel_id)
+
+	local grid = state:get("buttons_grid")
+	local btn = state:get("groups_btn")
+	if state.param.group_list[sel_id] then
+		state.param.craftable_list = grouped[state.param.group_list[sel_id]].items
+		-- sort selected items
+		table.sort(state.param.craftable_list, function(a,b)
+			return a.item < b.item
+		end)
+		grid:setList(state.param.craftable_list)
+		btn:setText(groups_sel:getSelectedItem())
+	else
+		btn:setText("Empty List")
+		grid:setList({})
 	end
 end
 
 local function update_craftable_list(state)
-	state.param.group_list = {}
-	state.param.grouped_items = {}
 	local player = state.location.rootState.location.player
 	local craftable = cache.get_recipes_craftable(player)
 	local duplicate_index_tmp = {}
@@ -152,11 +163,10 @@ local function crafting_callback(state)
 	inf_area:setIsHidden(true)
 
 	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
-	group_sel:onClick(function(self, state, index, player)
-		state.param.selected_filter = state.param.group_list[index]
-		if state.param.selected_filter then
+	group_sel:onClick(function(self, state, player)
+		local selected = self:getSelectedItem()
+		if selected then
 			update_group_selection(state)
-			state:get("groups_btn"):setText(self:getSelectedItem())
 		end
 	end)
 
@@ -171,7 +181,6 @@ local function crafting_callback(state)
 	end)
 
 	-- initial values
-	state.param.selected_filter = "all"
 	update_craftable_list(state)
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
