@@ -106,8 +106,8 @@ smart_inventory.cache = dofile(modpath.."/cache.lua")
 
 -- register pages
 dofile(modpath.."/crafting.lua")
---[[
+
 if minetest.get_modpath("3d_armor") then
 	dofile(modpath.."/armor.lua")
 end
-]]
+
