@@ -111,6 +111,31 @@ function cache.fill_cache()
 	end
 end
 
+function recipe_items_resolve_group(group_item)
+	local group_name = group_item:sub(7)
+	local group2_pos = group_name:find(",")
+	local ret = {}
+	if group2_pos then
+		local group_name_ext = group_name:sub(1, group2_pos-1)
+		local group_variant = group_name:sub(group2_pos+1)
+		if cache.groups["group_"..group_name_ext] then
+			for _, item in ipairs(cache.groups["group_"..group_name_ext].items) do
+				if item.groups[group_variant] then
+					table.insert(ret, item)
+				end
+			end
+		end
+	else
+		if cache.groups["group_"..group_name] then
+			for _, item in ipairs(cache.groups["group_"..group_name].items) do
+				table.insert(ret, item)
+			end
+		end
+	end
+	return ret
+end
+
+
 -- Get all recipes with at least one item existing in players inventory
 function cache.get_recipes_craftable_atnext(player)
 	local inventory = minetest.get_player_by_name(player):get_inventory()
@@ -129,17 +154,13 @@ function cache.get_recipes_craftable_atnext(player)
 		if items_in_inventory[recipe_item] then
 			item_ok = true
 		elseif recipe_item:sub(1, 6) == "group:" then
-			local group_name = recipe_item:sub(7)
-			if cache.groups["group_"..group_name] then
-				for _, item in ipairs(cache.groups["group_"..group_name].items) do
-					if items_in_inventory[item.name] then
-						cache.group_placeholder[group_name] = item.name
-						item_ok = true
-					end
+			for _, item in ipairs(recipe_items_resolve_group(recipe_item)) do
+				if items_in_inventory[item.name] then
+					cache.group_placeholder[recipe_item:sub(1, 6)] = item.name
+					item_ok = true
 				end
 			end
 		end
-
 		if item_ok == true then
 			for name, recipetab in pairs(recipe_item_data) do
 				for _, recipe in ipairs(recipetab) do
@@ -148,6 +169,7 @@ function cache.get_recipes_craftable_atnext(player)
 			end
 		end
 	end
+	print(dump(recipe_with_one_item_in_inventory))
 	return recipe_with_one_item_in_inventory, items_in_inventory
 end
 
@@ -163,13 +185,10 @@ function cache.get_recipes_craftable(player)
 		for idx, item in pairs(out_recipe.items) do
 			local in_inventory = false
 			if item:sub(1, 6) == "group:" then
-				local group_name = item:sub(7)
-				if cache.groups["group_"..group_name] then
-					for _, item in ipairs(cache.groups["group_"..group_name].items) do
-						if items_in_inventory[item.name] then
-							in_inventory = true
-							out_recipe.items[idx] = item.name
-						end
+				for _, item in ipairs(recipe_items_resolve_group(item)) do
+					if items_in_inventory[item.name] then
+						in_inventory = true
+						out_recipe.items[idx] = item.name
 					end
 				end
 			elseif items_in_inventory[item] then
