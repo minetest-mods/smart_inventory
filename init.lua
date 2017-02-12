@@ -9,7 +9,6 @@ smartfs = smart_inventory.smartfs
 
 -- start with empty group items replacement table.
 -- Will be filled at runtime with used items. partially independend on user
-smart_inventory.group_items = {}
 
 local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	-- tabbed view controller

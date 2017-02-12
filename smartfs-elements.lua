@@ -1,6 +1,6 @@
 local smartfs = smart_inventory.smartfs
-
 local elements = {}
+
 -----------------------------------------------------
 --- Crafting Preview applet
 -----------------------------------------------------
@@ -28,6 +28,7 @@ end
 
 -- Update fields
 function craft_preview:setCraft(craft)
+	local cache = smart_inventory.cache
 	for x = 1, 3 do
 		for y = 1, 3 do
 			local item = nil
@@ -46,11 +47,11 @@ function craft_preview:setCraft(craft)
 			if item then
 				if item:sub(1, 6) == "group:" then
 					local group_name = item:sub(7)
-					item = smart_inventory.group_items[item:sub(7)]
+					item = cache.group_placeholder[item:sub(7)]
 					if not item then
 						for name, def in pairs(minetest.registered_items) do
 							if def.groups[group_name] or 0 ~= 0 then
-								smart_inventory.group_items[group_name] = name
+								cache.group_placeholder[group_name] = name
 								item = name
 							end
 						end

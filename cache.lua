@@ -4,7 +4,6 @@ local cache = {}
 cache.groups = {}
 cache.items = {}
 cache.recipes = {}
-
 cache.group_placeholder = {}
 
 cache.group_info = {
@@ -19,8 +18,16 @@ cache.group_info = {
 	group_connect_to_raillike = { shortdesc = "Rail-like" },
 	-- TODO: http://dev.minetest.net/Groups/Custom_groups
 
+	group_armor_use = { shortdesc = "Armor" },
+	group_armor_heal = { shortdesc = "Armor" },
+	group_cracky = { shortdesc = "Cracky" },
+	group_flammable = { shortdesc = "Flammable" },
+	group_snappy = { shortdesc = "Snappy" },
+	group_choppy = { shortdesc = "Choppy" },
+	group_oddly_breakable_by_hand = { shortdesc = "Oddly breakable" },
 	type_tool = { shortdesc = "Tools" },
-	type_node = { shortdesc = "Node" },
+	type_node = { shortdesc = "Nodes" },
+	type_craft = { shortdesc = "Craft Items" },
 
 	-- custom
 	transluc = { shortdesc = "Translucent blocks" },
@@ -113,7 +120,7 @@ function cache.get_recipes_craftable_atnext(player)
 	local outtab = {}
 	for _, stack in ipairs(invlist) do
 		local itemname = stack:get_name()
-		items_in_inventory[itemname] = true 
+		items_in_inventory[itemname] = true
 	end
 
 	for recipe_item, recipe_item_data in pairs(cache.recipes) do
@@ -123,14 +130,16 @@ function cache.get_recipes_craftable_atnext(player)
 			item_ok = true
 		elseif recipe_item:sub(1, 6) == "group:" then
 			local group_name = recipe_item:sub(7)
-			if cache.group_placeholder[group_name] then
-				for group_item, def in pairs(cache.group_placeholder[group_name]) do
-					if items_in_inventory[group_item] then
+			if cache.groups["group_"..group_name] then
+				for _, item in ipairs(cache.groups["group_"..group_name].items) do
+					if items_in_inventory[item.name] then
+						cache.group_placeholder[group_name] = item.name
 						item_ok = true
 					end
 				end
 			end
 		end
+
 		if item_ok == true then
 			for name, recipetab in pairs(recipe_item_data) do
 				for _, recipe in ipairs(recipetab) do
@@ -145,6 +154,7 @@ end
 -- Get all recipes with all required items in players inventory. Without count match
 function cache.get_recipes_craftable(player)
 	local all, items_in_inventory = cache.get_recipes_craftable_atnext(player)
+
 	local craftable = {}
 	for recipe, _ in pairs(all) do
 		local out_recipe = table.copy(recipe)
@@ -154,17 +164,18 @@ function cache.get_recipes_craftable(player)
 			local in_inventory = false
 			if item:sub(1, 6) == "group:" then
 				local group_name = item:sub(7)
-				if cache.group_placeholder[group_name] then
-					for group_item, def in ipairs(cache.group_placeholder[group_name].items) do
-						if items_in_inventory[group_item] then
+				if cache.groups["group_"..group_name] then
+					for _, item in ipairs(cache.groups["group_"..group_name].items) do
+						if items_in_inventory[item.name] then
 							in_inventory = true
-							out_recipe.items[idx] = group_item
+							out_recipe.items[idx] = item.name
 						end
 					end
 				end
 			elseif items_in_inventory[item] then
 				in_inventory = true
 			end
+
 			if in_inventory ~= true then
 				item_ok = false
 				break
@@ -179,10 +190,8 @@ end
 
 function cache.get_list_grouped(itemtable)
 	local grouped = {}
-	local other = {}
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
-		local assigned = false
 		if cache.items[entry.item] then
 			for _, group in ipairs(cache.items[entry.item].groups) do
 				if not grouped[group.name] then
@@ -191,28 +200,88 @@ function cache.get_list_grouped(itemtable)
 					grouped[group.name] = group_info
 				end
 				table.insert(grouped[group.name].items, entry)
-				assigned = true
 			end
 		end
-		if assigned == false then
-			table.insert(other, entry)
+	end
+
+	-- magic to calculate relevant groups
+	local itemcount = #itemtable
+--	local best_group_count = itemcount ^(1/3)
+	local best_group_count = math.sqrt(itemcount/2)
+	local best_group_size = (itemcount / best_group_count) * 1.5
+	best_group_count = math.floor(best_group_count)
+	local sorttab = {}
+
+	for k,v in pairs(grouped) do
+		v.group_size = #v.items
+		v.unique_count = #v.items
+		v.diff = math.abs(v.group_size - best_group_size)
+		table.insert(sorttab, v)
+	end
+
+	local outtab = {}
+	local assigned_items = {}
+	if best_group_count > 0 then
+		for i = 1, best_group_count do
+			-- sort by best size
+			table.sort(sorttab, function(a,b)
+				return a.diff < b.diff
+			end)
+
+			-- select the best
+			local sel = sorttab[1]
+			if not sel then
+				break
+			end
+			sel.unique_count = nil
+			sel.diff = nil
+			outtab[sel.name] = sel
+			table.remove(sorttab,1)
+
+			for _, item in ipairs(sel.items) do
+				assigned_items[item.item] = true
+			-- update the not selected groups
+				for _, group in ipairs(cache.items[item.item].groups) do
+					if group.name ~= sel.name then
+						local u = grouped[group.name]
+						if u and u.unique_count then
+							u.unique_count = u.unique_count-1
+							if u.group_size < best_group_size then
+								sel.diff = best_group_size - u.unique_count
+							end
+						end
+					end
+				end
+			end
+
+			for idx = #sorttab, 1, -1 do
+				if sorttab[idx].unique_count <= 1 then
+					table.remove(sorttab, idx)
+				end
+			end
 		end
 	end
-	-- TODO: magic to calculate relevant groups
 
+	-- fill other group
+	local other = {}
+	for _, item in ipairs(itemtable) do
+		if not assigned_items[item.item] then
+			table.insert(other, item)
+		end
+	end
 
 	-- default groups
-	grouped.all = {}
-	grouped.all.name = "all"
-	grouped.all.group_desc = cache.group_info[grouped.all.name].shortdesc
-	grouped.all.items = itemtable
+	outtab.all = {}
+	outtab.all.name = "all"
+	outtab.all.group_desc = cache.group_info[outtab.all.name].shortdesc
+	outtab.all.items = itemtable
 
-	grouped.other = {}
-	grouped.other.name = "other"
-	grouped.other.group_desc = cache.group_info[grouped.all.name].shortdesc
-	grouped.other.items = other
+	outtab.other = {}
+	outtab.other.name = "other"
+	outtab.other.group_desc = cache.group_info[outtab.other.name].shortdesc
+	outtab.other.items = other
 
-	return grouped
+	return outtab
 end
 
 

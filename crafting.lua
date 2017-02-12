@@ -66,7 +66,7 @@ local function update_group_selection(state)
 	end)
 
 	for _, group in ipairs(group_sorted) do
-		if #group.items > 1 then
+		if #group.items > 0 then
 			local idx = groups_sel:addItem(group.group_desc.." ("..#group.items..")")
 			state.param.group_list[idx] = group.name
 		end
@@ -102,6 +102,7 @@ local function update_craftable_list(state)
 					item = def.name,
 					is_button = true
 				}
+				duplicate_index_tmp[def.name] = entry
 				table.insert(entry.recipes, recipe)
 				table.insert(craftable_itemlist, entry)
 			end
@@ -153,19 +154,16 @@ local function crafting_callback(state)
 	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
 	group_sel:onClick(function(self, state, index, player)
 		state.param.selected_filter = state.param.group_list[index]
-		update_group_selection(state)
-		state:get("groups_btn"):setText(self:getSelectedItem())
+		if state.param.selected_filter then
+			update_group_selection(state)
+			state:get("groups_btn"):setText(self:getSelectedItem())
+		end
 	end)
 
 	-- craftable items grid
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10, 5.5, 8 , 4, "buttons_grid")
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.craftable_list[index]
-		if listentry then
-			print(dump(listentry.itemdef)) --DEBUG
-		else
-			print("unknown index:", index, dump(state.param.craftable_list))
-		end
 		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
 		if state:get("inf_area"):getIsHidden() == true then
 			state:get("groups_btn"):submit()
