@@ -29,13 +29,13 @@ local function on_item_select(state, itemdef, recipe)
 end
 
 local function update_group_selection(state)
-	local grouped = state.param.grouped_items
+	local grouped = state.param.crafting_grouped_items
 	local groups_sel = state:get("groups_sel")
 	-- save old selection
 	local sel_id = groups_sel:getSelected()
 	local sel_grp
 	if sel_id then
-		sel_grp = state.param.group_list[sel_id]
+		sel_grp = state.param.crafting_group_list[sel_id]
 	end
 	groups_sel:clearItems()
 	local group_sorted = {}
@@ -57,11 +57,11 @@ local function update_group_selection(state)
 		end
 	end)
 
-	state.param.group_list = {}
+	state.param.crafting_group_list = {}
 	for _, group in ipairs(group_sorted) do
 		if #group.items > 0 then
 			local idx = groups_sel:addItem(group.group_desc.." ("..#group.items..")")
-			state.param.group_list[idx] = group.name
+			state.param.crafting_group_list[idx] = group.name
 			if sel_grp == group.name then
 				sel_id = idx
 			end
@@ -69,20 +69,20 @@ local function update_group_selection(state)
 	end
 
 	-- restore selection
-	if not state.param.group_list[sel_id] then
+	if not state.param.crafting_group_list[sel_id] then
 		sel_id = 1
 	end
 	groups_sel:setSelected(sel_id)
 
 	local grid = state:get("buttons_grid")
 	local btn = state:get("groups_btn")
-	if state.param.group_list[sel_id] then
-		state.param.craftable_list = grouped[state.param.group_list[sel_id]].items
+	if state.param.crafting_group_list[sel_id] then
+		state.param.crafting_craftable_list = grouped[state.param.crafting_group_list[sel_id]].items
 		-- sort selected items
-		table.sort(state.param.craftable_list, function(a,b)
+		table.sort(state.param.crafting_craftable_list, function(a,b)
 			return a.item < b.item
 		end)
-		grid:setList(state.param.craftable_list)
+		grid:setList(state.param.crafting_craftable_list)
 		btn:setText(groups_sel:getSelectedItem())
 	else
 		btn:setText("Empty List")
@@ -123,7 +123,7 @@ local function update_craftable_list(state)
 			end
 		end
 	end
-	state.param.grouped_items = cache.get_list_grouped(craftable_itemlist)
+	state.param.crafting_grouped_items = cache.get_list_grouped(craftable_itemlist)
 	update_group_selection(state)
 end
 
@@ -177,7 +177,7 @@ local function crafting_callback(state)
 	-- craftable items grid
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10, 5.5, 8 , 4, "buttons_grid")
 	grid:onClick(function(self, state, index, player)
-		local listentry = state.param.craftable_list[index]
+		local listentry = state.param.crafting_craftable_list[index]
 		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
 		if state:get("inf_area"):getIsHidden() == true then
 			state:get("groups_btn"):submit()
