@@ -246,7 +246,8 @@ function cache.get_list_grouped(itemtable)
 						local u = grouped[group.name]
 						if u and u.unique_count then
 							u.unique_count = u.unique_count-1
-							if u.group_size < best_group_size then
+							if (u.group_size < best_group_size) or
+									(u.group_size - best_group_size) < (best_group_size - u.unique_count) then
 								sel.diff = best_group_size - u.unique_count
 							end
 						end
