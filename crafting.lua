@@ -48,6 +48,10 @@ local function update_group_selection(state)
 			return true
 		elseif a.name == "other" then
 			return false
+		elseif b.name == "all" then
+			return false
+		elseif b.name == "other" then
+			return true
 		else
 			return a.name < b.name
 		end
