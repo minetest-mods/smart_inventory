@@ -217,6 +217,7 @@ smartfs._ldef.inventory = {
 			player = name,
 			_show_ = function(state)
 				local player = minetest.get_player_by_name(state.location.player)
+				--print(state:_buildFormspec_(true))
 				player:set_inventory_formspec(state:_buildFormspec_(true))
 			end
 		}
@@ -802,12 +803,12 @@ smartfs.element("button", {
 		assert(self.data.value, "button needs label")
 	end,
 	build = function(self)
-		local specstring
+		local specstring = self:getBackgroundString()
 		if self.data.image then
 			if self.data.closes then
-				specstring = "image_button_exit["
+				specstring = specstring.."image_button_exit["
 			else
-				specstring = "image_button["
+				specstring = specstring.."image_button["
 			end
 		elseif self.data.item then
 			if self.data.closes then
@@ -826,14 +827,19 @@ smartfs.element("button", {
 		specstring = specstring ..
 				self.data.pos.x..","..self.data.pos.y..";"..
 				self.data.size.w..","..self.data.size.h..";"
+
 		if self.data.image then
 			specstring = specstring..self.data.image..";"
 		elseif self.data.item then
 			specstring = specstring..self.data.item..";"
 		end
+
 		specstring = specstring..self:getAbsName()..";"..
-			minetest.formspec_escape(self.data.value).."]"..
-			self:getBackgroundString()
+				minetest.formspec_escape(self.data.value).."]"
+
+		if self.data.tooltip then
+			specstring = specstring.."tooltip["..self:getAbsName()..";"..self.data.tooltip.."]"
+		end
 		return specstring
 	end,
 	submit = function(self, field, player)
@@ -871,6 +877,12 @@ smartfs.element("button", {
 	end,
 	getItem = function(self)
 		return self.data.item
+	end,
+	setTooltip = function(self,text)
+		self.data.tooltip = text
+	end,
+	getTooltip = function(self)
+		return self.data.tooltip
 	end,
 	setClose = function(self,bool)
 		self.data.closes = bool

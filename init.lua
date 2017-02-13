@@ -70,6 +70,7 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 		if def.icon then
 			tabdef.button:setImage(def.icon)
 		end
+		tabdef.button:setTooltip(def.tooltip)
 		tabdef.button:onClick(function(self)
 			tab_controller:set_active(def.name)
 			if def.on_button_click then
@@ -92,6 +93,7 @@ function smart_inventory.register_page(def)
 	--[[ API:
 	smart_inventory.register_page({
 		name         = name
+		tooltip      = button tooltip
 		icon | label = *.png|text
 		check_active = (optional: function to check if active) (TODO)
 		smartfs_callback = smartfs callback function

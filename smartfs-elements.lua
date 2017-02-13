@@ -82,12 +82,20 @@ end
 --- Pagable grid buttons
 -----------------------------------------------------
 --[[ enhanced / prepared container
-  Additional methods
-     buttons_grid:setList(craft)
-     buttons_grid:onClick(function(state, index, player)...end)
-     buttons_grid:setList(iconlist)
-     buttons_grid:getFirstVisible()
-     buttons_grid:setFirstVisible(index)
+	Additional methods
+		buttons_grid:setList(craft)
+		buttons_grid:onClick(function(state, index, player)...end)
+		buttons_grid:setList(iconlist)
+		buttons_grid:getFirstVisible()
+		buttons_grid:setFirstVisible(index)
+
+	iconslist is a list of next entries:
+		entry = {
+				image | item =
+				tooltip=
+				is_button = true,
+				size = {w=,h=}
+		}
 ]]
 local buttons_grid = table.copy(smartfs._edef.container)
 function buttons_grid:onCreate()
@@ -102,13 +110,13 @@ function buttons_grid:onCreate()
 	self.data.list = {}
 	for x = 1, self.data.grid_size.w do
 		for y=1, self.data.grid_size.h do
-			local button = self._state:image_button(
+			local button = self._state:button(
 					(x-1)*self.data.cell_size.w,
 					(y-1)*self.data.cell_size.h,
 					self.data.cell_size.w,
 					self.data.cell_size.h,
 					tostring((y-1)*self.data.grid_size.w+x),
-					"text1","text2")
+					"")
 			button:onClick(function(self, state, player)
 				local rel = tonumber(self.name)
 				local parent_element = state.location.containerElement
@@ -198,10 +206,12 @@ function buttons_grid:update()
 					button:setIsHidden(false)
 					button:setItem(entry.item)
 					button:setText("")
+					button:setTooltip(nil)
 				elseif entry.image and entry.is_button == true then
 					button:setIsHidden(false)
 					button:setImage(entry.image)
 					button:setText("")
+					button:setTooltip(entry.tooltip)
 				-- TODO 1: entry.image to display *.png 
 				-- TODO 2: entry.text to display label on button
 				-- TODO 3,4,5: is_button == false to get just pic or label without button
