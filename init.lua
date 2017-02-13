@@ -1,6 +1,8 @@
 local modpath = minetest.get_modpath(minetest.get_current_modname())
 
 smart_inventory = {}
+smart_inventory.skins_mod = minetest.get_modpath("skins")
+smart_inventory.armor_mod = minetest.get_modpath("3d_armor")
 smart_inventory.registered_pages = {}
 smart_inventory.smartfs = dofile(modpath.."/smartfs.lua")
 smart_inventory.smartfs_elements = dofile(modpath.."/smartfs-elements.lua")
@@ -107,7 +109,7 @@ smart_inventory.cache = dofile(modpath.."/cache.lua")
 -- register pages
 dofile(modpath.."/crafting.lua")
 
-if minetest.get_modpath("3d_armor") then
-	dofile(modpath.."/armor.lua")
+if smart_inventory.skins_mod or smart_inventory.armor_mod then
+	dofile(modpath.."/player.lua")
 end
 

@@ -66,17 +66,25 @@ end
 
 local function update_page(state)
 	local name = state.location.rootState.location.player
-	update_grid(state, "main")
-	update_grid(state, "armor")
-	state:get("preview"):setImage(armor.textures[name].preview)
-	state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
 
-	state:get("level"):setText("Level: "..armor.def[name].level)
-	state:get("heal"):setText("Heal:  "..armor.def[name].heal)
-	state:get("fire"):setText("Fire:  "..armor.def[name].fire)
-	state:get("radiation"):setText("Radiation:  "..armor.def[name].radiation)
+	if smart_inventory.armor_mod then
+		update_grid(state, "main")
+		update_grid(state, "armor")
+		state:get("preview"):setImage(armor.textures[name].preview)
+		state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
+		state:get("level"):setText("Level: "..armor.def[name].level)
+		state:get("heal"):setText("Heal:  "..armor.def[name].heal)
+		state:get("fire"):setText("Fire:  "..armor.def[name].fire)
+		state:get("radiation"):setText("Radiation:  "..armor.def[name].radiation)
+		update_selected_item(state)
+	elseif smart_inventory.skins_mod  then
+		state.location.parentState:get("player_button"):setImage(skins.skins[name].."_preview.png")
+		state:get("preview"):setImage(skins.skins[name].."_preview.png")
+	end
 
-	update_selected_item(state)
+	if smart_inventory.skins_mod then
+
+	end
 end
 
 local function move_item_to_armor(state, item)
@@ -97,8 +105,6 @@ local function move_item_to_inv(state, item)
 	armor:set_player_armor(minetest.get_player_by_name(name))
 end
 
-
-
 local function player_callback(state)
 	local name = state.location.rootState.location.player
 	state:image(3.5,1.5,2,4,"preview","")
@@ -115,25 +121,26 @@ local function player_callback(state)
 	state:item_image(0,3.5,2,2,"item_image","")
 	state:background(0, 1.3, 3, 4.6, "it_bg", "minimap_overlay_square.png")	
 
+	if smart_inventory.armor_mod then
+		local grid_armor = smart_inventory.smartfs_elements.buttons_grid(state, 0, 0, 8, 1, "armor_grid")
+		grid_armor:setBackground("halo.png")
+		grid_armor:onClick(function(self, state, index, player)
+			update_selected_item(state, state.param.armor_armor_list[index])
+			move_item_to_inv(state, state.param.armor_armor_list[index])
+			update_page(state)
+		end)
 
-	local grid_armor = smart_inventory.smartfs_elements.buttons_grid(state, 0, 0, 8, 1, "armor_grid")
-	grid_armor:setBackground("halo.png")
-	grid_armor:onClick(function(self, state, index, player)
-		update_selected_item(state, state.param.armor_armor_list[index])
-		move_item_to_inv(state, state.param.armor_armor_list[index])
-		update_page(state)
-	end)
+		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 6, 8, 2, "main_grid")
+		grid_main:setBackground("halo.png")
+		grid_main:onClick(function(self, state, index, player)
+			update_selected_item(state, state.param.armor_main_list[index])
+			move_item_to_armor(state, state.param.armor_main_list[index])
+			update_page(state)
+		end)
+		armor:set_player_armor(minetest.get_player_by_name(name))
+	end
 
-	local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 6, 8, 2, "main_grid")
-	grid_main:setBackground("halo.png")
-	grid_main:onClick(function(self, state, index, player)
-		update_selected_item(state, state.param.armor_main_list[index])
-		move_item_to_armor(state, state.param.armor_main_list[index])
-		update_page(state)
-	end)
 
-	-- set values
-	armor:set_player_armor(minetest.get_player_by_name(name))
 	update_page(state)
 end
 
@@ -146,19 +153,21 @@ smart_inventory.register_page({
 })
 
 
--- Armor filter
-smart_inventory.filter.register_filter({
-		name = "armor", 
-		shortdesc = "Armor",
-		filter_func = function(def, name)
-			if not def or not name then
+	if smart_inventory.armor_mod then
+	-- Armor filter
+	smart_inventory.filter.register_filter({
+			name = "armor", 
+			shortdesc = "Armor",
+			filter_func = function(def, name)
+				if not def or not name then
+					return false
+				end
+				for _, v in pairs(armor.elements) do
+					if def.groups["armor_"..v] then
+						return true
+					end
+				end
 				return false
 			end
-			for _, v in pairs(armor.elements) do
-				if def.groups["armor_"..v] then
-					return true
-				end
-			end
-			return false
-		end
-	})
+		})
+end
