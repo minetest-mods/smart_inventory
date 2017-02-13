@@ -76,7 +76,7 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 		end)
 		tabdef.view = state:container(0,1,def.name.."_container")
 		tabdef.viewstate = tabdef.view:getContainerState()
-		tabdef.viewstate:loadTemplate(def.smartfs_callback)
+		def.smartfs_callback(tabdef.viewstate)
 		tab_controller:tab_add(def.name, tabdef)
 		button_x = button_x + 1
 	end

@@ -641,18 +641,6 @@ function smartfs._makeState_(form, params, location, newplayer)
 
 			return self._ele[data.name]
 		end,
-		loadTemplate = function(self, template)
-			-- template can be a function (usable in smartfs.create()), a form name or object ( a smartfs.create() result)
-			if type(template) == "function" then -- asume it is a smartfs.create() usable function
-				return template(self)
-			elseif type(template) == "string" then -- asume it is a form name
-				return smartfs.__call(self, template)._reg(self)
-			elseif type(template) == "table" then --asume it is an other state
-				if template._reg then
-					template._reg(self)
-				end
-			end
-		end,
 
 		------------------------------------------------------
 		-- State - Element Constructors
@@ -848,7 +836,6 @@ smartfs.element("button", {
 			self:getBackgroundString()
 		return specstring
 	end,
-
 	submit = function(self, field, player)
 		if self._click then
 			self:_click(self.root, player)
