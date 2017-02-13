@@ -107,31 +107,33 @@ end
 
 local function player_callback(state)
 	local name = state.location.rootState.location.player
-	state:image(3.5,1.5,2,4,"preview","")
-	state:label(5.5,1.5,"level", "")
-	state:label(5.5,2.0,"heal","")
-	state:label(5.5,2.5,"fire", "")
-	state:label(5.5,3.0, "radiation", "")
-	state:background(3.2, 1.3, 4.8, 4.6, "pl_bg", "minimap_overlay_square.png")
+	state:image(7,2.5,2,4,"preview","")
+	state:label(9,2.5,"level", "")
+	state:label(9,3.0,"heal","")
+	state:label(9,3.5,"fire", "")
+	state:label(9,4.0, "radiation", "")
+	state:background(6.7, 2.3, 6, 4.6, "pl_bg", "minimap_overlay_square.png")
 
-	state:label(0.1,1.5,"item_level", "")
-	state:label(0.1,2.0,"item_heal","")
-	state:label(0.1,2.5,"item_fire", "")
-	state:label(0.1,3.0, "item_radiation", "")
-	state:item_image(0,3.5,2,2,"item_image","")
-	state:background(0, 1.3, 3, 4.6, "it_bg", "minimap_overlay_square.png")	
+	state:label(0.1,2.5,"item_level", "")
+	state:label(0.1,3.0,"item_heal","")
+	state:label(0.1,3.5,"item_fire", "")
+	state:label(0.1,4.0, "item_radiation", "")
+	state:item_image(0,4.5,2,2,"item_image","")
+	state:background(0, 2.3, 6, 4.6, "it_bg", "minimap_overlay_square.png")	
+
+	state:background(0, 0, 20, 1, "top_bg", "halo.png")
+	state:background(0, 8, 20, 2, "bottom_bg", "halo.png")
 
 	if smart_inventory.armor_mod then
 		local grid_armor = smart_inventory.smartfs_elements.buttons_grid(state, 0, 0, 8, 1, "armor_grid")
-		grid_armor:setBackground("halo.png")
+
 		grid_armor:onClick(function(self, state, index, player)
 			update_selected_item(state, state.param.armor_armor_list[index])
 			move_item_to_inv(state, state.param.armor_armor_list[index])
 			update_page(state)
 		end)
 
-		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 6, 8, 2, "main_grid")
-		grid_main:setBackground("halo.png")
+		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 8, 10, 2, "main_grid")
 		grid_main:onClick(function(self, state, index, player)
 			update_selected_item(state, state.param.armor_main_list[index])
 			move_item_to_armor(state, state.param.armor_main_list[index])
@@ -140,7 +142,34 @@ local function player_callback(state)
 		armor:set_player_armor(minetest.get_player_by_name(name))
 	end
 
+	if smart_inventory.skins_mod then
+		-- Skins Grid
+		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13, 1, 7 , 7, "skins_grid", false, 0.87, 1.30)
+		grid_skins:setBackground("minimap_overlay_square.png")
+		grid_skins:onClick(function(self, state, index, player)
+			skins.skins[player] = skins.list[index]
+			skins.file_save = true
+			skins.update_player_skin(minetest.get_player_by_name(name))
+			if smart_inventory.armor_mod then
+				armor.textures[name].skin = skins.list[index]..".png"
+				armor:set_player_armor(minetest.get_player_by_name(name))
+			end
+			update_page(state)
+		end)
 
+		local skins_grid_data = {}
+		for idx, skin in pairs(skins.list) do
+			table.insert(skins_grid_data, {
+					image = skin.."_preview.png",
+					is_button = true,
+					size = { w = 0.87, h = 1.30 }
+			})
+			if skin == skins.skins[name] then
+				grid_skins:setFirstVisible(idx - 20) --8x5 (grid size) / 2
+			end
+		end
+		grid_skins:setList(skins_grid_data)
+	end
 	update_page(state)
 end
 

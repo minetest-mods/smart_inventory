@@ -93,14 +93,22 @@ local buttons_grid = table.copy(smartfs._edef.container)
 function buttons_grid:onCreate()
 	assert(self.data.size and self.data.size.w and self.data.size.h, "button needs valid size")
 	smartfs._edef.container.onCreate(self)
-
+	if not self.data.cell_size or not self.data.cell_size.w or not self.data.cell_size.h then
+		self.data.cell_size = {w=1, h=1}
+	end
 	self:setSize(self.data.size.w, self.data.size.h) -- view size for background
-
+	self.data.grid_size = {w = math.floor(self.data.size.w/self.data.cell_size.w), h = math.floor(self.data.size.h/self.data.cell_size.h)}
 	self.data.list_start = 1
 	self.data.list = {}
-	for x = 1, self.data.size.w do
-		for y=1, self.data.size.h do
-			local button = self._state:item_image_button(x-1,y-1,1,1,tostring((y-1)*self.data.size.w+x),"","")
+	for x = 1, self.data.grid_size.w do
+		for y=1, self.data.grid_size.h do
+			local button = self._state:image_button(
+					(x-1)*self.data.cell_size.w,
+					(y-1)*self.data.cell_size.h,
+					self.data.cell_size.w,
+					self.data.cell_size.h,
+					tostring((y-1)*self.data.grid_size.w+x),
+					"text1","text2")
 			button:onClick(function(self, state, player)
 				local rel = tonumber(self.name)
 				local parent_element = state.location.containerElement
@@ -110,7 +118,7 @@ function buttons_grid:onCreate()
 				end
 				if rel == 1 and parent_element.data.list_start > 1 then
 					-- page back
-					local full_pagesize = parent_element.data.size.w * parent_element.data.size.h
+					local full_pagesize = parent_element.data.grid_size.w * parent_element.data.grid_size.h
 					if parent_element.data.list_start <= full_pagesize then
 						parent_element.data.list_start = 1
 					else
@@ -118,7 +126,7 @@ function buttons_grid:onCreate()
 						parent_element.data.list_start = parent_element.data.list_start - (full_pagesize-2)
 					end
 					parent_element:update()
-				elseif rel == (parent_element.data.size.w * parent_element.data.size.h) and 
+				elseif rel == (parent_element.data.grid_size.w * parent_element.data.grid_size.h) and
 						parent_element.data.list[parent_element.data.list_start+parent_element.data.pagesize] then
 					-- page forward
 					parent_element.data.list_start = parent_element.data.list_start+parent_element.data.pagesize
@@ -150,7 +158,7 @@ end
 
 function buttons_grid:update()
 	--init pagesize
-	self.data.pagesize = self.data.size.w * self.data.size.h
+	self.data.pagesize = self.data.grid_size.w * self.data.grid_size.h
 	--adjust start position
 	if self.data.list_start > #self.data.list then
 		self.data.list_start = #self.data.list - self.data.pagesize
@@ -160,30 +168,40 @@ function buttons_grid:update()
 	end
 
 	local itemindex = self.data.list_start
-	for btnid = 1, self.data.size.w * self.data.size.h do
+	for btnid = 1, self.data.grid_size.w * self.data.grid_size.h do
 		local button = self._state:get(tostring(btnid))
 		if btnid == 1 and self.data.list_start > 1 then
 			-- setup back button
 			button:setIsHidden(false)
 			button:setImage("left_arrow.png")
 			button:setText(tostring(self.data.list_start-1))
+			button:setSize(self.data.cell_size.w, self.data.cell_size.h)
 			self.data.pagesize = self.data.pagesize - 1
-		elseif btnid == self.data.size.w * self.data.size.h and self.data.list[itemindex+1] then
+		elseif btnid == self.data.grid_size.w * self.data.grid_size.h and self.data.list[itemindex+1] then
 			-- setup next button
 			button:setIsHidden(false)
 			button:setImage("right_arrow.png")
 			self.data.pagesize = self.data.pagesize - 1
 			button:setText(tostring(#self.data.list-self.data.list_start-self.data.pagesize+1))
+			button:setSize(self.data.cell_size.w, self.data.cell_size.h)
 		else
 			-- functional button
 			local entry = self.data.list[itemindex]
 			-- TODO: support for list[]
 			if entry then
+				if entry.size then
+					button:setSize(entry.size.w, entry.size.h)
+				else
+					button:setSize(self.data.cell_size.w, self.data.cell_size.h)
+				end
 				if entry.item and entry.is_button == true then
 					button:setIsHidden(false)
 					button:setItem(entry.item)
 					button:setText("")
-				else
+				elseif entry.image and entry.is_button == true then
+					button:setIsHidden(false)
+					button:setImage(entry.image)
+					button:setText("")
 				-- TODO 1: entry.image to display *.png 
 				-- TODO 2: entry.text to display label on button
 				-- TODO 3,4,5: is_button == false to get just pic or label without button
@@ -199,10 +217,11 @@ end
 
 smartfs.element("buttons_grid", buttons_grid)
 
-function elements:buttons_grid(x, y, w, h, name, relative)
+function elements:buttons_grid(x, y, w, h, name, relative, col_size, row_size)
 	return self:element("buttons_grid", { 
 		pos  = {x=x, y=y},
 		size = {w=w, h=h},
+		cell_size = {w=col_size, h=row_size},
 		name = name,
 		relative = relative
 	})
