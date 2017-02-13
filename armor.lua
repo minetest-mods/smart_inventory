@@ -68,9 +68,9 @@ local function update_page(state)
 	local name = state.location.rootState.location.player
 	update_grid(state, "main")
 	update_grid(state, "armor")
-
-	-- update labels
 	state:get("preview"):setImage(armor.textures[name].preview)
+	state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
+
 	state:get("level"):setText("Level: "..armor.def[name].level)
 	state:get("heal"):setText("Heal:  "..armor.def[name].heal)
 	state:get("fire"):setText("Fire:  "..armor.def[name].fire)
@@ -133,6 +133,7 @@ local function player_callback(state)
 	end)
 
 	-- set values
+	armor:set_player_armor(minetest.get_player_by_name(name))
 	update_page(state)
 end
 
