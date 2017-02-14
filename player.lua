@@ -1,4 +1,5 @@
 local filter = smart_inventory.filter
+local creative = minetest.setting_getbool("creative_mode")
 
 local function update_grid(state, listname)
 -- Update the users inventory grid
@@ -23,7 +24,6 @@ local function update_grid(state, listname)
 				})
 		end
 	end
-
 	table.sort(list, function(a,b)
 		return a.item < b.item
 	end)
@@ -69,7 +69,9 @@ local function update_page(state)
 	local name = state.location.rootState.location.player
 
 	if smart_inventory.armor_mod then
-		update_grid(state, "main")
+		if creative == false then
+			update_grid(state, "main")
+		end
 		update_grid(state, "armor")
 		state:get("preview"):setImage(armor.textures[name].preview)
 		state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
@@ -85,7 +87,6 @@ local function update_page(state)
 
 	if smart_inventory.skins_mod then
 		local skin = skins.skins[name]
-		print("skin:", skin, skins.meta[skin])
 		if skin and skins.meta[skin] then
 			state:get("skinname"):setText("Skin name: "..(skins.meta[skin].name or ""))
 			state:get("skinauthor"):setText("Author: "..(skins.meta[skin].author or ""))
@@ -101,18 +102,26 @@ end
 local function move_item_to_armor(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
-	local itemstack = inventory:get_stack("main", item.stack_index)
-	itemstack = inventory:add_item("armor", itemstack)
-	inventory:set_stack("main", item.stack_index, itemstack)
+	if creative == true then
+		inventory:add_item("armor", item.item)
+	else
+		local itemstack = inventory:get_stack("main", item.stack_index)
+		itemstack = inventory:add_item("armor", itemstack)
+		inventory:set_stack("main", item.stack_index, itemstack)
+	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
 end
 
 local function move_item_to_inv(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
-	local itemstack = inventory:get_stack("armor", item.stack_index)
-	itemstack = inventory:add_item("main", itemstack)
-	inventory:set_stack("armor", item.stack_index, itemstack)
+	if creative == true then
+		inventory:set_stack("armor", item.stack_index, {})
+	else
+		local itemstack = inventory:get_stack("armor", item.stack_index)
+		itemstack = inventory:add_item("main", itemstack)
+		inventory:set_stack("armor", item.stack_index, itemstack)
+	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
 end
 
@@ -148,13 +157,33 @@ local function player_callback(state)
 			update_page(state)
 		end)
 
-		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 8, 10, 2, "main_grid")
+		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 8, 20, 2, "main_grid")
 		grid_main:onClick(function(self, state, index, player)
 			update_selected_item(state, state.param.armor_main_list[index])
 			move_item_to_armor(state, state.param.armor_main_list[index])
 			update_page(state)
 		end)
 		armor:set_player_armor(minetest.get_player_by_name(name))
+
+		if creative == true then
+			-- fill creative list once, not each page update
+			local list = {}
+			for _, itemdef in pairs(minetest.registered_items) do
+				if filter.get("armor"):check_item_by_def(itemdef) == true then
+					table.insert(list, {
+							itemdef = itemdef,
+							-- buttons_grid related
+							item = itemdef.name,
+							is_button = true
+						})
+				end
+			end
+			table.sort(list, function(a,b)
+				return a.item < b.item
+			end)
+			grid_main:setList(list)
+			state.param.armor_main_list = list
+		end
 	end
 
 	if smart_inventory.skins_mod then
