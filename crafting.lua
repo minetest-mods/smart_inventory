@@ -16,14 +16,14 @@ local function on_item_select(state, itemdef, recipe)
 			inf_state:get("cr_type"):setText("")
 		end
 		inf_state:get("craft_result"):setImage(recipe.output)
-		inf_state:get("craft_result"):setIsHidden(false)
+		inf_state:get("craft_result"):setVisible()
 		state:get("craft_preview"):setCraft(recipe)
 	else
 		inf_state:get("info1"):setText("")
 		inf_state:get("info2"):setText("")
 		inf_state:get("info3"):setText("")
 		inf_state:get("cr_type"):setText("")
-		inf_state:get("craft_result"):setIsHidden(true)
+		inf_state:get("craft_result"):setVisible(false)
 		state:get("craft_preview"):setCraft(nil)
 	end
 end
@@ -144,12 +144,12 @@ local function crafting_callback(state)
 	-- functional buttons right site
 	local groups_button = state:button(10, 4.3, 6, 0.5, "groups_btn", "All items")
 	groups_button:onClick(function(self, state, player)
-		if state:get("groups_sel"):getIsHidden() == true then
-			state:get("inf_area"):setIsHidden(true)
-			state:get("groups_sel"):setIsHidden(false)
+		if state:get("groups_sel"):getVisible() == true then
+			state:get("inf_area"):setVisible(true)
+			state:get("groups_sel"):setVisible(false)
 		else
-			state:get("inf_area"):setIsHidden(false)
-			state:get("groups_sel"):setIsHidden(true)
+			state:get("inf_area"):setVisible(false)
+			state:get("groups_sel"):setVisible(true)
 		end
 	end)
 
@@ -163,8 +163,8 @@ local function crafting_callback(state)
 	inf_state:label(11.5,1.5,"info3", "")
 	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
 	inf_state:label(6.7,3,"cr_type", "")
-	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setIsHidden(true)
-	inf_area:setIsHidden(true)
+	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setVisible(false)
+	inf_area:setVisible(false)
 
 	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
 	group_sel:onClick(function(self, state, player)
@@ -179,7 +179,7 @@ local function crafting_callback(state)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
 		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
-		if state:get("inf_area"):getIsHidden() == true then
+		if state:get("inf_area"):getVisible() == false then
 			state:get("groups_btn"):submit()
 		end
 	end)

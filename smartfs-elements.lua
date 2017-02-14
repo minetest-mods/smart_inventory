@@ -18,7 +18,7 @@ function craft_preview:onCreate()
 					(x-1)*self.data.zoom+self.data.pos.x,
 					(y-1)*self.data.zoom+self.data.pos.y,
 					self.data.zoom, self.data.zoom,
-					"craft:"..x..":"..y,nil):setIsHidden(true)
+					"craft:"..x..":"..y,nil):setVisible(false)
 		end
 	end
 	if self.data.recipe then
@@ -58,9 +58,9 @@ function craft_preview:setCraft(craft)
 					end
 				end
 				img:setImage(item)
-				img:setIsHidden(false)
+				img:setVisible(true)
 			else
-				img:setIsHidden(true)
+				img:setVisible(false)
 			end
 		end
 	end
@@ -146,7 +146,7 @@ function buttons_grid:onCreate()
 					end
 				end
 			end)
-			button:setIsHidden(true)
+			button:setVisible(false)
 		end
 	end
 end
@@ -180,14 +180,14 @@ function buttons_grid:update()
 		local button = self._state:get(tostring(btnid))
 		if btnid == 1 and self.data.list_start > 1 then
 			-- setup back button
-			button:setIsHidden(false)
+			button:setVisible(true)
 			button:setImage("left_arrow.png")
 			button:setText(tostring(self.data.list_start-1))
 			button:setSize(self.data.cell_size.w, self.data.cell_size.h)
 			self.data.pagesize = self.data.pagesize - 1
 		elseif btnid == self.data.grid_size.w * self.data.grid_size.h and self.data.list[itemindex+1] then
 			-- setup next button
-			button:setIsHidden(false)
+			button:setVisible(true)
 			button:setImage("right_arrow.png")
 			self.data.pagesize = self.data.pagesize - 1
 			button:setText(tostring(#self.data.list-self.data.list_start-self.data.pagesize+1))
@@ -203,12 +203,12 @@ function buttons_grid:update()
 					button:setSize(self.data.cell_size.w, self.data.cell_size.h)
 				end
 				if entry.item and entry.is_button == true then
-					button:setIsHidden(false)
+					button:setVisible(true)
 					button:setItem(entry.item)
 					button:setText("")
 					button:setTooltip(nil)
 				elseif entry.image and entry.is_button == true then
-					button:setIsHidden(false)
+					button:setVisible(true)
 					button:setImage(entry.image)
 					button:setText("")
 					button:setTooltip(entry.tooltip)
@@ -217,7 +217,7 @@ function buttons_grid:update()
 				-- TODO 3,4,5: is_button == false to get just pic or label without button
 				end
 			else
-				button:setIsHidden(true)
+				button:setVisible(false)
 			end
 			itemindex = itemindex + 1
 		end

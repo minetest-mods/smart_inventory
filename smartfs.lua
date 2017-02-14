@@ -449,8 +449,8 @@ function smartfs._makeState_(form, params, location, newplayer)
 				res = "size["..self._size.w..","..self._size.h.."]"
 			end
 			for key,val in pairs(self._ele) do
-				if not val:getIsHidden() == true then
-					res = res .. val:build()
+				if val:getVisible() == true then
+					res = res .. val:getBackgroundString() .. val:build()
 				end
 			end
 			return res
@@ -498,7 +498,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 			end
 			-- recursive all onInput hooks on visible containers
 			for elename, eledef in pairs(self._ele) do
-				if eledef.getContainerState and not eledef:getIsHidden() then
+				if eledef.getContainerState and eledef:getVisible() == true then
 					eledef:getContainerState():_sfs_process_oninput_(fields, player)
 				end
 			end
@@ -600,11 +600,15 @@ function smartfs._makeState_(form, params, location, newplayer)
 				getSize = function(self)
 					return self.data.size
 				end,
-				setIsHidden = function(self, hidden)
-					self.data.hidden = hidden
+				setVisible = function(self, visible)
+					if visible == nil then
+						self.data.visible = true
+					else
+						self.data.visible = visible
+					end
 				end,
-				getIsHidden = function(self)
-					return self.data.hidden or false
+				getVisible = function(self)
+					return self.data.visible
 				end,
 				getAbsName = function(self)
 					return self.root:getNamespace()..self.name
@@ -631,6 +635,8 @@ function smartfs._makeState_(form, params, location, newplayer)
 					end
 				end,
 			}
+
+			ele.data.visible = true --visible by default
 
 			for key, val in pairs(type) do
 				ele[key] = val
@@ -736,7 +742,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 				pos   = {x=x, y=y},
 				size  = {w=w, h=h},
 				name  = name,
-				value = img,
+				background = img,
 				imgtype  = "background"
 			})
 		end,
@@ -803,12 +809,12 @@ smartfs.element("button", {
 		assert(self.data.value, "button needs label")
 	end,
 	build = function(self)
-		local specstring = self:getBackgroundString()
+		local specstring
 		if self.data.image then
 			if self.data.closes then
-				specstring = specstring.."image_button_exit["
+				specstring = "image_button_exit["
 			else
-				specstring = specstring.."image_button["
+				specstring = "image_button["
 			end
 		elseif self.data.item then
 			if self.data.closes then
@@ -827,16 +833,13 @@ smartfs.element("button", {
 		specstring = specstring ..
 				self.data.pos.x..","..self.data.pos.y..";"..
 				self.data.size.w..","..self.data.size.h..";"
-
 		if self.data.image then
 			specstring = specstring..self.data.image..";"
 		elseif self.data.item then
 			specstring = specstring..self.data.item..";"
 		end
-
 		specstring = specstring..self:getAbsName()..";"..
 				minetest.formspec_escape(self.data.value).."]"
-
 		if self.data.tooltip then
 			specstring = specstring.."tooltip["..self:getAbsName()..";"..self.data.tooltip.."]"
 		end
@@ -905,8 +908,7 @@ smartfs.element("toggle", {
 			self:getAbsName()..
 			";"..
 			minetest.formspec_escape(self.data.list[self.data.id])..
-			"]"..
-			self:getBackgroundString()
+			"]"
 	end,
 	submit = function(self, field, player)
 		self.data.id = self.data.id + 1
@@ -941,8 +943,7 @@ smartfs.element("label", {
 			self.data.pos.x..","..self.data.pos.y..
 			";"..
 			minetest.formspec_escape(self.data.value)..
-			"]"..
-			self:getBackgroundString()
+			"]"
 	end,
 	setText = function(self,text)
 		self.data.value = text
@@ -972,8 +973,7 @@ smartfs.element("field", {
 				minetest.formspec_escape(self.data.label)..
 				";"..
 				minetest.formspec_escape(self.data.value)..
-				"]"..
-				self:getBackgroundString()
+				"]"
 		elseif self.data.pwd then
 			return "pwdfield["..
 				self.data.pos.x..","..self.data.pos.y..
@@ -983,8 +983,7 @@ smartfs.element("field", {
 				self:getAbsName()..
 				";"..
 				minetest.formspec_escape(self.data.label)..
-				"]"..
-				self:getBackgroundString()
+				"]"
 		else
 			return "field["..
 				self.data.pos.x..","..self.data.pos.y..
@@ -996,8 +995,7 @@ smartfs.element("field", {
 				minetest.formspec_escape(self.data.label)..
 				";"..
 				minetest.formspec_escape(self.data.value)..
-				"]"..
-				self:getBackgroundString()
+				"]"
 		end
 	end,
 	setText = function(self,text)
@@ -1022,8 +1020,7 @@ smartfs.element("image", {
 	end,
 	build = function(self)
 		if self.data.imgtype == "background" then
-			self.data.background = self.data.value
-			return self:getBackgroundString()
+			return "" -- handled in _buildFormspec_ trough getBackgroundString()
 		elseif self.data.imgtype == "item" then
 			return "item_image["..
 				self.data.pos.x..","..self.data.pos.y..
@@ -1043,10 +1040,18 @@ smartfs.element("image", {
 		end
 	end,
 	setImage = function(self,text)
-		self.data.value = text
+		if self.data.imgtype == "background" then
+			self.data.background = text
+		else
+			self.data.value = text
+		end
 	end,
 	getImage = function(self)
-		return self.data.value
+		if self.data.imgtype == "background" then
+			return self.data.background
+		else
+			return self.data.value
+		end
 	end
 })
 
@@ -1064,8 +1069,7 @@ smartfs.element("checkbox", {
 			self:getAbsName()..
 			";"..
 			minetest.formspec_escape(self.data.label)..
-			";" .. boolToStr(self.data.value) .."]"..
-			self:getBackgroundString()
+			";" .. boolToStr(self.data.value) .."]"
 	end,
 	submit = function(self, field, player)
 		-- self.data.value already set by value transfer, but as string
@@ -1109,8 +1113,7 @@ smartfs.element("list", {
 				";"..
 				tostring(self.data.selected or "")..
 				";"..
-				tostring(self.data.transparent or "false").."]" ..
-				self:getBackgroundString()
+				tostring(self.data.transparent or "false").."]"
 	end,
 	submit = function(self, field, player)
 		local _type = string.sub(field,1,3)
@@ -1184,8 +1187,7 @@ smartfs.element("dropdown", {
 			table.concat(self.data.items, ",")..
 			";"..
 			tostring(self:getSelected())..
-			"]"..
-			self:getBackgroundString()
+			"]"
 	end,
 	submit = function(self, field, player)
 		self:getSelected()
@@ -1255,8 +1257,7 @@ smartfs.element("inventory", {
 			self.data.size.w..","..self.data.size.h..
 			";"..
 			(self.data.index or "") ..
-			"]"..
-			self:getBackgroundString()
+			"]"
 	end,
 	-- available inventory locations
 	-- "current_player": Player to whom the menu is shown
@@ -1336,14 +1337,13 @@ smartfs.element("container", {
 	-- element interface methods
 	build = function(self)
 		--the background string is "under" the container. Parts of this background can be overriden by elements (with background) from container
-		if self:getIsHidden() == false then
+		if self:getVisible() == true then
 			if self.data.relative ~= true then
-				return self:getBackgroundString()..
-						"container["..self.data.pos.x..","..self.data.pos.y.."]"..
+				return "container["..self.data.pos.x..","..self.data.pos.y.."]"..
 						self:getContainerState():_buildFormspec_(false)..
 						"container_end[]"
 			else
-				return self:getBackgroundString()..self:getContainerState():_buildFormspec_(false)
+				return self:getContainerState():_buildFormspec_(false)
 			end
 		else
 			return ""

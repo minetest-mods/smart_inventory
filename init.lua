@@ -21,10 +21,10 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 			for name, def in pairs(self._tabs) do
 				if name == tabname then
 					def.button:setBackground("halo.png")
-					def.view:setIsHidden(false)
+					def.view:setVisible(true)
 				else
 					def.button:setBackground(nil)
-					def.view:setIsHidden(true)
+					def.view:setVisible(false)
 				end
 			end
 			self.active_name = tabname
