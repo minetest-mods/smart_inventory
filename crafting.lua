@@ -135,6 +135,28 @@ local function crafting_callback(state)
 	state:inventory(4.2, 2.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
+	state:button(1, 4.3, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
+		local name = state.location.rootState.location.player
+		local inventory = minetest.get_player_by_name(name):get_inventory()
+		local invsize = inventory:get_size("main")
+		for idx1 = invsize, 1, -1 do
+			local stack1 = inventory:get_stack("main", idx1)
+			if not stack1:is_empty() then
+				for idx2 = 1, idx1 do
+					local stack2 = inventory:get_stack("main", idx2)
+					if idx1 ~= idx2  and stack1:get_name() == stack2:get_name() then
+						stack1 = stack2:add_item(stack1)
+						inventory:set_stack("main", idx1, stack1)
+						inventory:set_stack("main", idx2, stack2)
+						if stack1:is_empty() then
+							break
+						end
+					end
+				end
+			end
+		end
+	end)
+
 	-- functional buttons right site
 	local refresh_button = state:button(16, 4.3, 2, 0.5, "refresh", "Refresh")
 	refresh_button:onClick(function(self, state, player)
