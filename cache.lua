@@ -137,15 +137,19 @@ end
 
 
 -- Get all recipes with at least one item existing in players inventory
-function cache.get_recipes_craftable_atnext(player)
+function cache.get_recipes_craftable_atnext(player, item)
 	local inventory = minetest.get_player_by_name(player):get_inventory()
 	local invlist = inventory:get_list("main")
 	local items_in_inventory = {}
 	local recipe_with_one_item_in_inventory = {}
 	local outtab = {}
-	for _, stack in ipairs(invlist) do
-		local itemname = stack:get_name()
-		items_in_inventory[itemname] = true
+	if item then
+		items_in_inventory[item] = true
+	else
+		for _, stack in ipairs(invlist) do
+			local itemname = stack:get_name()
+			items_in_inventory[itemname] = true
+	end
 	end
 
 	for recipe_item, recipe_item_data in pairs(cache.recipes) do

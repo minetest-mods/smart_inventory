@@ -90,14 +90,11 @@ local function update_group_selection(state)
 	end
 end
 
-local function update_craftable_list(state)
-	local player = state.location.rootState.location.player
-	local craftable = cache.get_recipes_craftable(player)
+local function update_craftable_list(state, recipelist)
 	local duplicate_index_tmp = {}
 	local craftable_itemlist = {}
 
-	-- get the full list of craftable
-	for recipe, _ in pairs(craftable) do
+	for recipe, _ in pairs(recipelist) do
 		local def = minetest.registered_items[recipe.output]
 		if not def then
 			recipe.output:gsub("[^%s]+", function(z)
@@ -127,8 +124,56 @@ local function update_craftable_list(state)
 	update_group_selection(state)
 end
 
+local function create_lookup_inv(state, name)
+	local player = minetest.get_player_by_name(name)
+	local invname = name.."_crafting_inv"
+	local plistname = "crafting_inv_lookup"
+	local listname = "lookup"
+	local pinv = player:get_inventory()
+	local inv = minetest.get_inventory({type="detached", name=invname})
+	if not inv then
+		inv = minetest.create_detached_inventory(invname, {
+			allow_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+				return 0
+			end,
+			allow_put = function(inv, listname, index, stack, player)
+				if pinv:is_empty(plistname) then
+					return 1
+				else
+					return 0
+				end
+			end,
+			allow_take = function(inv, listname, index, stack, player)
+				return 1
+			end,
+			on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
+			end,
+			on_put = function(inv, listname, index, stack, player)
+				pinv:set_stack(plistname, index, stack)
+				update_craftable_list(state, cache.get_recipes_craftable_atnext(name, stack:get_name()))
+				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
+				-- put back
+				minetest.after(1, function(stack)
+					local applied = pinv:add_item("main", stack)
+					pinv:set_stack(plistname, 1, applied)
+					inv:set_stack(listname, 1, applied)
+				end, stack)
+			end,
+			on_take = function(inv, listname, index, stack, player)
+				pinv:set_stack(plistname, index, nil)
+			end,
+		}, name)
+	end
+	-- copy the item from player:listname inventory to the detached
+	inv:set_size(listname, 1)
+	pinv:set_size(plistname, 1)
+	local stack = pinv:get_stack(plistname, 1)
+	inv:set_stack(listname, 1, stack)
+end
+
 local function crafting_callback(state)
 	local player = state.location.rootState.location.player
+
 	--Inventorys / left site
 	state:inventory(1, 5, 8, 4,"main")
 	state:inventory(1.2, 0.2, 3, 3,"craft")
@@ -157,10 +202,13 @@ local function crafting_callback(state)
 		end
 	end)
 
+	create_lookup_inv(state, player)
+	state:inventory(8, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
+
 	-- functional buttons right site
 	local refresh_button = state:button(16, 4.3, 2, 0.5, "refresh", "Refresh")
 	refresh_button:onClick(function(self, state, player)
-		update_craftable_list(state)
+		update_craftable_list(state, cache.get_recipes_craftable(player))
 	end)
 
 	-- functional buttons right site
@@ -207,7 +255,8 @@ local function crafting_callback(state)
 	end)
 
 	-- initial values
-	update_craftable_list(state)
+	local player = state.location.rootState.location.player
+	update_craftable_list(state, cache.get_recipes_craftable(player))
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
 		state:get("groups_btn"):setText(group_sel:getSelectedItem())
