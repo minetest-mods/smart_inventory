@@ -1,4 +1,5 @@
 local filter = smart_inventory.filter
+local cache = smart_inventory.cache
 local creative = minetest.setting_getbool("creative_mode")
 
 local function update_grid(state, listname)
@@ -168,15 +169,13 @@ local function player_callback(state)
 		if creative == true then
 			-- fill creative list once, not each page update
 			local list = {}
-			for _, itemdef in pairs(minetest.registered_items) do
-				if filter.get("armor"):check_item_by_def(itemdef) == true then
-					table.insert(list, {
-							itemdef = itemdef,
-							-- buttons_grid related
-							item = itemdef.name,
-							is_button = true
-						})
-				end
+			for _, itemdef in pairs(cache.groups["filter_armor"].items) do
+				table.insert(list, {
+						itemdef = itemdef,
+						-- buttons_grid related
+						item = itemdef.name,
+						is_button = true
+					})
 			end
 			table.sort(list, function(a,b)
 				return a.item < b.item
