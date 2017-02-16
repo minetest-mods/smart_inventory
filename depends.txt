@@ -3,3 +3,4 @@ creative?
 sfinv?
 3d_armor?
 skins?
+doc_items?

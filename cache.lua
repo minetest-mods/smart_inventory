@@ -149,7 +149,7 @@ function cache.get_recipes_craftable_atnext(player, item)
 		for _, stack in ipairs(invlist) do
 			local itemname = stack:get_name()
 			items_in_inventory[itemname] = true
-	end
+		end
 	end
 
 	for recipe_item, recipe_item_data in pairs(cache.recipes) do
@@ -165,10 +165,42 @@ function cache.get_recipes_craftable_atnext(player, item)
 				end
 			end
 		end
-		if item_ok == true then
+		if item_ok then
 			for name, recipetab in pairs(recipe_item_data) do
 				for _, recipe in ipairs(recipetab) do
-					recipe_with_one_item_in_inventory[recipe] = true
+					local recipe_ok = true
+					for idx, itemname in pairs(recipe.items) do
+						if itemname:sub(1, 6) == "group:" then
+							local item_in_group_ok = false
+							for _, item in ipairs(recipe_items_resolve_group(itemname)) do
+								if filter.is_revealed_item(item.name, player) then
+									item_in_group_ok = true
+									break
+								end
+							end
+							if item_in_group_ok == false then
+								recipe_ok = false
+							end
+						elseif not filter.is_revealed_item(itemname, player) then
+							recipe_ok = false
+						end
+						if recipe_ok == false then
+							break
+						end
+					end
+					if recipe_ok then
+						local def = minetest.registered_items[recipe.output]
+						if not def then
+							recipe.output:gsub("[^%s]+", function(z)
+								if minetest.registered_items[z] then
+									def = minetest.registered_items[z]
+								end
+							end)
+						end
+						if def then
+							recipe_with_one_item_in_inventory[recipe] = true
+						end
+					end
 				end
 			end
 		end

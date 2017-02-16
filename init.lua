@@ -3,6 +3,7 @@ local modpath = minetest.get_modpath(minetest.get_current_modname())
 smart_inventory = {}
 smart_inventory.skins_mod = minetest.get_modpath("skins")
 smart_inventory.armor_mod = minetest.get_modpath("3d_armor")
+smart_inventory.doc_items_mod = minetest.get_modpath("doc_items")
 smart_inventory.registered_pages = {}
 smart_inventory.smartfs = dofile(modpath.."/smartfs.lua")
 smart_inventory.smartfs_elements = dofile(modpath.."/smartfs-elements.lua")

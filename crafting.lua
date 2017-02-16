@@ -1,4 +1,5 @@
 local cache = smart_inventory.cache
+local filter = smart_inventory.filter
 
 local function on_item_select(state, itemdef, recipe)
 	local inf_state = state:get("inf_area"):getContainerState()
@@ -150,7 +151,9 @@ local function create_lookup_inv(state, name)
 			end,
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
-				update_craftable_list(state, cache.get_recipes_craftable_atnext(name, stack:get_name()))
+				-- get the recipes with the item. Filter for visible in docs
+				local recipes = cache.get_recipes_craftable_atnext(name, stack:get_name())
+				update_craftable_list(state, recipes)
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				-- put back
 				minetest.after(1, function(stack)
