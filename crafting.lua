@@ -152,7 +152,9 @@ local function create_lookup_inv(state, name)
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
 				-- get the recipes with the item. Filter for visible in docs
-				local recipes = cache.get_recipes_craftable_atnext(name, stack:get_name())
+				local recipes
+				local recipes, ciii = cache.get_recipes_craftable_atnext(name, stack:get_name())
+				state.param.crafting_items_in_inventory = ciii
 				update_craftable_list(state, recipes)
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				-- put back
@@ -211,7 +213,9 @@ local function crafting_callback(state)
 	-- functional buttons right site
 	local refresh_button = state:button(16, 4.3, 2, 0.5, "refresh", "Refresh")
 	refresh_button:onClick(function(self, state, player)
-		update_craftable_list(state, cache.get_recipes_craftable(player))
+		local craftable, ciii = cache.get_recipes_craftable(player)
+		state.param.crafting_items_in_inventory = ciii
+		update_craftable_list(state, craftable)
 	end)
 
 	-- functional buttons right site
@@ -251,7 +255,32 @@ local function crafting_callback(state)
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10, 5.5, 8 , 4, "buttons_grid")
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
-		on_item_select(state, listentry.itemdef, listentry.recipes[1]) --TODO: recipes paging
+		local recipe = table.copy(listentry.recipes[1])
+		recipe.items = table.copy(listentry.recipes[1].items)
+		for key, recipe_item in pairs(recipe.items) do
+			local item = nil
+			if recipe_item:sub(1, 6) == "group:" then
+				local itemslist = cache.recipe_items_resolve_group(recipe_item)
+				if itemslist[2] == nil then
+					item = itemslist[1].name
+				else
+					for _, item_in_list in ipairs(itemslist) do
+						if state.param.crafting_items_in_inventory[item_in_list.name] then
+							item = item_in_list.name
+							break
+						elseif filter.is_revealed_item(item_in_list.name, player) then
+							item = item_in_list.name
+						elseif item == nil then
+							item = item_in_list.name
+						end
+					end
+				end
+			end
+			if item then
+				recipe.items[key] = item
+			end
+		end
+		on_item_select(state, listentry.itemdef, recipe)
 		if state:get("inf_area"):getVisible() == false then
 			state:get("groups_btn"):submit()
 		end
@@ -259,7 +288,10 @@ local function crafting_callback(state)
 
 	-- initial values
 	local player = state.location.rootState.location.player
-	update_craftable_list(state, cache.get_recipes_craftable(player))
+
+	local craftable, ciii = cache.get_recipes_craftable(player)
+	state.param.crafting_items_in_inventory  = ciii
+	update_craftable_list(state, craftable)
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
 		state:get("groups_btn"):setText(group_sel:getSelectedItem())
