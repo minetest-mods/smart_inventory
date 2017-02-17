@@ -187,7 +187,7 @@ local function player_callback(state)
 
 	if smart_inventory.skins_mod then
 		-- Skins Grid
-		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", false, 0.87, 1.30)
+		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", 0.87, 1.30)
 		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
 		grid_skins:onClick(function(self, state, index, player)
 			local skin = skins.list[index]

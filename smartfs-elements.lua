@@ -86,6 +86,7 @@ end
 ]]
 local buttons_grid = table.copy(smartfs._edef.container)
 function buttons_grid:onCreate()
+	self.data.relative = true
 	assert(self.data.size and self.data.size.w and self.data.size.h, "button needs valid size")
 	smartfs._edef.container.onCreate(self)
 	if not self.data.cell_size or not self.data.cell_size.w or not self.data.cell_size.h then
@@ -98,8 +99,8 @@ function buttons_grid:onCreate()
 	for x = 1, self.data.grid_size.w do
 		for y=1, self.data.grid_size.h do
 			local button = self._state:button(
-					(x-1)*self.data.cell_size.w,
-					(y-1)*self.data.cell_size.h,
+					self.data.pos.x + (x-1)*self.data.cell_size.w,
+					self.data.pos.y + (y-1)*self.data.cell_size.h,
 					self.data.cell_size.w,
 					self.data.cell_size.h,
 					tostring((y-1)*self.data.grid_size.w+x),
@@ -214,13 +215,12 @@ end
 
 smartfs.element("buttons_grid", buttons_grid)
 
-function elements:buttons_grid(x, y, w, h, name, relative, col_size, row_size)
+function elements:buttons_grid(x, y, w, h, name, col_size, row_size)
 	return self:element("buttons_grid", { 
 		pos  = {x=x, y=y},
 		size = {w=w, h=h},
 		cell_size = {w=col_size, h=row_size},
-		name = name,
-		relative = relative
+		name = name
 	})
 end
 

@@ -139,13 +139,13 @@ local function create_lookup_inv(state, name)
 			end,
 			allow_put = function(inv, listname, index, stack, player)
 				if pinv:is_empty(plistname) then
-					return 1
+					return 99
 				else
 					return 0
 				end
 			end,
 			allow_take = function(inv, listname, index, stack, player)
-				return 1
+				return 99
 			end,
 			on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
 			end,
@@ -185,7 +185,7 @@ local function crafting_callback(state)
 	state:inventory(4.2, 2.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
-	state:button(1, 4.3, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
+	state:button(1, 4.2, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
 		local name = state.location.rootState.location.player
 		local inventory = minetest.get_player_by_name(name):get_inventory()
 		local invsize = inventory:get_size("main")
@@ -208,18 +208,20 @@ local function crafting_callback(state)
 	end)
 
 	create_lookup_inv(state, player)
-	state:inventory(8, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
+	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
 	-- functional buttons right site
-	local refresh_button = state:button(16, 4.3, 2, 0.5, "refresh", "Refresh")
+	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory ")
 	refresh_button:onClick(function(self, state, player)
 		local craftable, ciii = cache.get_recipes_craftable(player)
 		state.param.crafting_items_in_inventory = ciii
 		update_craftable_list(state, craftable)
+		state:get("inf_area"):setVisible(false)
+		state:get("groups_sel"):setVisible(true)
 	end)
 
 	-- functional buttons right site
-	local groups_button = state:button(10, 4.3, 6, 0.5, "groups_btn", "All items")
+	local groups_button = state:button(13, 4.2, 5, 0.5, "groups_btn", "All items")
 	groups_button:onClick(function(self, state, player)
 		if state:get("groups_sel"):getVisible() == true then
 			state:get("inf_area"):setVisible(true)
@@ -252,7 +254,8 @@ local function crafting_callback(state)
 	end)
 
 	-- craftable items grid
-	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10, 5.5, 8 , 4, "buttons_grid")
+	state:background(10, 5, 8, 4, "buttons_grid_Bg", "minimap_overlay_square.png")
+	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10.25, 5.15, 8 , 4, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
 		local recipe = table.copy(listentry.recipes[1])
