@@ -52,9 +52,12 @@ filter.register_filter({
 		end
 	})
 
----TODO: irgend wo einbauen!
 function filter.is_revealed_item(itemname, playername)
 	local cache = smart_inventory.cache
+	if minetest.registered_items[itemname] == nil then
+		return false
+	end
+
 	if smart_inventory.doc_items_mod then
 		local category_id
 		if not cache.citems[itemname] then
@@ -72,12 +75,15 @@ function filter.is_revealed_item(itemname, playername)
 			end
 			if category_id then
 				return doc.entry_revealed(playername, category_id, itemname)
+			else
+				-- unknown item
+				return false
 			end
-			return true --should not be happen. But take it visible if the item is not a node or tool or item
 		end
 	end
 	return true
 end
-	----------------
+
+----------------
 return filter
 

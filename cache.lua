@@ -153,7 +153,11 @@ function cache.fill_recipe_cache()
 									end
 								end
 							else
-								table.insert(itemlist,recipe_item)
+								if minetest.registered_items[recipe_item] == nil then
+									minetest.log("verbose", "[smartfs_inventory] unknown item in recipe: "..itemname)
+								else
+									table.insert(itemlist,recipe_item)
+								end
 							end
 							cache.crecipes[recipe].recipe_items[recipe_item] = {}
 							for _, itemname in ipairs(itemlist) do
@@ -224,16 +228,21 @@ function cache.get_recipes_craftable_atnext(player, item)
 				end)
 			end
 			if def then
+				local recipe_ok = false
 				for recipe_item, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
+					recipe_ok = false
 					for _, itemname in ipairs(itemtab) do
-						if filter.is_revealed_item(itemname, player) then
-							recipe_with_one_item_in_inventory[recipe] = true
+						if filter.is_revealed_item(itemname, player) == true then
+							recipe_ok = true
 							break
 						end
 					end
-					if recipe_with_one_item_in_inventory[recipe] == true then
+					if recipe_ok == false then
 						break
 					end
+				end
+				if recipe_ok then
+					recipe_with_one_item_in_inventory[recipe] = true
 				end
 			end
 		end
