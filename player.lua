@@ -169,7 +169,7 @@ local function player_callback(state)
 		if creative == true then
 			-- fill creative list once, not each page update
 			local list = {}
-			for _, itemdef in pairs(cache.groups["filter_armor"].items) do
+			for _, itemdef in pairs(cache.cgroups["filter_armor"].items) do
 				table.insert(list, {
 						itemdef = itemdef,
 						-- buttons_grid related

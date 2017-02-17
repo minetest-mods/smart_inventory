@@ -57,16 +57,16 @@ function filter.is_revealed_item(itemname, playername)
 	local cache = smart_inventory.cache
 	if smart_inventory.doc_items_mod then
 		local category_id
-		if not cache.items[itemname] then
+		if not cache.citems[itemname] then
 			-- not in creative or something like
 			return false
 		else
-			for _, group in pairs(cache.items[itemname].groups) do
-				if group.name == "type_node" then
+			for _, group in pairs(cache.citems[itemname].cgroups) do
+				if group.name == "type:node" then
 					category_id = "nodes"
-				elseif group.name == "type_tool" then
+				elseif group.name == "type:tool" then
 					category_id = "tools"
-				elseif group.name == "type_craft" then
+				elseif group.name == "type:craft" then
 					category_id = "craftitems"
 				end
 			end

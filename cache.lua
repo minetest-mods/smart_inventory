@@ -1,13 +1,16 @@
 local filter = smart_inventory.filter
 
 local cache = {}
-cache.groups = {}
-cache.items = {}
-cache.recipes = {}
+cache.cgroups = {}
+cache.citems = {}
+cache.recipes = {}  --TODO
 cache.group_placeholder = {}
 
+-----------------------------------------------------
+-- Group labels
+-----------------------------------------------------
 cache.group_info = {
-	group_level = { shortdesc = "Uses level information" },
+--[[	group_level = { shortdesc = "Uses level information" },
 	group_dig_immediate = { shortdesc = "Fast removable" },
 	group_disable_jump = { shortdesc = "Not jumpable" },
 	group_less_damage  = { shortdesc = "Less damage" },
@@ -32,14 +35,18 @@ cache.group_info = {
 	-- custom
 	transluc = { shortdesc = "Translucent blocks" },
 	inventory = { shortdesc = "Chestlike vessels" },
-
+]]
 	-- list specific
 	all = {shortdesc = "All items" },
 	other = {shortdesc = "Other items" }
 }
 
+
+-----------------------------------------------------
+-- Add a item to cache group
+-----------------------------------------------------
 local function add_to_cache(group_name, def, shortdesc)
-	if not cache.groups[group_name] then
+	if not cache.cgroups[group_name] then
 		local group = {
 			name = group_name,
 			group_desc = shortdesc,
@@ -51,46 +58,42 @@ local function add_to_cache(group_name, def, shortdesc)
 		if not group.group_desc then
 			group.group_desc = group_name
 		end
-		cache.groups[group_name] = group
+		cache.cgroups[group_name] = group
 	end
-	table.insert(cache.groups[group_name].items,def)
+	table.insert(cache.cgroups[group_name].items,def)
 
-	if not cache.items[def.name] then
-		local item = {
-			groups = {}
+	if not cache.citems[def.name] then
+		local entry = {
+			cgroups = {}
 		}
-		cache.items[def.name] = item
+		cache.citems[def.name] = entry
 	end
-	table.insert(cache.items[def.name].groups,cache.groups[group_name])
+	table.insert(cache.citems[def.name].cgroups,cache.cgroups[group_name])
 end
 
--- build cache at start
+-----------------------------------------------------
+-- Fill the cache at start
+-----------------------------------------------------
 function cache.fill_cache()
 	for name, def in pairs(minetest.registered_items) do
-		-- cache groups
+		-- build groups and items cache
 		if def.description and def.description ~= "" and not def.groups.not_in_creative_inventory then
 			for group, grval in pairs(def.groups) do
-				local group_name = "group_"..group
-				if group == "fall_damage_add_percent" and grval < 0 then
-					group_name = "group_less_damage"
-				elseif group == "fall_damage_add_percent" and grval > 0 then
-					group_name = "group_more_damage"
-				else
-					group_name = "group_"..group
-				end
+				local group_name = "group:"..group
 				add_to_cache(group_name, def)
 			end
-			add_to_cache("type_"..def.type, def)
-			add_to_cache("mod_"..def.mod_origin, def) -- TODO: get mod description and add it to shortdesc
+			add_to_cache("type:"..def.type, def)
+			add_to_cache("mod:"..def.mod_origin, def) -- TODO: get mod description and add it to shortdesc
 
 			-- extended registred filters
 			for _, flt in pairs(filter.registered_filter) do
 				if flt:check_item_by_def(def) == true then
-					add_to_cache("filter_"..flt.name, def, flt.shortdesc)
+					add_to_cache("filter:"..flt.name, def, flt.shortdesc)
 				end
 			end
 		end
 
+		-- Build recipes cache --TODO --
 		local recipelist = minetest.get_all_craft_recipes(name)
 		if recipelist then
 			for _, recipe in ipairs(recipelist) do
@@ -111,23 +114,26 @@ function cache.fill_cache()
 	end
 end
 
+-----------------------------------------------------
+-- Resolve item in recipe described by groups to items list
+-----------------------------------------------------
 function recipe_items_resolve_group(group_item)
 	local group_name = group_item:sub(7)
-	local group2_pos = group_name:find(",")
+	local group2_pos = group_name:find(",") --TODO: in a loop
 	local ret = {}
 	if group2_pos then
 		local group_name_ext = group_name:sub(1, group2_pos-1)
 		local group_variant = group_name:sub(group2_pos+1)
-		if cache.groups["group_"..group_name_ext] then
-			for _, item in ipairs(cache.groups["group_"..group_name_ext].items) do
+		if cache.cgroups["group:"..group_name_ext] then
+			for _, item in ipairs(cache.cgroups["group:"..group_name_ext].items) do
 				if item.groups[group_variant] then
 					table.insert(ret, item)
 				end
 			end
 		end
 	else
-		if cache.groups["group_"..group_name] then
-			for _, item in ipairs(cache.groups["group_"..group_name].items) do
+		if cache.cgroups["group:"..group_name] then
+			for _, item in ipairs(cache.cgroups["group:"..group_name].items) do
 				table.insert(ret, item)
 			end
 		end
@@ -135,8 +141,9 @@ function recipe_items_resolve_group(group_item)
 	return ret
 end
 
-
+-----------------------------------------------------
 -- Get all recipes with at least one item existing in players inventory
+-----------------------------------------------------
 function cache.get_recipes_craftable_atnext(player, item)
 	local inventory = minetest.get_player_by_name(player):get_inventory()
 	local invlist = inventory:get_list("main")
@@ -208,7 +215,9 @@ function cache.get_recipes_craftable_atnext(player, item)
 	return recipe_with_one_item_in_inventory, items_in_inventory
 end
 
+-----------------------------------------------------
 -- Get all recipes with all required items in players inventory. Without count match
+-----------------------------------------------------
 function cache.get_recipes_craftable(player)
 	local all, items_in_inventory = cache.get_recipes_craftable_atnext(player)
 
@@ -242,14 +251,17 @@ function cache.get_recipes_craftable(player)
 	return craftable, items_in_inventory
 end
 
+-----------------------------------------------------
+-- Sort items to groups and decide which groups should be displayed
+-----------------------------------------------------
 function cache.get_list_grouped(itemtable)
 	local grouped = {}
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
-		if cache.items[entry.item] then
-			for _, group in ipairs(cache.items[entry.item].groups) do
+		if cache.citems[entry.item] then
+			for _, group in ipairs(cache.citems[entry.item].cgroups) do
 				if not grouped[group.name] then
-					local group_info = table.copy(cache.groups[group.name])
+					local group_info = table.copy(cache.cgroups[group.name]) --TODO: without copy, use own small {} table
 					group_info.items = {}
 					grouped[group.name] = group_info
 				end
@@ -295,7 +307,7 @@ function cache.get_list_grouped(itemtable)
 			for _, item in ipairs(sel.items) do
 				assigned_items[item.item] = true
 			-- update the not selected groups
-				for _, group in ipairs(cache.items[item.item].groups) do
+				for _, group in ipairs(cache.citems[item.item].cgroups) do
 					if group.name ~= sel.name then
 						local u = grouped[group.name]
 						if u and u.unique_count then
@@ -308,7 +320,6 @@ function cache.get_list_grouped(itemtable)
 					end
 				end
 			end
-
 			for idx = #sorttab, 1, -1 do
 				if sorttab[idx].unique_count <= 1 then
 					table.remove(sorttab, idx)
@@ -339,9 +350,12 @@ function cache.get_list_grouped(itemtable)
 	return outtab
 end
 
-
+-----------------------------------------------------
 -- fill the cache after all mods loaded
+-----------------------------------------------------
 minetest.after(0, cache.fill_cache)
 
+-----------------------------------------------------
 -- return the reference to the mod
+-----------------------------------------------------
 return cache
