@@ -133,7 +133,7 @@ function cache.fill_recipe_cache()
 							end
 						end)
 					end
-					if not outdef then
+					if not outdef or not outdef.name or not cache.citems[outdef.name] then
 						minetest.log("verbose", "[smartfs_inventory] unknown recipe result "..recipe.output.." for item "..itemname)
 					else
 						table.insert(cache.citems[outdef.name].in_output_recipe, recipe)
@@ -218,31 +218,33 @@ function cache.get_recipes_craftable_atnext(player, item)
 		end
 	end
 	for itemname, _ in pairs(items_in_inventory) do
-		for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
-			local def = minetest.registered_items[recipe.output]
-			if not def then
-				recipe.output:gsub("[^%s]+", function(z)
-					if minetest.registered_items[z] then
-						def = minetest.registered_items[z]
-					end
-				end)
-			end
-			if def then
-				local recipe_ok = false
-				for recipe_item, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
-					recipe_ok = false
-					for _, itemname in ipairs(itemtab) do
-						if filter.is_revealed_item(itemname, player) == true then
-							recipe_ok = true
+		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
+			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
+				local def = minetest.registered_items[recipe.output]
+				if not def then
+					recipe.output:gsub("[^%s]+", function(z)
+						if minetest.registered_items[z] then
+							def = minetest.registered_items[z]
+						end
+					end)
+				end
+				if def then
+					local recipe_ok = false
+					for recipe_item, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
+						recipe_ok = false
+						for _, itemname in ipairs(itemtab) do
+							if filter.is_revealed_item(itemname, player) == true then
+								recipe_ok = true
+								break
+							end
+						end
+						if recipe_ok == false then
 							break
 						end
 					end
-					if recipe_ok == false then
-						break
+					if recipe_ok then
+						recipe_with_one_item_in_inventory[recipe] = true
 					end
-				end
-				if recipe_ok then
-					recipe_with_one_item_in_inventory[recipe] = true
 				end
 			end
 		end
