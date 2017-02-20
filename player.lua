@@ -68,7 +68,6 @@ end
 
 local function update_page(state)
 	local name = state.location.rootState.location.player
-
 	if smart_inventory.armor_mod then
 		if creative == false then
 			update_grid(state, "main")
@@ -216,6 +215,13 @@ local function player_callback(state)
 		end
 		grid_skins:setList(skins_grid_data)
 	end
+
+	-- not visible update plugin for updates from outsite (API)
+	state:element("code", { name = "update_hook" }):onSubmit(function(self, state)
+		update_page(state)
+		state.location.rootState:show()
+	end)
+
 	update_page(state)
 end
 

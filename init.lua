@@ -105,6 +105,26 @@ function smart_inventory.register_page(def)
 	table.insert(smart_inventory.registered_pages, def)
 end
 
+function smart_inventory.get_page_state(pagename, playername)
+	local rootstate = smart_inventory.smartfs.inv[playername]
+	if not rootstate then
+		return
+	end
+	local view = rootstate:get(pagename.."_container")
+	if not view then
+		return
+	end
+	return view:getContainerState()
+end
+
+function smart_inventory.get_registered_page(pagename)
+	for _, registred_page in ipairs(smart_inventory.registered_pages) do
+		if registred_page.name == pagename then
+			return registred_page
+		end
+	end
+end
+
 -- build up caches
 smart_inventory.filter = dofile(modpath.."/filter.lua")
 smart_inventory.cache = dofile(modpath.."/cache.lua")
