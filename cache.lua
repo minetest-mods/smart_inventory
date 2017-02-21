@@ -281,7 +281,7 @@ end
 -----------------------------------------------------
 -- Sort items to groups and decide which groups should be displayed
 -----------------------------------------------------
-function cache.get_list_grouped(itemtable)
+function cache.get_list_grouped(itemtable, group_count)
 	local grouped = {}
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
@@ -301,8 +301,7 @@ function cache.get_list_grouped(itemtable)
 
 	-- magic to calculate relevant groups
 	local itemcount = #itemtable
---	local best_group_count = itemcount ^(1/3)
-	local best_group_count = math.sqrt(itemcount/2)
+	local best_group_count = group_count or itemcount ^(1/3)
 	local best_group_size = (itemcount / best_group_count) * 1.5
 	best_group_count = math.floor(best_group_count)
 	local sorttab = {}
