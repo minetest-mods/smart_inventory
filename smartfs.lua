@@ -983,7 +983,8 @@ smartfs.element("field", {
 				self:getAbsName()..
 				";"..
 				minetest.formspec_escape(self.data.label)..
-				"]"
+				"]"..
+				self:getCloseOnEnterString()
 		else
 			return "field["..
 				self.data.pos.x..","..self.data.pos.y..
@@ -995,7 +996,8 @@ smartfs.element("field", {
 				minetest.formspec_escape(self.data.label)..
 				";"..
 				minetest.formspec_escape(self.data.value)..
-				"]"
+				"]"..
+				self:getCloseOnEnterString()
 		end
 	end,
 	setText = function(self,text)
@@ -1009,6 +1011,19 @@ smartfs.element("field", {
 	end,
 	isMultiline = function(self,bool)
 		self.data.ml = bool
+	end,
+	getCloseOnEnterString = function(self)
+		if self.close_on_enter == nil then
+			return ""
+		else
+			return "field_close_on_enter["..self:getAbsName()..";"..tostring(self.close_on_enter).."]"
+		end
+	end,
+	setCloseOnEnter = function(self, value)
+		self.close_on_enter = value
+	end,
+	getCloseOnEnter = function(self)
+		return self.close_on_enter
 	end
 })
 

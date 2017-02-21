@@ -1,6 +1,10 @@
 local cache = smart_inventory.cache
 local filter = smart_inventory.filter
+local ui_tools = smart_inventory.ui_tools
 
+-----------------------------------------------------
+-- Update item informations about the selected item
+-----------------------------------------------------
 local function on_item_select(state, itemdef, recipe)
 	local inf_state = state:get("inf_area"):getContainerState()
 	if itemdef then
@@ -29,54 +33,21 @@ local function on_item_select(state, itemdef, recipe)
 	end
 end
 
-local function update_group_selection(state)
+-----------------------------------------------------
+-- Update the group selection table
+-----------------------------------------------------
+local function update_group_selection(state, rebuild)
 	local grouped = state.param.crafting_grouped_items
 	local groups_sel = state:get("groups_sel")
-	-- save old selection
-	local sel_id = groups_sel:getSelected()
-	local sel_grp
-	if sel_id then
-		sel_grp = state.param.crafting_group_list[sel_id]
-	end
-	groups_sel:clearItems()
-	local group_sorted = {}
-	for _, group in pairs(grouped) do
-		table.insert(group_sorted, group)
-	end
-
-	table.sort(group_sorted, function(a,b)
-		if a.name == "all" then
-			return true
-		elseif a.name == "other" then
-			return false
-		elseif b.name == "all" then
-			return false
-		elseif b.name == "other" then
-			return true
-		else
-			return a.name < b.name
-		end
-	end)
-
-	state.param.crafting_group_list = {}
-	for _, group in ipairs(group_sorted) do
-		if #group.items > 0 then
-			local idx = groups_sel:addItem(group.group_desc.." ("..#group.items..")")
-			state.param.crafting_group_list[idx] = group.name
-			if sel_grp == group.name then
-				sel_id = idx
-			end
-		end
-	end
-
-	-- restore selection
-	if not state.param.crafting_group_list[sel_id] then
-		sel_id = 1
-	end
-	groups_sel:setSelected(sel_id)
-
 	local grid = state:get("buttons_grid")
 	local btn = state:get("groups_btn")
+	-- prepare
+	if rebuild then
+		state.param.crafting_group_list = ui_tools.update_group_selection(grouped, groups_sel, state.param.crafting_group_list)
+	end
+
+	-- apply
+	local sel_id = groups_sel:getSelected()
 	if state.param.crafting_group_list[sel_id] then
 		state.param.crafting_craftable_list = grouped[state.param.crafting_group_list[sel_id]].items
 		-- sort selected items
@@ -91,6 +62,9 @@ local function update_group_selection(state)
 	end
 end
 
+-----------------------------------------------------
+-- Update the items list
+-----------------------------------------------------
 local function update_craftable_list(state, recipelist)
 	local duplicate_index_tmp = {}
 	local craftable_itemlist = {}
@@ -122,9 +96,12 @@ local function update_craftable_list(state, recipelist)
 		end
 	end
 	state.param.crafting_grouped_items = cache.get_list_grouped(craftable_itemlist)
-	update_group_selection(state)
+	update_group_selection(state, true)
 end
 
+-----------------------------------------------------
+-- Lookup inventory
+-----------------------------------------------------
 local function create_lookup_inv(state, name)
 	local player = minetest.get_player_by_name(name)
 	local invname = name.."_crafting_inv"
@@ -176,6 +153,9 @@ local function create_lookup_inv(state, name)
 	inv:set_stack(listname, 1, stack)
 end
 
+-----------------------------------------------------
+-- Page layout definition
+-----------------------------------------------------
 local function crafting_callback(state)
 	local player = state.location.rootState.location.player
 
@@ -220,7 +200,6 @@ local function crafting_callback(state)
 		state:get("groups_sel"):setVisible(true)
 	end)
 
-	-- functional buttons right site
 	local groups_button = state:button(13, 4.2, 5, 0.5, "groups_btn", "All items")
 	groups_button:onClick(function(self, state, player)
 		if state:get("groups_sel"):getVisible() == true then
@@ -233,7 +212,6 @@ local function crafting_callback(state)
 	end)
 
 	-- preview area / multifunctional
---	state:background(5.4, 0.1, 3.5, 3.8, "craft_img1", "menu_bg.png")
 	state:background(10.0, 0.1, 8, 3.8, "craft_img2", "minimap_overlay_square.png")
 	local inf_area = state:container(6.4, 0.1, "inf_area", true)
 	local inf_state = inf_area:getContainerState()
@@ -249,7 +227,7 @@ local function crafting_callback(state)
 	group_sel:onClick(function(self, state, player)
 		local selected = self:getSelectedItem()
 		if selected then
-			update_group_selection(state)
+			update_group_selection(state, false)
 		end
 	end)
 
