@@ -59,7 +59,7 @@ function cache.add_to_cache_group(group_name, itemdef, shortdesc)
 		end
 		cache.cgroups[group_name] = group
 	end
-	table.insert(cache.cgroups[group_name].items,itemdef)
+	cache.cgroups[group_name].items[itemdef.name] = itemdef
 
 	if not cache.citems[itemdef.name] then
 		local entry = {
@@ -70,7 +70,7 @@ function cache.add_to_cache_group(group_name, itemdef, shortdesc)
 		}
 		cache.citems[itemdef.name] = entry
 	end
-	table.insert(cache.citems[itemdef.name].cgroups,cache.cgroups[group_name])
+	cache.citems[itemdef.name].cgroups[group_name] = cache.cgroups[group_name]
 end
 
 -----------------------------------------------------
@@ -90,16 +90,16 @@ function cache.recipe_items_resolve_group(group_item)
 				minetest.log("verbose", "[smartfs_inventory] unknown group description in recipe: "..group_item, groupname)
 			end
 		else
-			for i = #retitems, 1, -1 do
+			for itemname, itemdef in pairs(retitems) do
 				local item_in_group = false
-				for _, item_group in pairs(cache.citems[retitems[i].name].cgroups) do
+				for _, item_group in pairs(cache.citems[itemname].cgroups) do
 					if item_group.name == "group:"..groupname then
 						item_in_group = true
 						break
 					end
 				end
 				if item_in_group == false then
-					table.remove(retitems,i)
+					retitems[itemname] = nil
 				end
 			end
 		end
@@ -110,7 +110,7 @@ function cache.recipe_items_resolve_group(group_item)
 	end
 	--create new group
 	if retitems then
-		for _, itemdef in ipairs(retitems) do
+		for _, itemdef in pairs(retitems) do
 			cache.add_to_cache_group(group_item, itemdef)
 		end
 	end
@@ -144,28 +144,28 @@ function cache.fill_recipe_cache()
 						for idx, recipe_item in pairs(recipe.items) do
 							local itemlist = {}
 							if recipe_item:sub(1, 6) == "group:" then
-								local groupitems = cache.recipe_items_resolve_group(recipe_item)
-								if not groupitems then
+								local itemlist = cache.recipe_items_resolve_group(recipe_item)
+								if not itemlist then
 									minetest.log("verbose", "[smartfs_inventory] skip recipe for: "..itemname)
-								else
-									for _, item in ipairs(cache.recipe_items_resolve_group(recipe_item)) do
-										table.insert(itemlist, item.name)
-									end
 								end
 							else
 								if minetest.registered_items[recipe_item] == nil then
 									minetest.log("verbose", "[smartfs_inventory] unknown item in recipe: "..itemname)
 								else
-									table.insert(itemlist,recipe_item)
+									itemlist[recipe_item] = minetest.registered_items[recipe_item]
 								end
 							end
 							cache.crecipes[recipe].recipe_items[recipe_item] = {}
-							for _, itemname in ipairs(itemlist) do
+							for itemname, itemdef in pairs(itemlist) do
 								if cache.citems[itemname] then
 									table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 									table.insert(cache.crecipes[recipe].recipe_items[recipe_item], itemname)
 								end
 							end
+						end
+						-- create ingredient group
+						for itemname, _ in pairs(cache.crecipes[recipe].recipe_items) do
+							cache.add_to_cache_group("ingredient:"..itemname, outdef)
 						end
 					end
 				end
@@ -287,7 +287,7 @@ function cache.get_list_grouped(itemtable, group_count)
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
 		if cache.citems[entry.item] then
-			for _, group in ipairs(cache.citems[entry.item].cgroups) do
+			for _, group in pairs(cache.citems[entry.item].cgroups) do
 				if not grouped[group.name] then
 					local group_info = {}
 					group_info.name = group.name
@@ -338,7 +338,7 @@ function cache.get_list_grouped(itemtable, group_count)
 			for _, item in ipairs(sel.items) do
 				assigned_items[item.item] = true
 			-- update the not selected groups
-				for _, group in ipairs(cache.citems[item.item].cgroups) do
+				for _, group in pairs(cache.citems[item.item].cgroups) do
 					if group.name ~= sel.name then
 						local u = grouped[group.name]
 						if u and u.unique_count then

@@ -242,18 +242,14 @@ local function crafting_callback(state)
 			local item = nil
 			if recipe_item:sub(1, 6) == "group:" then
 				local itemslist = cache.recipe_items_resolve_group(recipe_item)
-				if itemslist[2] == nil then
-					item = itemslist[1].name
-				else
-					for _, item_in_list in ipairs(itemslist) do
-						if state.param.crafting_items_in_inventory[item_in_list.name] then
-							item = item_in_list.name
-							break
-						elseif filter.is_revealed_item(item_in_list.name, player) then
-							item = item_in_list.name
-						elseif item == nil then
-							item = item_in_list.name
-						end
+				for _, item_in_list in pairs(itemslist) do
+					if state.param.crafting_items_in_inventory[item_in_list.name] then
+						item = item_in_list.name
+						break
+					elseif filter.is_revealed_item(item_in_list.name, player) then
+						item = item_in_list.name
+					elseif item == nil then
+						item = item_in_list.name
 					end
 				end
 			end
