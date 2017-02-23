@@ -184,6 +184,7 @@ function cache.fill_cache()
 			for group, grval in pairs(def.groups) do
 				local group_name = "group:"..group
 				cache.add_to_cache_group(group_name, def)
+				cache.add_to_cache_group(group_name..":"..tostring(grval), def)
 			end
 			cache.add_to_cache_group("type:"..def.type, def)
 			cache.add_to_cache_group("mod:"..def.mod_origin, def) -- TODO: get mod description and add it to shortdesc
