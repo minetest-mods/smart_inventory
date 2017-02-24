@@ -154,6 +154,7 @@ function cache.fill_recipe_cache()
 							else
 								if minetest.registered_items[recipe_item] == nil then
 									minetest.log("verbose", "[smartfs_inventory] unknown item in recipe: "..itemname)
+
 								else
 									itemlist[recipe_item] = minetest.registered_items[recipe_item]
 								end
