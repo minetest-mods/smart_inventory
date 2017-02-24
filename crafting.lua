@@ -7,6 +7,7 @@ local ui_tools = smart_inventory.ui_tools
 -----------------------------------------------------
 local function update_preview(state)
 	-- adjust selected and enable preview paging buttons
+	local player = state.location.rootState.location.player
 	local listentry = state.param.crafting_recipes_preivew_listentry
 	local selected = state.param.crafting_recipes_preivew_selected
 	if not listentry.recipes[selected] then
