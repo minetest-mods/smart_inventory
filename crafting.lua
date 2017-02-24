@@ -5,7 +5,50 @@ local ui_tools = smart_inventory.ui_tools
 -----------------------------------------------------
 -- Update item informations about the selected item
 -----------------------------------------------------
-local function on_item_select(state, itemdef, recipe)
+local function update_preview(state)
+	-- adjust selected and enable preview paging buttons
+	local listentry = state.param.crafting_recipes_preivew_listentry
+	local selected = state.param.crafting_recipes_preivew_selected
+	if not listentry.recipes[selected] then
+		selected = 1
+	end
+	state.param.crafting_recipes_preivew_selected = selected
+	if listentry.recipes[selected-1] then
+		state:get("preview_prev"):setVisible(true)
+	else
+		state:get("preview_prev"):setVisible(false)
+	end
+	if listentry.recipes[selected+1] then
+		state:get("preview_next"):setVisible(true)
+	else
+		state:get("preview_next"):setVisible(false)
+	end
+
+	-- create the recipe preview, set right items for groups
+	local itemdef = listentry.itemdef
+	local recipe = table.copy(listentry.recipes[selected])
+	recipe.items = table.copy(recipe.items)
+	for key, recipe_item in pairs(recipe.items) do
+		local item = nil
+		if recipe_item:sub(1, 6) == "group:" then
+			local itemslist = cache.recipe_items_resolve_group(recipe_item)
+			for _, item_in_list in pairs(itemslist) do
+				if state.param.crafting_items_in_inventory[item_in_list.name] then
+					item = item_in_list.name
+					break
+				elseif filter.is_revealed_item(item_in_list.name, player) then
+					item = item_in_list.name
+				elseif item == nil then
+					item = item_in_list.name
+				end
+			end
+		end
+		if item then
+			recipe.items[key] = item
+		end
+	end
+
+	-- update info area
 	local inf_state = state:get("inf_area"):getContainerState()
 	if itemdef then
 		inf_state:get("info1"):setText(itemdef.description)
@@ -232,6 +275,20 @@ local function crafting_callback(state)
 	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setVisible(false)
 	inf_area:setVisible(false)
 
+	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
+	pr_prev_btn:onClick(function(self, state, player)
+		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected -1
+		update_preview(state)
+	end)
+	pr_prev_btn:setVisible(false)
+
+	local pr_next_btn = state:button(8, 3, 1, 0.5, "preview_next", ">>")
+	pr_next_btn:onClick(function(self, state, player)
+		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected +1
+		update_preview(state)
+	end)
+	pr_next_btn:setVisible(false)
+
 	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
 	group_sel:onClick(function(self, state, player)
 		local selected = self:getSelectedItem()
@@ -245,28 +302,9 @@ local function crafting_callback(state)
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10.25, 5.15, 8 , 4, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
-		local recipe = table.copy(listentry.recipes[1])
-		recipe.items = table.copy(listentry.recipes[1].items)
-		for key, recipe_item in pairs(recipe.items) do
-			local item = nil
-			if recipe_item:sub(1, 6) == "group:" then
-				local itemslist = cache.recipe_items_resolve_group(recipe_item)
-				for _, item_in_list in pairs(itemslist) do
-					if state.param.crafting_items_in_inventory[item_in_list.name] then
-						item = item_in_list.name
-						break
-					elseif filter.is_revealed_item(item_in_list.name, player) then
-						item = item_in_list.name
-					elseif item == nil then
-						item = item_in_list.name
-					end
-				end
-			end
-			if item then
-				recipe.items[key] = item
-			end
-		end
-		on_item_select(state, listentry.itemdef, recipe)
+		state.param.crafting_recipes_preivew_selected = 1
+		state.param.crafting_recipes_preivew_listentry = listentry
+		update_preview(state)
 		if state:get("inf_area"):getVisible() == false then
 			state:get("groups_btn"):submit()
 		end
