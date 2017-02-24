@@ -129,8 +129,14 @@ local function create_lookup_inv(state, name)
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
 				-- get the recipes with the item. Filter for visible in docs
-				local recipes
-				local recipes, ciii = cache.get_recipes_craftable_atnext(name, stack:get_name())
+				local lookup_item = stack:get_name()
+				local recipes, ciii = cache.get_recipes_craftable_atnext(name, lookup_item)
+				-- add recipes of lookup item to get more info about them
+				if cache.citems[lookup_item] and cache.citems[lookup_item].in_output_recipe then
+					for _, recipe in ipairs(cache.citems[lookup_item].in_output_recipe) do
+						recipes[recipe] = true
+					end
+				end
 				state.param.crafting_items_in_inventory = ciii
 				update_craftable_list(state, recipes)
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
