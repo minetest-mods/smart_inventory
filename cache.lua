@@ -147,7 +147,7 @@ function cache.fill_recipe_cache()
 						for idx, recipe_item in pairs(recipe.items) do
 							local itemlist = {}
 							if recipe_item:sub(1, 6) == "group:" then
-								local itemlist = cache.recipe_items_resolve_group(recipe_item)
+								itemlist = cache.recipe_items_resolve_group(recipe_item)
 								if not itemlist then
 									minetest.log("verbose", "[smartfs_inventory] skip recipe for: "..itemname)
 								end
@@ -158,11 +158,13 @@ function cache.fill_recipe_cache()
 									itemlist[recipe_item] = minetest.registered_items[recipe_item]
 								end
 							end
-							cache.crecipes[recipe].recipe_items[recipe_item] = {}
-							for itemname, itemdef in pairs(itemlist) do
-								if cache.citems[itemname] then
-									table.insert(cache.citems[itemname].in_craft_recipe, recipe)
-									table.insert(cache.crecipes[recipe].recipe_items[recipe_item], itemname)
+							if itemlist then
+								cache.crecipes[recipe].recipe_items[recipe_item] = {}
+								for itemname, itemdef in pairs(itemlist) do
+									if cache.citems[itemname] then
+										table.insert(cache.citems[itemname].in_craft_recipe, recipe)
+										table.insert(cache.crecipes[recipe].recipe_items[recipe_item], itemname)
+									end
 								end
 							end
 						end
