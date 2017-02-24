@@ -94,35 +94,6 @@ local function update_group_selection(state, changed_group)
 	end
 end
 
-local function create_trash_inv(state, name)
-	local player = minetest.get_player_by_name(name)
-	local invname = name.."_trash_inv"
-	local listname = "trash"
-	local inv = minetest.get_inventory({type="detached", name=invname})
-	if not inv then
-		inv = minetest.create_detached_inventory(invname, {
-			allow_move = function(inv, from_list, from_index, to_list, to_index, count, player)
-				return 0
-			end,
-			allow_put = function(inv, listname, index, stack, player)
-				return 99
-			end,
-			allow_take = function(inv, listname, index, stack, player)
-				return 99
-			end,
-			on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
-			end,
-			on_put = function(inv, listname, index, stack, player)
-				inv:set_stack(listname, index, nil)
-			end,
-			on_take = function(inv, listname, index, stack, player)
-				inv:set_stack(listname, index, nil)
-			end,
-		}, name)
-	end
-	inv:set_size(listname, 1)
-end
-
 local function creative_callback(state)
 	local player = state.location.rootState.location.player
 
@@ -161,7 +132,7 @@ local function creative_callback(state)
 	end)
 
 	state:inventory(1.4, 8, 16, 2,"main")
-	create_trash_inv(state, player)
+	ui_tools.create_trash_inv(state, player)
 	state:inventory(17.6, 8, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
 	-- filter on input

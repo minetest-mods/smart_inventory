@@ -165,6 +165,9 @@ local function crafting_callback(state)
 	state:inventory(4.2, 2.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
+	ui_tools.create_trash_inv(state, player)
+	state:inventory(8, 4, 1, 1, "trash"):useDetached(player.."_trash_inv")
+
 	state:button(1, 4.2, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
 		local name = state.location.rootState.location.player
 		local inventory = minetest.get_player_by_name(name):get_inventory()
