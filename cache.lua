@@ -356,22 +356,28 @@ function cache.get_list_grouped(itemtable, group_count)
 			}
 			table.remove(sorttab, groupindex)
 
+
 			for _, item in ipairs(sel.items) do
 				assigned_items[item.item] = true
 			-- update the not selected groups
 				for _, group in pairs(cache.citems[item.item].cgroups) do
 					if group.name ~= sel.name then
 						local u = grouped[group.name]
-						if u and u.unique_count and #u.items > 0 then
+						if u and u.unique_count and u.group_size > 0 then
 							u.unique_count = u.unique_count-1
+--[[
 							if sel.cgroup.exclusive then
-								for i = #u.items, 1, -1 do
-									if cache.citems[u.items[i].item].cgroups[group.name] then
-										table.remove(u.items, i)
-										u.group_size = u.group_size -1
+								if cache.citems[item.item].cgroups[sel.name] then
+									for i, removeitem in ipairs(u.items) do
+										if removeitem.item == u.items.item then
+											table.remove(u.items, i)
+											break
+										end
 									end
+									u.group_size = u.group_size -1
 								end
 							end
+]]
 							if (u.group_size < u.best_group_size) or
 									(u.group_size - u.best_group_size) < (u.best_group_size - u.unique_count) then
 								sel.diff = u.best_group_size - u.unique_count
@@ -380,6 +386,7 @@ function cache.get_list_grouped(itemtable, group_count)
 					end
 				end
 			end
+
 			for idx = #sorttab, 1, -1 do
 				if sorttab[idx].unique_count <= 1 then
 					table.remove(sorttab, idx)
