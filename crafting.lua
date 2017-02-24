@@ -216,7 +216,7 @@ local function crafting_callback(state)
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
 	ui_tools.create_trash_inv(state, player)
-	state:inventory(8, 4, 1, 1, "trash"):useDetached(player.."_trash_inv")
+	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
 	state:button(1, 4.2, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
 		local name = state.location.rootState.location.player
