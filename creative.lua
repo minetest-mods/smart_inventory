@@ -10,6 +10,7 @@ end
 
 local function get_all_items(state)
 	local outtab = {}
+	local outtab_material = {}
 	for itemname, citem in pairs(cache.citems) do
 		local entry = {
 			citem = citem,
@@ -17,9 +18,13 @@ local function get_all_items(state)
 			item = itemname,
 			is_button = true
 		}
-		table.insert(outtab, entry)
+		if cache.citems[itemname].cgroups["filter:material"] then
+			table.insert(outtab_material, entry)
+		else
+			table.insert(outtab, entry)
+		end
 	end
-	return outtab
+	return outtab, outtab_material
 end
 
 
@@ -173,8 +178,17 @@ local function creative_callback(state)
 	end)
 
 	-- fill with data
-	state.param.creative_grouped_items_all = get_all_items(state)
+	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = get_all_items(state)
 	state.param.creative_grouped_items = cache.get_list_grouped(state.param.creative_grouped_items_all)
+	if state.param.creative_grouped_items_material_all and
+			next(state.param.creative_grouped_items_material_all) then
+		local group_info = {}
+		group_info.name = "filter:material"
+		group_info.cgroup = cache.cgroups["filter:material"]
+		group_info.group_desc = group_info.cgroup.group_desc
+		group_info.items = state.param.creative_grouped_items_material_all
+		state.param.creative_grouped_items["filter:material"] = group_info
+	end
 	update_group_selection(state, 0)
 
 end

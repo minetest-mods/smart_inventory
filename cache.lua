@@ -37,7 +37,8 @@ cache.group_info = {
 ]]
 	-- list specific
 	all = {shortdesc = "All items" },
-	other = {shortdesc = "Other items" }
+	other = {shortdesc = "Other items" },
+	["filter:material"] = {shortdesc = ">>> Material outcome" }
 }
 
 
@@ -52,7 +53,6 @@ function cache.add_to_cache_group(group_name, itemdef, flt)
 			}
 		if flt then
 			group.group_desc = flt.shortdesc
-			group.exclusive = flt.exclusive
 		end
 		if not group.group_desc and cache.group_info[group_name] then
 			group.group_desc = cache.group_info[group_name].shortdesc
@@ -335,16 +335,7 @@ function cache.get_list_grouped(itemtable, group_count)
 				return a.diff < b.diff
 			end)
 
-			-- process exclusive groups at first because of removal
-			-- select the best
-			local groupindex = 1
-			for j = i, best_group_count do
-				if sorttab[j] and sorttab[j].cgroup.exclusive then
-					groupindex = j
-					break
-				end
-			end
-			local sel = sorttab[groupindex]
+			local sel = sorttab[1]
 
 			if not sel then
 				break
@@ -354,7 +345,7 @@ function cache.get_list_grouped(itemtable, group_count)
 				group_desc = sel.cgroup.group_desc,
 				items = sel.items
 			}
-			table.remove(sorttab, groupindex)
+			table.remove(sorttab, 1)
 
 
 			for _, item in ipairs(sel.items) do
@@ -365,19 +356,6 @@ function cache.get_list_grouped(itemtable, group_count)
 						local u = grouped[group.name]
 						if u and u.unique_count and u.group_size > 0 then
 							u.unique_count = u.unique_count-1
---[[
-							if sel.cgroup.exclusive then
-								if cache.citems[item.item].cgroups[sel.name] then
-									for i, removeitem in ipairs(u.items) do
-										if removeitem.item == u.items.item then
-											table.remove(u.items, i)
-											break
-										end
-									end
-									u.group_size = u.group_size -1
-								end
-							end
-]]
 							if (u.group_size < u.best_group_size) or
 									(u.group_size - u.best_group_size) < (u.best_group_size - u.unique_count) then
 								sel.diff = u.best_group_size - u.unique_count

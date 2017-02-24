@@ -85,7 +85,6 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "material",
-		exclusive = true,
 		filter_func = function(def, name)
 			return def.material
 		end
@@ -93,7 +92,6 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "formation",
-		exclusive = true,
 		filter_func = function(def, name)
 			return def.formation
 		end
