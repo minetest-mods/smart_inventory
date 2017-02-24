@@ -44,13 +44,16 @@ cache.group_info = {
 -----------------------------------------------------
 -- Add a item to cache group
 -----------------------------------------------------
-function cache.add_to_cache_group(group_name, itemdef, shortdesc)
+function cache.add_to_cache_group(group_name, itemdef, flt)
 	if not cache.cgroups[group_name] then
 		local group = {
 			name = group_name,
-			group_desc = shortdesc,
 			items = {}
 			}
+		if flt then
+			group.group_desc = flt.shortdesc
+			group.exclusive = flt.exclusive
+		end
 		if not group.group_desc and cache.group_info[group_name] then
 			group.group_desc = cache.group_info[group_name].shortdesc
 		end
@@ -187,12 +190,20 @@ function cache.fill_cache()
 				cache.add_to_cache_group(group_name..":"..tostring(grval), def)
 			end
 			cache.add_to_cache_group("type:"..def.type, def)
-			cache.add_to_cache_group("mod:"..def.mod_origin, def) -- TODO: get mod description and add it to shortdesc
+			cache.add_to_cache_group("mod:"..def.mod_origin, def)
 
 			-- extended registred filters
 			for _, flt in pairs(filter.registered_filter) do
-				if flt:check_item_by_def(def) == true then
-					cache.add_to_cache_group("filter:"..flt.name, def, flt.shortdesc)
+				local filter_result = flt:check_item_by_def(def)
+				if filter_result then
+					local filtername = "filter:"..flt.name
+					cache.add_to_cache_group(filtername, def, flt)
+					if filter_result ~= true then
+						filter_result:gsub("[^:]+", function(z)
+							filtername = filtername..":"..z
+							cache.add_to_cache_group(filtername, def, flt)
+						end)
+					end
 				end
 			end
 		end
@@ -310,7 +321,8 @@ function cache.get_list_grouped(itemtable, group_count)
 	for k,v in pairs(grouped) do
 		v.group_size = #v.items
 		v.unique_count = #v.items
-		v.diff = math.abs(v.group_size - best_group_size)
+		v.best_group_size = best_group_size
+		v.diff = math.abs(v.group_size - v.best_group_size)
 		table.insert(sorttab, v)
 	end
 
@@ -323,8 +335,17 @@ function cache.get_list_grouped(itemtable, group_count)
 				return a.diff < b.diff
 			end)
 
+			-- process exclusive groups at first because of removal
 			-- select the best
-			local sel = sorttab[1]
+			local groupindex = 1
+			for j = i, best_group_count do
+				if sorttab[j] and sorttab[j].cgroup.exclusive then
+					groupindex = j
+					break
+				end
+			end
+			local sel = sorttab[groupindex]
+
 			if not sel then
 				break
 			end
@@ -333,7 +354,7 @@ function cache.get_list_grouped(itemtable, group_count)
 				group_desc = sel.cgroup.group_desc,
 				items = sel.items
 			}
-			table.remove(sorttab,1)
+			table.remove(sorttab, groupindex)
 
 			for _, item in ipairs(sel.items) do
 				assigned_items[item.item] = true
@@ -341,11 +362,19 @@ function cache.get_list_grouped(itemtable, group_count)
 				for _, group in pairs(cache.citems[item.item].cgroups) do
 					if group.name ~= sel.name then
 						local u = grouped[group.name]
-						if u and u.unique_count then
+						if u and u.unique_count and #u.items > 0 then
 							u.unique_count = u.unique_count-1
-							if (u.group_size < best_group_size) or
-									(u.group_size - best_group_size) < (best_group_size - u.unique_count) then
-								sel.diff = best_group_size - u.unique_count
+							if sel.cgroup.exclusive then
+								for i = #u.items, 1, -1 do
+									if cache.citems[u.items[i].item].cgroups[group.name] then
+										table.remove(u.items, i)
+										u.group_size = u.group_size -1
+									end
+								end
+							end
+							if (u.group_size < u.best_group_size) or
+									(u.group_size - u.best_group_size) < (u.best_group_size - u.unique_count) then
+								sel.diff = u.best_group_size - u.unique_count
 							end
 						end
 					end

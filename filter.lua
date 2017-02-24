@@ -8,7 +8,6 @@ end
 
 function filter.register_filter(def)
 	assert(def.name, "filter needs a name")
-	assert(def.shortdesc, "filter needs a shortdesc that is used as for users readable name")
 	assert(def.filter_func, "filter function required")
 	assert(not filter.registered_filter[def.name], "filter already exists")
 
@@ -17,40 +16,12 @@ function filter.register_filter(def)
 		return self.filter_func(minetest.registered_items[itemname], itemname)
 	end
 	function self:check_item_by_def(def)
-		if not def then
-			return false
-		else
+		if def then
 			return self.filter_func(def, def.name)
 		end
 	end
 	filter.registered_filter[self.name] = self
 end
-
-filter.register_filter({
-		name = "transluc", 
-		shortdesc = "Translucent blocks",
-		filter_func = function(def, name)
-			if def.sunlight_propagates == true then
-				return true
-			else
-				return false
-			end
-		end
-	})
-
-filter.register_filter({
-		name = "vessel", 
-		shortdesc = "Vessel",
-		filter_func = function(def, name)
-			if def.allow_metadata_inventory_move or
-					def.allow_metadata_inventory_take or
-					def.on_metadata_inventory_put then
-				return true
-			else
-				return false
-			end
-		end
-	})
 
 function filter.is_revealed_item(itemname, playername)
 	local cache = smart_inventory.cache
@@ -83,6 +54,50 @@ function filter.is_revealed_item(itemname, playername)
 	end
 	return true
 end
+
+filter.register_filter({
+		name = "transluc",
+		shortdesc = "Translucent blocks",
+		filter_func = function(def, name)
+			return def.sunlight_propagates
+		end
+	})
+
+filter.register_filter({
+		name = "vessel",
+		shortdesc = "Vessel",
+		filter_func = function(def, name)
+			if def.allow_metadata_inventory_move or
+					def.allow_metadata_inventory_take or
+					def.on_metadata_inventory_put then
+				return true
+			end
+		end
+	})
+
+filter.register_filter({
+		name = "drawtype",
+		filter_func = function(def, name)
+			return def.drawtype
+		end
+	})
+
+
+filter.register_filter({
+		name = "material",
+		exclusive = true,
+		filter_func = function(def, name)
+			return def.material
+		end
+	})
+
+filter.register_filter({
+		name = "formation",
+		exclusive = true,
+		filter_func = function(def, name)
+			return def.formation
+		end
+	})
 
 ----------------
 return filter

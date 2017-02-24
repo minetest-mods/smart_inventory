@@ -183,7 +183,7 @@ end
 smart_inventory.register_page({
 	name = "creative",
 	tooltip = "The creative way to get items",
-	icon = "inventory_btn.png",
+	icon = "default_chest_front.png",
 	smartfs_callback = creative_callback,
 	sequence = 15
 })

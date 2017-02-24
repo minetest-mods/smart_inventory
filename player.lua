@@ -14,7 +14,7 @@ local function update_grid(state, listname)
 		local itemname = stack:get_name()
 		local itemdef
 		local is_armor = false
-		if filter.get("armor"):check_item_by_name(itemname) == true then
+		if filter.get("armor"):check_item_by_name(itemname) then
 			itemdef = minetest.registered_items[itemname]
 			table.insert(list, {
 					itemdef = itemdef,
@@ -249,7 +249,6 @@ if smart_inventory.armor_mod then
 						return true
 					end
 				end
-				return false
 			end
 		})
 end
