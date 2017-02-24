@@ -29,12 +29,24 @@ end
 
 
 local function update_group_selection(state, changed_group)
+
 	local grouped = state.param.creative_grouped_items
 	local groups_sel1 = state:get("groups_sel1")
 	local groups_sel2 = state:get("groups_sel2")
 	local groups_sel3 = state:get("groups_sel3")
 	local grid = state:get("buttons_grid")
 	local outlist
+
+
+	if state.param.creative_grouped_material_items and
+			next(state.param.creative_grouped_material_items) then
+		local group_info = {}
+		group_info.name = "filter:material"
+		group_info.cgroup = cache.cgroups["filter:material"]
+		group_info.group_desc = group_info.cgroup.group_desc
+		group_info.items = state.param.creative_grouped_material_items
+		grouped["filter:material"] = group_info
+	end
 
 	-- Group 1
 	if changed_group <= 1 then
@@ -173,6 +185,23 @@ local function creative_callback(state)
 				end
 			end
 			state.param.creative_grouped_items = cache.get_list_grouped(filtered_list)
+
+			filtered_list = {}
+			for _, entry in ipairs(state.param.creative_grouped_items_material_all) do
+				local def = minetest.registered_items[entry.item]
+				if string.find(def.description, search_string) or
+					string.find(def.name, search_string) then
+					table.insert(filtered_list, entry)
+				else
+					for _, cgroup in ipairs(entry.citem.cgroups) do
+						if string.find(cgroup.name, search_string) then
+							table.insert(filtered_list, entry)
+							break
+						end
+					end
+				end
+			end
+			state.param.creative_grouped_material_items = filtered_list
 			update_group_selection(state, 0)
 		end
 	end)
@@ -180,15 +209,7 @@ local function creative_callback(state)
 	-- fill with data
 	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = get_all_items(state)
 	state.param.creative_grouped_items = cache.get_list_grouped(state.param.creative_grouped_items_all)
-	if state.param.creative_grouped_items_material_all and
-			next(state.param.creative_grouped_items_material_all) then
-		local group_info = {}
-		group_info.name = "filter:material"
-		group_info.cgroup = cache.cgroups["filter:material"]
-		group_info.group_desc = group_info.cgroup.group_desc
-		group_info.items = state.param.creative_grouped_items_material_all
-		state.param.creative_grouped_items["filter:material"] = group_info
-	end
+	state.param.creative_grouped_material_items = state.param.creative_grouped_items_material_all
 	update_group_selection(state, 0)
 
 end

@@ -86,14 +86,14 @@ filter.register_filter({
 filter.register_filter({
 		name = "material",
 		filter_func = function(def, name)
-			return def.material
+			return def.base_material
 		end
 	})
 
 filter.register_filter({
-		name = "formation",
+		name = "shape",
 		filter_func = function(def, name)
-			return def.formation
+			return def.shape_type
 		end
 	})
 
