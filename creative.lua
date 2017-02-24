@@ -101,6 +101,8 @@ local function creative_callback(state)
 	group_sel1:onClick(function(self, state, player)
 		local selected = self:getSelectedItem()
 		if selected then
+			groups_sel2 = state:get("groups_sel2"):setSelected(1)
+			groups_sel3 = state:get("groups_sel3"):setSelected(1)
 			update_group_selection(state, 1)
 		end
 	end)
@@ -109,6 +111,7 @@ local function creative_callback(state)
 	group_sel2:onClick(function(self, state, player)
 		local selected = self:getSelectedItem()
 		if selected then
+			groups_sel3 = state:get("groups_sel3"):setSelected(1)
 			update_group_selection(state, 2)
 		end
 	end)
