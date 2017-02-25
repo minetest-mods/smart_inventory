@@ -186,7 +186,8 @@ end
 function cache.fill_cache()
 	for name, def in pairs(minetest.registered_items) do
 		-- build groups and items cache
-		if def.description and def.description ~= "" and not def.groups.not_in_creative_inventory then
+		if def.description and def.description ~= "" and
+				(not def.groups.not_in_creative_inventory or def.base_material) then
 			for group, grval in pairs(def.groups) do
 				local group_name = "group:"..group
 				cache.add_to_cache_group(group_name, def)
