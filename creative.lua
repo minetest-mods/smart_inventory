@@ -145,15 +145,15 @@ local function creative_callback(state)
 		local search_string = state:get("search"):getText()
 		if search_string ~= (state.param.creative_search_string or "") then
 			local filtered_list = {}
-			state.param.creative_search_string = search_string
+			state.param.creative_search_string = search_string:lower()
 			for _, entry in ipairs(state.param.creative_grouped_items_all) do
 				local def = minetest.registered_items[entry.item]
-				if string.find(def.description, search_string) or
-					string.find(def.name, search_string) then
+				if string.find(def.description:lower(), search_string) or
+					string.find(def.name:lower(), search_string) then
 					table.insert(filtered_list, entry)
 				else
-					for _, cgroup in ipairs(entry.citem.cgroups) do
-						if string.find(cgroup.name, search_string) then
+					for _, cgroup in pairs(entry.citem.cgroups) do
+						if string.find(cgroup.name:lower(), search_string) then
 							table.insert(filtered_list, entry)
 							break
 						end
