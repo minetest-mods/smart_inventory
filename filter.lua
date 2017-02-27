@@ -97,6 +97,30 @@ filter.register_filter({
 		end
 	})
 
+filter.register_filter({
+		name = "eatable",
+		filter_func = function(def, name)
+			if def.on_use then
+				local name,change=debug.getupvalue(def.on_use, 1)
+				if name~=nil and name=="hp_change" and change > 0 then
+					return tostring(change)
+				end
+			end
+		end
+	})
+
+filter.register_filter({
+		name = "toxic",
+		filter_func = function(def, name)
+			if def.on_use then
+				local name,change=debug.getupvalue(def.on_use, 1)
+				if name~=nil and name=="hp_change" and change < 0 then
+					return tostring(change)
+				end
+			end
+		end
+	})
+
 ----------------
 return filter
 
