@@ -216,6 +216,8 @@ local function crafting_callback(state)
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
 	ui_tools.create_trash_inv(state, player)
+	state:element("code", {name = "inventory_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
+	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
 	state:button(1, 4.2, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
@@ -241,6 +243,7 @@ local function crafting_callback(state)
 	end)
 
 	create_lookup_inv(state, player)
+	state:image(10, 4, 1, 1,"lookup_icon", "default_bookshelf_slot.png")
 	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
 	-- functional buttons right site

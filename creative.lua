@@ -136,6 +136,8 @@ local function creative_callback(state)
 
 	state:inventory(1.4, 8, 16, 2,"main")
 	ui_tools.create_trash_inv(state, player)
+	state:image(17.6,8,1,1,"trash_icon","creative_trash_icon.png")
+	state:element("code", {name = "trash_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
 	state:inventory(17.6, 8, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
 	-- filter on input
