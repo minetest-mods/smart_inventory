@@ -23,38 +23,6 @@ function filter.register_filter(def)
 	filter.registered_filter[self.name] = self
 end
 
-function filter.is_revealed_item(itemname, playername)
-	local cache = smart_inventory.cache
-	if minetest.registered_items[itemname] == nil then
-		return false
-	end
-
-	if smart_inventory.doc_items_mod then
-		local category_id
-		if not cache.citems[itemname] then
-			-- not in creative or something like
-			return false
-		else
-			for _, group in pairs(cache.citems[itemname].cgroups) do
-				if group.name == "type:node" then
-					category_id = "nodes"
-				elseif group.name == "type:tool" then
-					category_id = "tools"
-				elseif group.name == "type:craft" then
-					category_id = "craftitems"
-				end
-			end
-			if category_id then
-				return doc.entry_revealed(playername, category_id, itemname)
-			else
-				-- unknown item
-				return false
-			end
-		end
-	end
-	return true
-end
-
 filter.register_filter({
 		name = "transluc",
 		shortdesc = "Translucent blocks",

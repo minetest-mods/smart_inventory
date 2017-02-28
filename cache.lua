@@ -1,4 +1,5 @@
 local filter = smart_inventory.filter
+local doc_addon = smart_inventory.doc_addon
 
 local cache = {}
 cache.cgroups = {}
@@ -249,7 +250,7 @@ function cache.get_recipes_craftable_atnext(player, item)
 					for recipe_item, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
 						recipe_ok = false
 						for _, itemname in ipairs(itemtab) do
-							if filter.is_revealed_item(itemname, player) == true then
+							if doc_addon.is_revealed_item(itemname, player) == true then
 								recipe_ok = true
 								break
 							end

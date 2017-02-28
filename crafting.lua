@@ -1,5 +1,5 @@
 local cache = smart_inventory.cache
-local filter = smart_inventory.filter
+local doc_addon = smart_inventory.doc_addon
 local ui_tools = smart_inventory.ui_tools
 
 -----------------------------------------------------
@@ -39,7 +39,7 @@ local function update_preview(state)
 					if state.param.crafting_items_in_inventory[item_in_list.name] then
 						item = item_in_list.name
 						break
-					elseif filter.is_revealed_item(item_in_list.name, player) then
+					elseif doc_addon.is_revealed_item(item_in_list.name, player) then
 						item = item_in_list.name
 					elseif item == nil then
 						item = item_in_list.name
@@ -304,6 +304,22 @@ local function crafting_callback(state)
 	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
 	inf_state:label(6.7,3,"cr_type", "")
 	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setVisible(false)
+
+	if smart_inventory.doc_items_mod then
+		local doc_btn = inf_state:item_image_button(10.2,2.3, 1, 1, "doc_btn","", "doc_identifier:identifier_solid")
+		doc_btn:setVisible(true)
+		doc_btn:onClick(function(self, state, player)
+			local outitem = state:get("craft_result"):getImage()
+			if outitem then
+				outitem:gsub("[^%s]+", function(z)
+					if minetest.registered_items[z] then
+						doc_addon.show(z, player)
+					end
+				end)
+			end
+		end)
+	end
+
 	inf_area:setVisible(false)
 
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")

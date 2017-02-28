@@ -127,6 +127,7 @@ end
 
 -- build up caches
 smart_inventory.filter = dofile(modpath.."/filter.lua")
+smart_inventory.doc_addon = dofile(modpath.."/doc_addon.lua")
 smart_inventory.cache = dofile(modpath.."/cache.lua")
 smart_inventory.ui_tools = dofile(modpath.."/ui_tools.lua")
 
