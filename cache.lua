@@ -297,7 +297,7 @@ end
 -----------------------------------------------------
 -- Sort items to groups and decide which groups should be displayed
 -----------------------------------------------------
-function cache.get_list_grouped(itemtable, group_count)
+function cache.get_list_grouped(itemtable)
 	local grouped = {}
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
@@ -317,7 +317,7 @@ function cache.get_list_grouped(itemtable, group_count)
 
 	-- magic to calculate relevant groups
 	local itemcount = #itemtable
-	local best_group_count = group_count or itemcount ^(1/3)
+	local best_group_count = itemcount ^(1/3)
 	local best_group_size = (itemcount / best_group_count) * 1.5
 	best_group_count = math.floor(best_group_count)
 	local sorttab = {}
@@ -397,6 +397,30 @@ function cache.get_list_grouped(itemtable, group_count)
 	outtab.other.items = other
 
 	return outtab
+end
+
+
+-----------------------------------------------------
+-- Sort items to groups by base material
+-----------------------------------------------------
+function cache.get_list_grouped_by_base_material(itemtable)
+	local grouped = {}
+	-- sort the entries to groups
+	for _, entry in ipairs(itemtable) do
+		local groupname = filter.get("material"):check_item_by_name(entry.item)
+		if groupname then
+			groupname = "filter:material:"..groupname
+			if not grouped[groupname] then
+				local group_info = {}
+				group_info.name = groupname
+				group_info.group_desc = groupname --TODO
+				group_info.items = {}
+				grouped[groupname] = group_info
+			end
+			table.insert(grouped[groupname].items, entry)
+		end
+	end
+	return grouped
 end
 
 -----------------------------------------------------

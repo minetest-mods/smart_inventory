@@ -59,6 +59,7 @@ local function update_group_selection(state, changed_group)
 		groups_sel2:clearItems()
 		groups_sel3:clearItems()
 	else
+		local is_material_selected = ( state.param.creative_group_list1[sel_id] == "filter:material" )
 		-- Group 2
 		grouped = cache.get_list_grouped(grouped[state.param.creative_group_list1[sel_id]].items)
 		if changed_group <= 2 then
@@ -71,7 +72,11 @@ local function update_group_selection(state, changed_group)
 			groups_sel3:clearItems()
 		else
 			-- Group 3
-			grouped = cache.get_list_grouped(grouped[state.param.creative_group_list2[sel_id]].items)
+--			if is_material_selected then
+--				grouped = cache.get_list_grouped_by_base_material(grouped[state.param.creative_group_list2[sel_id]].items)
+--			else
+				grouped = cache.get_list_grouped(grouped[state.param.creative_group_list2[sel_id]].items)
+--			end
 			if changed_group <= 3 then
 				state.param.creative_group_list3 = ui_tools.update_group_selection(grouped, groups_sel3, state.param.creative_group_list3)
 			end
