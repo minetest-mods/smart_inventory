@@ -10,65 +10,57 @@ local function update_preview(state)
 	local player = state.location.rootState.location.player
 	local listentry = state.param.crafting_recipes_preivew_listentry
 	local selected = state.param.crafting_recipes_preivew_selected
-	if not listentry.recipes[selected] then
-		selected = 1
-	end
-	state.param.crafting_recipes_preivew_selected = selected
-	if listentry.recipes[selected-1] then
-		state:get("preview_prev"):setVisible(true)
+	local itemdef = listentry.itemdef
+	local inf_state = state:get("inf_area"):getContainerState()
+
+	-- recipe to display and prepare them. Check for paging buttons needed
+	local recipe
+	if listentry.recipes then
+		if not listentry.recipes[selected] then
+			selected = 1
+		end
+		state.param.crafting_recipes_preivew_selected = selected
+		if listentry.recipes[selected-1] then
+			state:get("preview_prev"):setVisible(true)
+		else
+			state:get("preview_prev"):setVisible(false)
+		end
+		if listentry.recipes[selected+1] then
+			state:get("preview_next"):setVisible(true)
+		else
+			state:get("preview_next"):setVisible(false)
+		end
+
+	-- set right items for groups in recipe
+		if listentry.recipes[selected] then
+			recipe = table.copy(listentry.recipes[selected])
+			recipe.items = table.copy(recipe.items)
+			for key, recipe_item in pairs(recipe.items) do
+				local item = nil
+				if recipe_item:sub(1, 6) == "group:" then
+					local itemslist = cache.recipe_items_resolve_group(recipe_item)
+					for _, item_in_list in pairs(itemslist) do
+						if state.param.crafting_items_in_inventory[item_in_list.name] then
+							item = item_in_list.name
+							break
+						elseif doc_addon.is_revealed_item(item_in_list.name, player) then
+							item = item_in_list.name
+						elseif item == nil then
+							item = item_in_list.name
+						end
+					end
+				end
+				if item then
+					recipe.items[key] = item
+				end
+			end
+		end
 	else
 		state:get("preview_prev"):setVisible(false)
-	end
-	if listentry.recipes[selected+1] then
-		state:get("preview_next"):setVisible(true)
-	else
 		state:get("preview_next"):setVisible(false)
 	end
 
-	-- create the recipe preview, set right items for groups
-	local itemdef = listentry.itemdef
-	local recipe
-	if listentry.recipes[selected] then
-		recipe = table.copy(listentry.recipes[selected])
-		recipe.items = table.copy(recipe.items)
-		for key, recipe_item in pairs(recipe.items) do
-			local item = nil
-			if recipe_item:sub(1, 6) == "group:" then
-				local itemslist = cache.recipe_items_resolve_group(recipe_item)
-				for _, item_in_list in pairs(itemslist) do
-					if state.param.crafting_items_in_inventory[item_in_list.name] then
-						item = item_in_list.name
-						break
-					elseif doc_addon.is_revealed_item(item_in_list.name, player) then
-						item = item_in_list.name
-					elseif item == nil then
-						item = item_in_list.name
-					end
-				end
-			end
-			if item then
-				recipe.items[key] = item
-			end
-		end
-	end
-
-	-- update info area
-	local inf_state = state:get("inf_area"):getContainerState()
-	if itemdef then
-		inf_state:get("info1"):setText(itemdef.description)
-		inf_state:get("info2"):setText("("..itemdef.name..")")
-		if itemdef._doc_items_longdesc then
-			inf_state:get("info3"):setText(itemdef._doc_items_longdesc)
-		else
-			inf_state:get("info3"):setText("")
-		end
-	else
-		inf_state:get("info1"):setText("")
-		inf_state:get("info2"):setText("")
-		inf_state:get("info3"):setText("")
-		inf_state:get("cr_type"):setText("")
-	end
-
+	-- display the recipe result or selected item
 	if recipe then
 		if recipe.type ~="normal" then
 			inf_state:get("cr_type"):setText(recipe.type)
@@ -87,6 +79,23 @@ local function update_preview(state)
 			inf_state:get("craft_result"):setVisible(false)
 		end
 		state:get("craft_preview"):setCraft(nil)
+	end
+
+
+	-- update info area
+	if itemdef then
+		inf_state:get("info1"):setText(itemdef.description)
+		inf_state:get("info2"):setText("("..itemdef.name..")")
+		if itemdef._doc_items_longdesc then
+			inf_state:get("info3"):setText(itemdef._doc_items_longdesc)
+		else
+			inf_state:get("info3"):setText("")
+		end
+	else
+		inf_state:get("info1"):setText("")
+		inf_state:get("info2"):setText("")
+		inf_state:get("info3"):setText("")
+		inf_state:get("cr_type"):setText("")
 	end
 end
 
@@ -202,9 +211,11 @@ local function create_lookup_inv(state, name)
 				state.param.crafting_recipes_preivew_selected = 1
 				state.param.crafting_recipes_preivew_listentry = {
 					itemdef = minetest.registered_items[lookup_item],
-					recipes = cache.citems[lookup_item].in_output_recipe,
 					item = lookup_item
 				}
+				if cache.citems[lookup_item] then
+					state.param.crafting_recipes_preivew_listentry.recipes = cache.citems[lookup_item].in_output_recipe
+				end
 				update_preview(state)
 				if state:get("inf_area"):getVisible() == false then
 					state:get("groups_btn"):submit()
