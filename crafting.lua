@@ -61,26 +61,38 @@ local function update_preview(state)
 	end
 
 	-- display the recipe result or selected item
+	local craft_result = inf_state:get("craft_result")
 	if recipe then
 		if recipe.type ~="normal" then
 			inf_state:get("cr_type"):setText(recipe.type)
 		else
 			inf_state:get("cr_type"):setText("")
 		end
-		inf_state:get("craft_result"):setImage(recipe.output)
-		inf_state:get("craft_result"):setVisible()
+		craft_result:setImage(recipe.output)
+		craft_result:setVisible()
 		state:get("craft_preview"):setCraft(recipe)
 	else
 		inf_state:get("cr_type"):setText("")
 		if itemdef then
-			inf_state:get("craft_result"):setVisible(true)
-			inf_state:get("craft_result"):setImage(itemdef.name)
+			craft_result:setVisible(true)
+			craft_result:setImage(itemdef.name)
 		else
-			inf_state:get("craft_result"):setVisible(false)
+			craft_result:setVisible(false)
 		end
 		state:get("craft_preview"):setCraft(nil)
 	end
 
+	if smart_inventory.doc_items_mod then
+		inf_state:get("doc_btn"):setVisible(false)
+		local outitem = craft_result:getImage()
+		if outitem then
+			outitem:gsub("[^%s]+", function(z)
+				if doc_addon.is_revealed_item(z, player) then
+					inf_state:get("doc_btn"):setVisible(true)
+				end
+			end)
+		end
+	end
 
 	-- update info area
 	if itemdef then
@@ -318,7 +330,7 @@ local function crafting_callback(state)
 
 	if smart_inventory.doc_items_mod then
 		local doc_btn = inf_state:item_image_button(10.2,2.3, 1, 1, "doc_btn","", "doc_identifier:identifier_solid")
-		doc_btn:setVisible(true)
+		doc_btn:setVisible(false)
 		doc_btn:onClick(function(self, state, player)
 			local outitem = state:get("craft_result"):getImage()
 			if outitem then
@@ -330,7 +342,6 @@ local function crafting_callback(state)
 			end
 		end)
 	end
-
 	inf_area:setVisible(false)
 
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
