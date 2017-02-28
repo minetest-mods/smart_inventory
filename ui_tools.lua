@@ -27,17 +27,14 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 	end
 
 	table.sort(group_sorted, function(a,b)
-		if a.name == "all" then
-			return true
-		elseif a.name == "other" then
-			return false
-		elseif b.name == "all" then
-			return false
-		elseif b.name == "other" then
-			return true
-		else
-			return a.name < b.name
-		end
+		local sort_fixed_order = {
+			["filter:material"] = "ZZZ2",
+			["all"] = "__1",
+			["other"] = "ZZZ1",
+		}
+		local aval = sort_fixed_order[a.name] or a.name
+		local bval = sort_fixed_order[b.name] or b.name
+		return aval < bval
 	end)
 
 	-- apply groups to the groups_sel table and to the new groups_tab
