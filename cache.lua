@@ -38,7 +38,7 @@ cache.group_info = {
 	-- list specific
 	all = {shortdesc = "All items" },
 	other = {shortdesc = "Other items" },
-	["filter:material"] = {shortdesc = ">>> Material outcome" }
+	["filter:material"] = {shortdesc = "#01DF74> Shaped" }
 }
 
 
