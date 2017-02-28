@@ -79,7 +79,9 @@ function ui_tools.create_trash_inv(state, name)
 			on_move = function(inv, from_list, from_index, to_list, to_index, count, player)
 			end,
 			on_put = function(inv, listname, index, stack, player)
-				inv:set_stack(listname, index, nil)
+				minetest.after(1, function(stack)
+					inv:set_stack(listname, index, nil)
+				end)
 			end,
 			on_take = function(inv, listname, index, stack, player)
 				inv:set_stack(listname, index, nil)
