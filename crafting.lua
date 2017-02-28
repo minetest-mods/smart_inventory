@@ -84,8 +84,9 @@ local function update_preview(state)
 			inf_state:get("craft_result"):setVisible(true)
 			inf_state:get("craft_result"):setImage(itemdef.name)
 		else
-			state:get("craft_preview"):setCraft(nil)
+			inf_state:get("craft_result"):setVisible(false)
 		end
+		state:get("craft_preview"):setCraft(nil)
 	end
 end
 
