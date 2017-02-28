@@ -27,25 +27,28 @@ local function update_preview(state)
 
 	-- create the recipe preview, set right items for groups
 	local itemdef = listentry.itemdef
-	local recipe = table.copy(listentry.recipes[selected])
-	recipe.items = table.copy(recipe.items)
-	for key, recipe_item in pairs(recipe.items) do
-		local item = nil
-		if recipe_item:sub(1, 6) == "group:" then
-			local itemslist = cache.recipe_items_resolve_group(recipe_item)
-			for _, item_in_list in pairs(itemslist) do
-				if state.param.crafting_items_in_inventory[item_in_list.name] then
-					item = item_in_list.name
-					break
-				elseif filter.is_revealed_item(item_in_list.name, player) then
-					item = item_in_list.name
-				elseif item == nil then
-					item = item_in_list.name
+	local recipe
+	if listentry.recipes[selected] then
+		recipe = table.copy(listentry.recipes[selected])
+		recipe.items = table.copy(recipe.items)
+		for key, recipe_item in pairs(recipe.items) do
+			local item = nil
+			if recipe_item:sub(1, 6) == "group:" then
+				local itemslist = cache.recipe_items_resolve_group(recipe_item)
+				for _, item_in_list in pairs(itemslist) do
+					if state.param.crafting_items_in_inventory[item_in_list.name] then
+						item = item_in_list.name
+						break
+					elseif filter.is_revealed_item(item_in_list.name, player) then
+						item = item_in_list.name
+					elseif item == nil then
+						item = item_in_list.name
+					end
 				end
 			end
-		end
-		if item then
-			recipe.items[key] = item
+			if item then
+				recipe.items[key] = item
+			end
 		end
 	end
 
@@ -59,6 +62,14 @@ local function update_preview(state)
 		else
 			inf_state:get("info3"):setText("")
 		end
+	else
+		inf_state:get("info1"):setText("")
+		inf_state:get("info2"):setText("")
+		inf_state:get("info3"):setText("")
+		inf_state:get("cr_type"):setText("")
+	end
+
+	if recipe then
 		if recipe.type ~="normal" then
 			inf_state:get("cr_type"):setText(recipe.type)
 		else
@@ -68,12 +79,13 @@ local function update_preview(state)
 		inf_state:get("craft_result"):setVisible()
 		state:get("craft_preview"):setCraft(recipe)
 	else
-		inf_state:get("info1"):setText("")
-		inf_state:get("info2"):setText("")
-		inf_state:get("info3"):setText("")
 		inf_state:get("cr_type"):setText("")
-		inf_state:get("craft_result"):setVisible(false)
-		state:get("craft_preview"):setCraft(nil)
+		if itemdef then
+			inf_state:get("craft_result"):setVisible(true)
+			inf_state:get("craft_result"):setImage(itemdef.name)
+		else
+			state:get("craft_preview"):setCraft(nil)
+		end
 	end
 end
 
@@ -181,8 +193,22 @@ local function create_lookup_inv(state, name)
 						recipes[recipe] = true
 					end
 				end
+				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
 				state.param.crafting_items_in_inventory = ciii
 				update_craftable_list(state, recipes)
+
+				-- show lookup item in preview
+				state.param.crafting_recipes_preivew_selected = 1
+				state.param.crafting_recipes_preivew_listentry = {
+					itemdef = minetest.registered_items[lookup_item],
+					recipes = cache.citems[lookup_item].in_output_recipe,
+					item = lookup_item
+				}
+				update_preview(state)
+				if state:get("inf_area"):getVisible() == false then
+					state:get("groups_btn"):submit()
+				end
+
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				-- put back
 				minetest.after(1, function(stack)
