@@ -681,11 +681,12 @@ function smartfs._makeState_(form, params, location, newplayer)
 				closes = exitf or false
 			})
 		end,
-		label = function(self, x, y, name, text)
+		label = function(self, x, y, name, text, vertical)
 			return self:element("label", {
 				pos   = {x=x,y=y},
 				name  = name,
-				value = text
+				value = text,
+				vertical = vertical
 			})
 		end,
 		toggle = function(self, x, y, w, h, name, list)
@@ -939,7 +940,13 @@ smartfs.element("label", {
 		assert(self.data.value, "label needs text")
 	end,
 	build = function(self)
-		return "label["..
+		local specstring
+		if self.data.vertical then
+			specstring = "vertlabel["
+		else
+			specstring = "label["
+		end
+		return specstring..
 			self.data.pos.x..","..self.data.pos.y..
 			";"..
 			minetest.formspec_escape(self.data.value)..

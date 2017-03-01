@@ -118,7 +118,7 @@ local function update_group_selection(state, rebuild)
 	local grouped = state.param.crafting_grouped_items
 	local groups_sel = state:get("groups_sel")
 	local grid = state:get("buttons_grid")
-	local btn = state:get("groups_btn")
+	local btn = state:get("groups_label")
 	-- prepare
 	if rebuild then
 		state.param.crafting_group_list = ui_tools.update_group_selection(grouped, groups_sel, state.param.crafting_group_list)
@@ -229,8 +229,8 @@ local function create_lookup_inv(state, name)
 					state.param.crafting_recipes_preivew_listentry.recipes = cache.citems[lookup_item].in_output_recipe
 				end
 				update_preview(state)
-				if state:get("inf_area"):getVisible() == false then
-					state:get("groups_btn"):submit()
+				if state:get("info_tog"):getId() == 1 then
+					state:get("info_tog"):submit()
 				end
 
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
@@ -270,7 +270,7 @@ local function crafting_callback(state)
 	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
-	state:button(1, 4.2, 2.5, 0.5, "compress", "Compress"):onClick(function(self, state, player)
+	state:button(1, 4.2, 2, 0.5, "compress", "Compress"):onClick(function(self, state, player)
 		local name = state.location.rootState.location.player
 		local inventory = minetest.get_player_by_name(name):get_inventory()
 		local invsize = inventory:get_size("main")
@@ -302,13 +302,15 @@ local function crafting_callback(state)
 		local craftable, ciii = cache.get_recipes_craftable(player)
 		state.param.crafting_items_in_inventory = ciii
 		update_craftable_list(state, craftable)
-		state:get("inf_area"):setVisible(false)
-		state:get("groups_sel"):setVisible(true)
+		if state:get("info_tog"):getId() == 1 then
+			state:get("info_tog"):submit()
+		end
 	end)
 
-	local groups_button = state:button(13, 4.2, 5, 0.5, "groups_btn", "All items")
-	groups_button:onClick(function(self, state, player)
-		if state:get("groups_sel"):getVisible() == true then
+	state:label(10.3, 3.25, "groups_label", "All")
+	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups"})
+	info_tog:onToggle(function(self, state, player)
+		if self:getId() == 2 then
 			state:get("inf_area"):setVisible(true)
 			state:get("groups_sel"):setVisible(false)
 		else
@@ -374,8 +376,8 @@ local function crafting_callback(state)
 		state.param.crafting_recipes_preivew_selected = 1
 		state.param.crafting_recipes_preivew_listentry = listentry
 		update_preview(state)
-		if state:get("inf_area"):getVisible() == false then
-			state:get("groups_btn"):submit()
+		if state:get("info_tog"):getId() == 1 then
+			state:get("info_tog"):submit()
 		end
 	end)
 
@@ -387,7 +389,7 @@ local function crafting_callback(state)
 	update_craftable_list(state, craftable)
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
-		state:get("groups_btn"):setText(group_sel:getSelectedItem())
+		state:get("groups_label"):setText(group_sel:getSelectedItem())
 	end
 end
 
