@@ -208,11 +208,33 @@ local function create_lookup_inv(state, name)
 				pinv:set_stack(plistname, index, stack)
 				-- get the recipes with the item. Filter for visible in docs
 				local lookup_item = stack:get_name()
-				local recipes, ciii = cache.get_recipes_craftable_atnext(name, lookup_item)
+				local recipes, ciii = cache.get_recipes_craftable_atnext(name, {[lookup_item] = true })
+				ciii[lookup_item] = true
+				local valid_lookup_recipes = {}
 				-- add recipes of lookup item to get more info about them
 				if cache.citems[lookup_item] and cache.citems[lookup_item].in_output_recipe then
 					for _, recipe in ipairs(cache.citems[lookup_item].in_output_recipe) do
-						recipes[recipe] = true
+						local recive_valid = true
+						for key, recipe_item in pairs(recipe.items) do
+							if recipe_item:sub(1, 6) == "group:" then
+								recive_valid = false
+								local itemslist = cache.recipe_items_resolve_group(recipe_item)
+								for _, item_in_list in pairs(itemslist) do
+									if doc_addon.is_revealed_item(item_in_list.name, player:get_player_name()) then
+										recive_valid = true
+										break
+									end
+								end
+							else
+								if not doc_addon.is_revealed_item(recipe_item, player:get_player_name()) then
+									recive_valid = false
+								end
+							end
+						end
+						if recive_valid == true then
+							recipes[recipe] = true
+							table.insert(valid_lookup_recipes, recipe)
+						end
 					end
 				end
 				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
@@ -226,13 +248,14 @@ local function create_lookup_inv(state, name)
 					item = lookup_item
 				}
 				if cache.citems[lookup_item] then
-					state.param.crafting_recipes_preivew_listentry.recipes = cache.citems[lookup_item].in_output_recipe
+					state.param.crafting_recipes_preivew_listentry.recipes = valid_lookup_recipes
 				end
 				update_preview(state)
 				if state:get("info_tog"):getId() == 1 then
 					state:get("info_tog"):submit()
 				end
-
+				state:get("search"):setText("")
+				state.param.survival_search_string = ""
 				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				-- put back
 				minetest.after(1, function(stack)
@@ -302,8 +325,68 @@ local function crafting_callback(state)
 		local craftable, ciii = cache.get_recipes_craftable(player)
 		state.param.crafting_items_in_inventory = ciii
 		update_craftable_list(state, craftable)
-		if state:get("info_tog"):getId() == 1 then
+		if state:get("info_tog"):getId() == 2 then
 			state:get("info_tog"):submit()
+		end
+		state:get("search"):setText("")
+		state.param.survival_search_string = ""
+	end)
+
+	state:field(13.3, 4.5, 3, 0.5, "search"):setCloseOnEnter(false)
+	-- filter on input
+	state:onInput(function(state, fields, player)
+		local search_string = state:get("search"):getText()
+		if search_string ~= "" and search_string ~= state.param.survival_search_string then
+			local filtered_list = {}
+			local revealed_list = cache.get_revealed_items(player)
+			state.param.survival_search_string = search_string:lower()
+			for _, entry in ipairs(revealed_list) do
+				local def = minetest.registered_items[entry.item]
+				if string.find(def.description:lower(), search_string) or
+					string.find(def.name:lower(), search_string) then
+					table.insert(filtered_list, entry)
+				else
+					for _, cgroup in pairs(entry.citem.cgroups) do
+						if string.find(cgroup.name:lower(), search_string) then
+							table.insert(filtered_list, entry)
+							break
+						end
+					end
+				end
+			end
+
+			if smart_inventory.doc_items_mod then
+				for _, entry in ipairs(filtered_list) do
+					if entry.recipes then
+						local valid_recipes = {}
+						for _, recipe in ipairs(entry.recipes) do
+							local recive_valid = true
+							for key, recipe_item in pairs(recipe.items) do
+								if recipe_item:sub(1, 6) == "group:" then
+									recive_valid = false
+									local itemslist = cache.recipe_items_resolve_group(recipe_item)
+									for _, item_in_list in pairs(itemslist) do
+										if doc_addon.is_revealed_item(item_in_list.name, player) then
+											recive_valid = true
+											break
+										end
+									end
+								else
+									if not doc_addon.is_revealed_item(recipe_item, player) then
+										recive_valid = false
+									end
+								end
+							end
+							if recive_valid == true then
+								table.insert(valid_recipes, recipe)
+							end
+						end
+						entry.recipes = valid_recipes
+					end
+				end
+			end
+			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
+			update_group_selection(state, true)
 		end
 	end)
 

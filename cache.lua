@@ -219,22 +219,25 @@ end
 -----------------------------------------------------
 -- Get all recipes with at least one item existing in players inventory
 -----------------------------------------------------
-function cache.get_recipes_craftable_atnext(player, item)
+function cache.get_recipes_craftable_atnext(player, reference_items)
 	local inventory = minetest.get_player_by_name(player):get_inventory()
 	local invlist = inventory:get_list("main")
 	local items_in_inventory = {}
 	local recipe_with_one_item_in_inventory = {}
-	if item then
-		items_in_inventory[item] = true
-	else
-		for _, stack in ipairs(invlist) do
-			local itemname = stack:get_name()
-			if itemname and itemname ~= "" then
-				items_in_inventory[itemname] = true
-			end
+
+
+	for _, stack in ipairs(invlist) do
+		local itemname = stack:get_name()
+		if itemname and itemname ~= "" then
+			items_in_inventory[itemname] = true
 		end
 	end
-	for itemname, _ in pairs(items_in_inventory) do
+
+	if not reference_items then
+		reference_items = items_in_inventory
+	end
+
+	for itemname, _ in pairs(reference_items) do
 		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
 			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
 				local def = minetest.registered_items[recipe.output]
@@ -423,6 +426,51 @@ function cache.get_list_grouped_by_base_material(itemtable)
 	end
 	return grouped
 end
+
+-----------------------------------------------------
+-- Get all items available
+-----------------------------------------------------
+function cache.get_all_items()
+	local outtab = {}
+	local outtab_material = {}
+	for itemname, citem in pairs(cache.citems) do
+		local entry = {
+			citem = citem,
+			-- buttons_grid related
+			item = itemname,
+			is_button = true
+		}
+		if cache.citems[itemname].cgroups["filter:material"] then
+			table.insert(outtab_material, entry)
+		else
+			table.insert(outtab, entry)
+		end
+	end
+	return outtab, outtab_material
+end
+
+
+-----------------------------------------------------
+-- Get all revealed items available
+-----------------------------------------------------
+function cache.get_revealed_items(player)
+	local outtab = {}
+	for itemname, citem in pairs(cache.citems) do
+		if doc_addon.is_revealed_item(itemname, player) then
+			local entry = {
+				citem = citem,
+				itemdef = minetest.registered_items[itemname],
+				recipes = cache.citems[itemname].in_output_recipe,
+				-- buttons_grid related
+				item = itemname,
+				is_button = true
+			}
+			table.insert(outtab, entry)
+		end
+	end
+	return outtab
+end
+
 
 -----------------------------------------------------
 -- fill the cache after all mods loaded

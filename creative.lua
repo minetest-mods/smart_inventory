@@ -8,24 +8,7 @@ local function on_item_select(state, entry)
 	pinv:add_item("main", entry.item)
 end
 
-local function get_all_items(state)
-	local outtab = {}
-	local outtab_material = {}
-	for itemname, citem in pairs(cache.citems) do
-		local entry = {
-			citem = citem,
-			-- buttons_grid related
-			item = itemname,
-			is_button = true
-		}
-		if cache.citems[itemname].cgroups["filter:material"] then
-			table.insert(outtab_material, entry)
-		else
-			table.insert(outtab, entry)
-		end
-	end
-	return outtab, outtab_material
-end
+
 
 
 local function update_group_selection(state, changed_group)
@@ -188,7 +171,7 @@ local function creative_callback(state)
 	end)
 
 	-- fill with data
-	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = get_all_items(state)
+	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = cache.get_all_items()
 	state.param.creative_grouped_items = cache.get_list_grouped(state.param.creative_grouped_items_all)
 	state.param.creative_grouped_material_items = state.param.creative_grouped_items_material_all
 	update_group_selection(state, 0)
