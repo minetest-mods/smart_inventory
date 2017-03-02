@@ -2,6 +2,28 @@ local cache = smart_inventory.cache
 local doc_addon = smart_inventory.doc_addon
 local ui_tools = smart_inventory.ui_tools
 
+
+-----------------------------------------------------
+-- Get inventory content as consolidated table
+-----------------------------------------------------
+local function get_inventory_items(player)
+	local inventory = minetest.get_player_by_name(player):get_inventory()
+	local invlist = inventory:get_list("main")
+	local items_in_inventory = {}
+
+	for _, stack in ipairs(invlist) do
+		local itemname = stack:get_name()
+		if itemname and itemname ~= "" then
+			if not items_in_inventory[itemname] then
+				items_in_inventory[itemname] = stack:get_count()
+			else
+				items_in_inventory[itemname] = items_in_inventory[itemname] +  stack:get_count()
+			end
+		end
+	end
+	return items_in_inventory
+end
+
 -----------------------------------------------------
 -- Update item informations about the selected item
 -----------------------------------------------------
@@ -33,26 +55,10 @@ local function update_preview(state)
 
 	-- set right items for groups in recipe
 		if listentry.recipes[selected] then
-			recipe = table.copy(listentry.recipes[selected])
-			recipe.items = table.copy(recipe.items)
-			for key, recipe_item in pairs(recipe.items) do
-				local item = nil
-				if recipe_item:sub(1, 6) == "group:" then
-					local itemslist = cache.recipe_items_resolve_group(recipe_item)
-					for _, item_in_list in pairs(itemslist) do
-						if state.param.crafting_items_in_inventory[item_in_list.name] then
-							item = item_in_list.name
-							break
-						elseif doc_addon.is_revealed_item(item_in_list.name, player) then
-							item = item_in_list.name
-						elseif item == nil then
-							item = item_in_list.name
-						end
-					end
-				end
-				if item then
-					recipe.items[key] = item
-				end
+			recipe = listentry.recipes[selected]
+			local crecipe = cache.crecipes[recipe]
+			if crecipe then
+				recipe = crecipe:get_with_placeholder(player, state.param.crafting_items_in_inventory)
 			end
 		end
 	else
@@ -143,34 +149,25 @@ end
 -----------------------------------------------------
 -- Update the items list
 -----------------------------------------------------
-local function update_craftable_list(state, recipelist)
+local function update_from_recipelist(state, recipelist)
 	local duplicate_index_tmp = {}
 	local craftable_itemlist = {}
 
 	for recipe, _ in pairs(recipelist) do
-		local def = minetest.registered_items[recipe.output]
-		if not def then
-			recipe.output:gsub("[^%s]+", function(z)
-				if minetest.registered_items[z] then
-					def = minetest.registered_items[z]
-				end
-			end)
-		end
-		if def then
-			if duplicate_index_tmp[def.name] then
-				table.insert(duplicate_index_tmp[def.name].recipes, recipe)
-			else
-				local entry = {
-					itemdef = def,
-					recipes = {},
-					-- buttons_grid related
-					item = def.name,
-					is_button = true
-				}
-				duplicate_index_tmp[def.name] = entry
-				table.insert(entry.recipes, recipe)
-				table.insert(craftable_itemlist, entry)
-			end
+		def = cache.crecipes[recipe].out_item
+		if duplicate_index_tmp[def.name] then
+			table.insert(duplicate_index_tmp[def.name].recipes, recipe)
+		else
+			local entry = {
+				itemdef = def,
+				recipes = {},
+				-- buttons_grid related
+				item = def.name,
+				is_button = true
+			}
+			duplicate_index_tmp[def.name] = entry
+			table.insert(entry.recipes, recipe)
+			table.insert(craftable_itemlist, entry)
 		end
 	end
 	state.param.crafting_grouped_items = cache.get_list_grouped(craftable_itemlist)
@@ -208,38 +205,20 @@ local function create_lookup_inv(state, name)
 				pinv:set_stack(plistname, index, stack)
 				-- get the recipes with the item. Filter for visible in docs
 				local lookup_item = stack:get_name()
-				local recipes, ciii = cache.get_recipes_craftable_atnext(name, {[lookup_item] = true })
-				ciii[lookup_item] = true
+				local recipes = cache.crecipes.get_revealed_recipes_with_items(name, {[lookup_item] = true })
 				local valid_lookup_recipes = {}
 				-- add recipes of lookup item to get more info about them
 				if cache.citems[lookup_item] and cache.citems[lookup_item].in_output_recipe then
 					for _, recipe in ipairs(cache.citems[lookup_item].in_output_recipe) do
-						local recive_valid = true
-						for key, recipe_item in pairs(recipe.items) do
-							if recipe_item:sub(1, 6) == "group:" then
-								recive_valid = false
-								local itemslist = cache.recipe_items_resolve_group(recipe_item)
-								for _, item_in_list in pairs(itemslist) do
-									if doc_addon.is_revealed_item(item_in_list.name, player:get_player_name()) then
-										recive_valid = true
-										break
-									end
-								end
-							else
-								if not doc_addon.is_revealed_item(recipe_item, player:get_player_name()) then
-									recive_valid = false
-								end
-							end
-						end
-						if recive_valid == true then
+						if cache.crecipes[recipe]:is_revealed(player:get_player_name()) then
 							recipes[recipe] = true
 							table.insert(valid_lookup_recipes, recipe)
 						end
 					end
 				end
+
 				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
-				state.param.crafting_items_in_inventory = ciii
-				update_craftable_list(state, recipes)
+				update_from_recipelist(state, recipes)
 
 				-- show lookup item in preview
 				state.param.crafting_recipes_preivew_selected = 1
@@ -322,9 +301,9 @@ local function crafting_callback(state)
 	-- functional buttons right site
 	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory ")
 	refresh_button:onClick(function(self, state, player)
-		local craftable, ciii = cache.get_recipes_craftable(player)
-		state.param.crafting_items_in_inventory = ciii
-		update_craftable_list(state, craftable)
+		state.param.crafting_items_in_inventory = get_inventory_items(player)
+		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
+		update_from_recipelist(state, craftable)
 		if state:get("info_tog"):getId() == 2 then
 			state:get("info_tog"):submit()
 		end
@@ -354,30 +333,12 @@ local function crafting_callback(state)
 					end
 				end
 			end
-
 			if smart_inventory.doc_items_mod then
 				for _, entry in ipairs(filtered_list) do
 					if entry.recipes then
 						local valid_recipes = {}
 						for _, recipe in ipairs(entry.recipes) do
-							local recive_valid = true
-							for key, recipe_item in pairs(recipe.items) do
-								if recipe_item:sub(1, 6) == "group:" then
-									recive_valid = false
-									local itemslist = cache.recipe_items_resolve_group(recipe_item)
-									for _, item_in_list in pairs(itemslist) do
-										if doc_addon.is_revealed_item(item_in_list.name, player) then
-											recive_valid = true
-											break
-										end
-									end
-								else
-									if not doc_addon.is_revealed_item(recipe_item, player) then
-										recive_valid = false
-									end
-								end
-							end
-							if recive_valid == true then
+							if cache.crecipes[recipe]:is_revealed(player) then
 								table.insert(valid_recipes, recipe)
 							end
 						end
@@ -466,10 +427,9 @@ local function crafting_callback(state)
 
 	-- initial values
 	local player = state.location.rootState.location.player
-
-	local craftable, ciii = cache.get_recipes_craftable(player)
-	state.param.crafting_items_in_inventory  = ciii
-	update_craftable_list(state, craftable)
+	state.param.crafting_items_in_inventory = get_inventory_items(player)
+	local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
+	update_from_recipelist(state, craftable)
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
 		state:get("groups_label"):setText(group_sel:getSelectedItem())

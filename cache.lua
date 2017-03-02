@@ -4,7 +4,196 @@ local doc_addon = smart_inventory.doc_addon
 local cache = {}
 cache.cgroups = {}
 cache.citems = {}
-cache.crecipes = {}
+
+
+--+++++++++++++++++++++++++++++++++++++++++++++++++--
+-- cached recipes object
+--+++++++++++++++++++++++++++++++++++++++++++++++++--
+local crecipes = {}
+cache.crecipes = crecipes
+
+-----------------------------------------------------
+-- Get all revealed recipes with at least one item in reference_items table
+-----------------------------------------------------
+function crecipes.get_revealed_recipes_with_items(playername, reference_items)
+	local recipelist = {}
+	for itemname, _ in pairs(reference_items) do
+		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
+			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
+				local crecipe = cache.crecipes[recipe]
+				if crecipe and crecipe:is_revealed(playername) then
+					recipelist[recipe] = crecipe
+				end
+			end
+		end
+	end
+	return recipelist
+end
+
+-----------------------------------------------------
+-- Get all recipes with all required items in reference items
+-----------------------------------------------------
+function crecipes.get_recipes_craftable(playername, reference_items)
+	local all = crecipes.get_revealed_recipes_with_items(playername, reference_items)
+	local craftable = {}
+	for recipe, crecipe in pairs(all) do
+		local item_ok = false
+		for _, entry in pairs(crecipe._items) do
+			item_ok = false
+			for _, itemdef in pairs(entry.items) do
+				if reference_items[itemdef.name] then
+					item_ok = true
+				end
+			end
+			if item_ok == false then
+				break
+			end
+		end
+		if item_ok == true then
+			craftable[recipe] = true
+		end
+	end
+	return craftable
+end
+
+-----------------------------------------------------
+-- Recipe object Constructor
+-----------------------------------------------------
+function crecipes.new(recipe)
+	local self = {}
+	self.out_item = nil
+	self._recipe = recipe
+	self._items = {}
+	self.recipe_items = self._items --???
+
+	-----------------------------------------------------
+	-- analyze all data. Return false if invalid recipe. true on success
+	-----------------------------------------------------
+	function self:analyze()
+		-- check recipe output
+		if self._recipe.output ~= "" then
+			self.out_item = minetest.registered_items[self._recipe.output]
+			if not self.out_item then
+				recipe.output:gsub("[^%s]+", function(z)
+					if minetest.registered_items[z] then
+						self.out_item = minetest.registered_items[z]
+					end
+				end)
+			end
+		end
+		if not self.out_item or not self.out_item.name or not cache.citems[self.out_item.name] then
+			minetest.log("[smartfs_inventory] unknown recipe result "..recipe.output)
+			return false
+		end
+		-- check recipe items/groups
+		for idx, recipe_item in pairs(self._recipe.items) do
+			if self._items[recipe_item] then
+				self._items[recipe_item].count = self._items[recipe_item].count + 1
+			else
+				self._items[recipe_item]  = {count = 1}
+				if recipe_item:sub(1, 6) ~= "group:" then
+					self._items[recipe_item]  = {count = 1}
+					if minetest.registered_items[recipe_item] then
+						self._items[recipe_item].items = {[recipe_item] = minetest.registered_items[recipe_item]}
+					else
+						minetest.log("[smartfs_inventory] unknown item in recipe: "..recipe_item)
+						return false
+					end
+				else
+					if cache.cgroups[recipe_item] then
+						self._items[recipe_item].items = cache.cgroups[recipe_item].items
+					else
+						local retitems
+						for groupname in string.gmatch(recipe_item:sub(7), '([^,]+)') do
+							if not retitems then --first entry
+								if cache.cgroups["group:"..groupname] then
+									retitems = table.copy(cache.cgroups["group:"..groupname].items)
+								else
+									minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item, groupname)
+								end
+							else
+								for itemname, itemdef in pairs(retitems) do
+									local item_in_group = false
+									for _, item_group in pairs(cache.citems[itemname].cgroups) do
+										if item_group.name == "group:"..groupname then
+											item_in_group = true
+											break
+										end
+									end
+									if item_in_group == false then
+										retitems[itemname] = nil
+									end
+								end
+							end
+						end
+						if not retitems or not next(retitems) then
+							minetest.log("[smartfs_inventory] no items matches group: "..recipe_item)
+							return false
+						else
+							self._items[recipe_item].items = retitems
+						end
+					end
+				end
+			end
+		end
+		-- invalid recipe
+		if not self._items then
+			minetest.log("[smartfs_inventory] skip recipe for: "..recipe_item)
+			return false
+		else
+			return true
+		end
+	end
+
+	-----------------------------------------------------
+	-- Check if the recipe is revealed to the player
+	-----------------------------------------------------
+	function self:is_revealed(playername)
+		local recipe_valid = true
+		for _, entry in pairs(self._items) do
+			recipe_valid = false
+			for _, itemdef in pairs(entry.items) do
+				if doc_addon.is_revealed_item(itemdef.name, playername) then
+					recipe_valid = true
+					break
+				end
+			end
+			if recipe_valid == false then
+				return false
+			end
+		end
+		return true
+	end
+
+	-----------------------------------------------------
+	-- Returns recipe without groups, with replacements
+	-----------------------------------------------------
+	function self:get_with_placeholder(player, inventory_tab)
+		local recipe = table.copy(self._recipe)
+		recipe.items = table.copy(recipe.items)
+		for key, recipe_item in pairs(recipe.items) do
+			local item
+			for _, item_in_list in pairs(self._items[recipe_item].items) do
+				if inventory_tab and inventory_tab[item_in_list.name] then
+					item = item_in_list.name
+					break
+				elseif doc_addon.is_revealed_item(item_in_list.name, player) then
+					item = item_in_list.name
+				elseif item == nil then
+					item = item_in_list.name
+				end
+			end
+			if item then
+				recipe.items[key] = item
+			end
+		end
+		return recipe
+	end
+
+	-----------------------------------------------------
+	-- return constructed object
+	return self
+end
 
 -----------------------------------------------------
 -- Group labels
@@ -78,111 +267,7 @@ function cache.add_to_cache_group(group_name, itemdef, flt)
 end
 
 -----------------------------------------------------
--- Resolve item in recipe described by groups to items list
------------------------------------------------------
-function cache.recipe_items_resolve_group(group_item)
-	local retitems = cache.cgroups[group_item]
-	if retitems then
-		return retitems.items
-	end
-
-	for groupname in string.gmatch(group_item:sub(7), '([^,]+)') do
-		if not retitems then --first entry
-			if cache.cgroups["group:"..groupname] then
-				retitems = table.copy(cache.cgroups["group:"..groupname].items)
-			else
-				minetest.log("verbose", "[smartfs_inventory] unknown group description in recipe: "..group_item, groupname)
-			end
-		else
-			for itemname, itemdef in pairs(retitems) do
-				local item_in_group = false
-				for _, item_group in pairs(cache.citems[itemname].cgroups) do
-					if item_group.name == "group:"..groupname then
-						item_in_group = true
-						break
-					end
-				end
-				if item_in_group == false then
-					retitems[itemname] = nil
-				end
-			end
-		end
-		if not retitems or not next(retitems) then
-			minetest.log("verbose", "[smartfs_inventory] no items matches group: "..group_item)
-			return nil
-		end
-	end
-	--create new group
-	if retitems then
-		for _, itemdef in pairs(retitems) do
-			cache.add_to_cache_group(group_item, itemdef)
-		end
-	end
-	return retitems
-end
-
-
-function cache.fill_recipe_cache()
-	for itemname, _ in pairs(cache.citems) do
-		local recipelist = minetest.get_all_craft_recipes(itemname)
-		if recipelist then
-			for _, recipe in ipairs(recipelist) do
-				-- apply recipe output
-				if recipe.output ~= "" then
-					local outdef = minetest.registered_items[recipe.output]
-					if not outdef then
-						recipe.output:gsub("[^%s]+", function(z)
-							if minetest.registered_items[z] then
-								outdef = minetest.registered_items[z]
-							end
-						end)
-					end
-					if not outdef or not outdef.name or not cache.citems[outdef.name] then
-						minetest.log("verbose", "[smartfs_inventory] unknown recipe result "..recipe.output.." for item "..itemname)
-					else
-						table.insert(cache.citems[outdef.name].in_output_recipe, recipe)
-						cache.crecipes[recipe] = {
-							recipe_items = {},
-							out_item = outdef.name
-						}
-						for idx, recipe_item in pairs(recipe.items) do
-							local itemlist = {}
-							if recipe_item:sub(1, 6) == "group:" then
-								itemlist = cache.recipe_items_resolve_group(recipe_item)
-								if not itemlist then
-									minetest.log("verbose", "[smartfs_inventory] skip recipe for: "..itemname)
-								end
-							else
-								if minetest.registered_items[recipe_item] == nil then
-									minetest.log("verbose", "[smartfs_inventory] unknown item in recipe: "..itemname)
-
-								else
-									itemlist[recipe_item] = minetest.registered_items[recipe_item]
-								end
-							end
-							if itemlist then
-								cache.crecipes[recipe].recipe_items[recipe_item] = {}
-								for itemname, itemdef in pairs(itemlist) do
-									if cache.citems[itemname] then
-										table.insert(cache.citems[itemname].in_craft_recipe, recipe)
-										table.insert(cache.crecipes[recipe].recipe_items[recipe_item], itemname)
-									end
-								end
-							end
-						end
-						-- create ingredient group
-						for itemname, _ in pairs(cache.crecipes[recipe].recipe_items) do
-							cache.add_to_cache_group("ingredient:"..itemname, outdef)
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
------------------------------------------------------
--- Fill the cache at start
+-- Fill the cache at init
 -----------------------------------------------------
 function cache.fill_cache()
 	for name, def in pairs(minetest.registered_items) do
@@ -217,85 +302,29 @@ function cache.fill_cache()
 end
 
 -----------------------------------------------------
--- Get all recipes with at least one item existing in players inventory
+-- Fill the recipes cache at init
 -----------------------------------------------------
-function cache.get_recipes_craftable_atnext(player, reference_items)
-	local inventory = minetest.get_player_by_name(player):get_inventory()
-	local invlist = inventory:get_list("main")
-	local items_in_inventory = {}
-	local recipe_with_one_item_in_inventory = {}
-
-
-	for _, stack in ipairs(invlist) do
-		local itemname = stack:get_name()
-		if itemname and itemname ~= "" then
-			items_in_inventory[itemname] = true
-		end
-	end
-
-	if not reference_items then
-		reference_items = items_in_inventory
-	end
-
-	for itemname, _ in pairs(reference_items) do
-		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
-			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
-				local def = minetest.registered_items[recipe.output]
-				if not def then
-					recipe.output:gsub("[^%s]+", function(z)
-						if minetest.registered_items[z] then
-							def = minetest.registered_items[z]
-						end
-					end)
-				end
-				if def then
-					local recipe_ok = false
-					for recipe_item, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
-						recipe_ok = false
-						for _, itemname in ipairs(itemtab) do
-							if doc_addon.is_revealed_item(itemname, player) == true then
-								recipe_ok = true
-								break
+function cache.fill_recipe_cache()
+	for itemname, _ in pairs(cache.citems) do
+		local recipelist = minetest.get_all_craft_recipes(itemname)
+		if recipelist then
+			for _, recipe in ipairs(recipelist) do
+				local recipe_obj = crecipes.new(recipe)
+				if recipe_obj:analyze() then
+					table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
+					cache.crecipes[recipe] = recipe_obj
+					for _, entry in pairs(recipe_obj._items) do
+						for itemname, itemdef in pairs(entry.items) do
+							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
+								table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 							end
+							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item)
 						end
-						if recipe_ok == false then
-							break
-						end
-					end
-					if recipe_ok then
-						recipe_with_one_item_in_inventory[recipe] = true
 					end
 				end
 			end
 		end
 	end
-	return recipe_with_one_item_in_inventory, items_in_inventory
-end
-
------------------------------------------------------
--- Get all recipes with all required items in players inventory. Without count match
------------------------------------------------------
-function cache.get_recipes_craftable(player)
-	local all, items_in_inventory = cache.get_recipes_craftable_atnext(player)
-	local craftable = {}
-	for recipe, _ in pairs(all) do
-		local item_ok = false
-		for _, itemtab in pairs(cache.crecipes[recipe].recipe_items) do
-			item_ok = false
-			for _, itemname in ipairs(itemtab) do
-				if items_in_inventory[itemname] then
-					item_ok = true
-				end
-			end
-			if item_ok == false then
-				break
-			end
-		end
-		if item_ok == true then
-			craftable[recipe] = true
-		end
-	end
-	return craftable, items_in_inventory
 end
 
 -----------------------------------------------------
