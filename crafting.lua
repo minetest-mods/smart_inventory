@@ -108,10 +108,34 @@ local function update_crafting_preview(state)
 		else
 			inf_state:get("info3"):setText("")
 		end
+
+		local group_list = inf_state:get("item_groups")
+		group_list:clearItems()
+		local out_list = {}
+		for group1, groupdef1 in pairs(cache.citems[itemdef.name].cgroups) do
+			if not string.find(group1, "ingredient:") then
+				out_list[group1] = groupdef1
+				for group2, groupdef2 in pairs(out_list) do
+					if group1 ~= group2 then
+						if string.find(group1, group2) then
+							-- group2 is top-group of group1. Remove the group2
+							out_list[group2] = nil
+						elseif string.find(group2, group1) then
+							-- group2 is top-group of group1. Remove the group2
+							out_list[group1] = nil
+						end
+					end
+				end
+			end
+		end
+		for group, groupdef in pairs(out_list) do
+			group_list:addItem(groupdef.group_desc)
+		end
 	else
 		inf_state:get("info1"):setText("")
 		inf_state:get("info2"):setText("")
 		inf_state:get("info3"):setText("")
+		group_list:clearItems()
 	end
 end
 
@@ -354,6 +378,8 @@ local function crafting_callback(state)
 		end)
 	end
 	inf_state:label(10.3, 3.25, "groups_label", "All")
+
+	inf_state:listbox(11.5, 2, 5.6, 1.6, "item_groups",nil, true)
 	inf_area:setVisible(false)
 
 	-- Lookup
