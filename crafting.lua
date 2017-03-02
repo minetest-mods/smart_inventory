@@ -128,7 +128,14 @@ local function update_crafting_preview(state)
 				end
 			end
 		end
+		local out_list_sorted = {}
 		for group, groupdef in pairs(out_list) do
+			table.insert(out_list_sorted, groupdef)
+		end
+		table.sort(out_list_sorted, function(a,b)
+			return a.group_desc < b.group_desc
+		end)
+		for _, groupdef in ipairs(out_list_sorted) do
 			group_list:addItem(groupdef.group_desc)
 		end
 	else
@@ -332,7 +339,7 @@ local function crafting_callback(state)
 
 	-- recipe preview area
 	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
-	state:label(6.7,3,"cr_type", "")
+	state:label(7,3,"cr_type", "")
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
 	pr_prev_btn:onClick(function(self, state, player)
 		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected -1
@@ -379,7 +386,7 @@ local function crafting_callback(state)
 	end
 	inf_state:label(10.3, 3.25, "groups_label", "All")
 
-	inf_state:listbox(11.5, 2, 5.6, 1.6, "item_groups",nil, true)
+	inf_state:listbox(12, 2, 5.7, 1.3, "item_groups",nil, true)
 	inf_area:setVisible(false)
 
 	-- Lookup
