@@ -34,6 +34,7 @@ local function update_crafting_preview(state)
 	local itemdef = listentry.itemdef
 	local inf_state = state:get("inf_area"):getContainerState()
 	local craft_result = inf_state:get("craft_result")
+	local group_list = inf_state:get("item_groups")
 
 	-- get recipe to display, check paging buttons needed
 	local recipe
@@ -109,7 +110,6 @@ local function update_crafting_preview(state)
 			inf_state:get("info3"):setText("")
 		end
 
-		local group_list = inf_state:get("item_groups")
 		group_list:clearItems()
 		local out_list = {}
 		for group1, groupdef1 in pairs(cache.citems[itemdef.name].cgroups) do
