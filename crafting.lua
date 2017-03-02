@@ -25,17 +25,17 @@ local function get_inventory_items(player)
 end
 
 -----------------------------------------------------
--- Update item informations about the selected item
+-- Update recipe preview item informations about the selected item
 -----------------------------------------------------
-local function update_preview(state)
-	-- adjust selected and enable preview paging buttons
+local function update_crafting_preview(state)
 	local player = state.location.rootState.location.player
 	local listentry = state.param.crafting_recipes_preivew_listentry
 	local selected = state.param.crafting_recipes_preivew_selected
 	local itemdef = listentry.itemdef
 	local inf_state = state:get("inf_area"):getContainerState()
+	local craft_result = inf_state:get("craft_result")
 
-	-- recipe to display and prepare them. Check for paging buttons needed
+	-- get recipe to display, check paging buttons needed
 	local recipe
 	if listentry.recipes then
 		if not listentry.recipes[selected] then
@@ -53,7 +53,6 @@ local function update_preview(state)
 			state:get("preview_next"):setVisible(false)
 		end
 
-	-- set right items for groups in recipe
 		if listentry.recipes[selected] then
 			recipe = listentry.recipes[selected]
 			local crecipe = cache.crecipes[recipe]
@@ -67,27 +66,27 @@ local function update_preview(state)
 	end
 
 	-- display the recipe result or selected item
-	local craft_result = inf_state:get("craft_result")
 	if recipe then
 		if recipe.type ~="normal" then
-			inf_state:get("cr_type"):setText(recipe.type)
+			state:get("cr_type"):setText(recipe.type)
 		else
-			inf_state:get("cr_type"):setText("")
+			state:get("cr_type"):setText("")
 		end
 		craft_result:setImage(recipe.output)
 		craft_result:setVisible()
 		state:get("craft_preview"):setCraft(recipe)
 	else
-		inf_state:get("cr_type"):setText("")
+		state:get("cr_type"):setText("")
+		state:get("craft_preview"):setCraft(nil)
 		if itemdef then
 			craft_result:setVisible(true)
 			craft_result:setImage(itemdef.name)
 		else
 			craft_result:setVisible(false)
 		end
-		state:get("craft_preview"):setCraft(nil)
 	end
 
+	-- display docs icon if revealed item
 	if smart_inventory.doc_items_mod then
 		inf_state:get("doc_btn"):setVisible(false)
 		local outitem = craft_result:getImage()
@@ -113,7 +112,6 @@ local function update_preview(state)
 		inf_state:get("info1"):setText("")
 		inf_state:get("info2"):setText("")
 		inf_state:get("info3"):setText("")
-		inf_state:get("cr_type"):setText("")
 	end
 end
 
@@ -124,24 +122,22 @@ local function update_group_selection(state, rebuild)
 	local grouped = state.param.crafting_grouped_items
 	local groups_sel = state:get("groups_sel")
 	local grid = state:get("buttons_grid")
-	local btn = state:get("groups_label")
-	-- prepare
+	local label = state:get("groups_label")
+
 	if rebuild then
 		state.param.crafting_group_list = ui_tools.update_group_selection(grouped, groups_sel, state.param.crafting_group_list)
 	end
 
-	-- apply
 	local sel_id = groups_sel:getSelected()
 	if state.param.crafting_group_list[sel_id] then
 		state.param.crafting_craftable_list = grouped[state.param.crafting_group_list[sel_id]].items
-		-- sort selected items
 		table.sort(state.param.crafting_craftable_list, function(a,b)
 			return a.item < b.item
 		end)
 		grid:setList(state.param.crafting_craftable_list)
-		btn:setText(groups_sel:getSelectedItem())
+		label:setText(groups_sel:getSelectedItem())
 	else
-		btn:setText("Empty List")
+		label:setText("Empty List")
 		grid:setList({})
 	end
 end
@@ -203,11 +199,11 @@ local function create_lookup_inv(state, name)
 			end,
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
-				-- get the recipes with the item. Filter for visible in docs
 				local lookup_item = stack:get_name()
+				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
+				-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 				local recipes = cache.crecipes.get_revealed_recipes_with_items(name, {[lookup_item] = true })
 				local valid_lookup_recipes = {}
-				-- add recipes of lookup item to get more info about them
 				if cache.citems[lookup_item] and cache.citems[lookup_item].in_output_recipe then
 					for _, recipe in ipairs(cache.citems[lookup_item].in_output_recipe) do
 						if cache.crecipes[recipe]:is_revealed(player:get_player_name()) then
@@ -216,8 +212,6 @@ local function create_lookup_inv(state, name)
 						end
 					end
 				end
-
-				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
 				update_from_recipelist(state, recipes)
 
 				-- show lookup item in preview
@@ -229,13 +223,16 @@ local function create_lookup_inv(state, name)
 				if cache.citems[lookup_item] then
 					state.param.crafting_recipes_preivew_listentry.recipes = valid_lookup_recipes
 				end
-				update_preview(state)
+				update_crafting_preview(state)
 				if state:get("info_tog"):getId() == 1 then
 					state:get("info_tog"):submit()
 				end
 				state:get("search"):setText("")
 				state.param.survival_search_string = ""
-				smartfs.inv[name]:show() -- we are outsite of usual smartfs processing. So trigger the formspec update byself
+
+				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
+				smartfs.inv[name]:show()
+
 				-- put back
 				minetest.after(1, function(stack)
 					local applied = pinv:add_item("main", stack)
@@ -261,6 +258,9 @@ end
 local function crafting_callback(state)
 	local player = state.location.rootState.location.player
 
+	-- set inventory style
+	state:element("code", {name = "inventory_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
+
 	--Inventorys / left site
 	state:inventory(1, 5, 8, 4,"main")
 	state:inventory(1.2, 0.2, 3, 3,"craft")
@@ -268,7 +268,6 @@ local function crafting_callback(state)
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
 	ui_tools.create_trash_inv(state, player)
-	state:element("code", {name = "inventory_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
 	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
@@ -294,11 +293,61 @@ local function crafting_callback(state)
 		end
 	end)
 
+	-- recipe preview area
+	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
+	state:label(6.7,3,"cr_type", "")
+	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
+	pr_prev_btn:onClick(function(self, state, player)
+		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected -1
+		update_crafting_preview(state)
+	end)
+	pr_prev_btn:setVisible(false)
+	local pr_next_btn = state:button(8, 3, 1, 0.5, "preview_next", ">>")
+	pr_next_btn:onClick(function(self, state, player)
+		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected +1
+		update_crafting_preview(state)
+	end)
+	pr_next_btn:setVisible(false)
+
+	-- (dynamic-1) group selection
+	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
+	group_sel:onClick(function(self, state, player)
+		local selected = self:getSelectedItem()
+		if selected then
+			update_group_selection(state, false)
+		end
+	end)
+
+	-- (dynamic-2) item preview area
+	state:background(10.0, 0.1, 8, 3.8, "craft_img2", "minimap_overlay_square.png")
+	local inf_area = state:container(6.4, 0.1, "inf_area", true)
+	local inf_state = inf_area:getContainerState()
+	inf_state:label(11.5,0.5,"info1", "")
+	inf_state:label(11.5,1.0,"info2", "")
+	inf_state:label(11.5,1.5,"info3", "")
+	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setVisible(false)
+	if smart_inventory.doc_items_mod then
+		local doc_btn = inf_state:item_image_button(10.2,2.3, 1, 1, "doc_btn","", "doc_identifier:identifier_solid")
+		doc_btn:setVisible(false)
+		doc_btn:onClick(function(self, state, player)
+			local outitem = state:get("craft_result"):getImage()
+			if outitem then
+				outitem:gsub("[^%s]+", function(z)
+					if minetest.registered_items[z] then
+						doc_addon.show(z, player)
+					end
+				end)
+			end
+		end)
+	end
+	inf_area:setVisible(false)
+
+	-- Lookup
 	create_lookup_inv(state, player)
 	state:image(10, 4, 1, 1,"lookup_icon", "default_bookshelf_slot.png")
 	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
-	-- functional buttons right site
+	-- Refresh from inventory
 	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory ")
 	refresh_button:onClick(function(self, state, player)
 		state.param.crafting_items_in_inventory = get_inventory_items(player)
@@ -311,6 +360,7 @@ local function crafting_callback(state)
 		state.param.survival_search_string = ""
 	end)
 
+	-- search
 	state:field(13.3, 4.5, 3, 0.5, "search"):setCloseOnEnter(false)
 	-- filter on input
 	state:onInput(function(state, fields, player)
@@ -351,6 +401,7 @@ local function crafting_callback(state)
 		end
 	end)
 
+	-- groups toggle
 	state:label(10.3, 3.25, "groups_label", "All")
 	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups"})
 	info_tog:onToggle(function(self, state, player)
@@ -363,55 +414,6 @@ local function crafting_callback(state)
 		end
 	end)
 
-	-- preview area / multifunctional
-	state:background(10.0, 0.1, 8, 3.8, "craft_img2", "minimap_overlay_square.png")
-	local inf_area = state:container(6.4, 0.1, "inf_area", true)
-	local inf_state = inf_area:getContainerState()
-	inf_state:label(11.5,0.5,"info1", "")
-	inf_state:label(11.5,1.0,"info2", "")
-	inf_state:label(11.5,1.5,"info3", "")
-	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
-	inf_state:label(6.7,3,"cr_type", "")
-	inf_state:item_image(10.2,0.3, 1, 1, "craft_result",nil):setVisible(false)
-
-	if smart_inventory.doc_items_mod then
-		local doc_btn = inf_state:item_image_button(10.2,2.3, 1, 1, "doc_btn","", "doc_identifier:identifier_solid")
-		doc_btn:setVisible(false)
-		doc_btn:onClick(function(self, state, player)
-			local outitem = state:get("craft_result"):getImage()
-			if outitem then
-				outitem:gsub("[^%s]+", function(z)
-					if minetest.registered_items[z] then
-						doc_addon.show(z, player)
-					end
-				end)
-			end
-		end)
-	end
-	inf_area:setVisible(false)
-
-	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
-	pr_prev_btn:onClick(function(self, state, player)
-		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected -1
-		update_preview(state)
-	end)
-	pr_prev_btn:setVisible(false)
-
-	local pr_next_btn = state:button(8, 3, 1, 0.5, "preview_next", ">>")
-	pr_next_btn:onClick(function(self, state, player)
-		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected +1
-		update_preview(state)
-	end)
-	pr_next_btn:setVisible(false)
-
-	local group_sel = state:listbox(10.2, 0.15, 7.6, 3.6, "groups_sel",nil, true)
-	group_sel:onClick(function(self, state, player)
-		local selected = self:getSelectedItem()
-		if selected then
-			update_group_selection(state, false)
-		end
-	end)
-
 	-- craftable items grid
 	state:background(10, 5, 8, 4, "buttons_grid_Bg", "minimap_overlay_square.png")
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10.25, 5.15, 8 , 4, "buttons_grid", 0.75,0.75)
@@ -419,7 +421,7 @@ local function crafting_callback(state)
 		local listentry = state.param.crafting_craftable_list[index]
 		state.param.crafting_recipes_preivew_selected = 1
 		state.param.crafting_recipes_preivew_listentry = listentry
-		update_preview(state)
+		update_crafting_preview(state)
 		if state:get("info_tog"):getId() == 1 then
 			state:get("info_tog"):submit()
 		end
