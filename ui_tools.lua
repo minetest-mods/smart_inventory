@@ -89,7 +89,7 @@ function ui_tools.create_trash_inv(state, name)
 	inv:set_size(listname, 1)
 end
 
-function ui_tools.search_in_list(list, search_string)
+function ui_tools.search_in_list(list, search_string, playername)
 	local filtered_list = {}
 	search_string = search_string:lower()
 	for _, entry in ipairs(list) do
@@ -112,7 +112,7 @@ function ui_tools.search_in_list(list, search_string)
 			if entry.recipes then
 				local valid_recipes = {}
 				for _, recipe in ipairs(entry.recipes) do
-					if cache.crecipes[recipe]:is_revealed(player) then
+					if cache.crecipes[recipe]:is_revealed(playername) then
 						table.insert(valid_recipes, recipe)
 					end
 				end

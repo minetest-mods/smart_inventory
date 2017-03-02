@@ -122,7 +122,7 @@ local function update_group_selection(state, rebuild)
 	local grouped = state.param.crafting_grouped_items
 	local groups_sel = state:get("groups_sel")
 	local grid = state:get("buttons_grid")
-	local label = state:get("groups_label")
+	local label = state:get("inf_area"):getContainerState():get("groups_label")
 
 	if rebuild then
 		state.param.crafting_group_list = ui_tools.update_group_selection(grouped, groups_sel, state.param.crafting_group_list)
@@ -340,6 +340,7 @@ local function crafting_callback(state)
 			end
 		end)
 	end
+	inf_state:label(10.3, 3.25, "groups_label", "All")
 	inf_area:setVisible(false)
 
 	-- Lookup
@@ -366,14 +367,13 @@ local function crafting_callback(state)
 	state:onInput(function(state, fields, player)
 		local search_string = state:get("search"):getText()
 		if search_string ~= "" and search_string ~= state.param.survival_search_string then
-			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string)
+			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string, player)
 			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
 			update_group_selection(state, true)
 		end
 	end)
 
 	-- groups toggle
-	state:label(10.3, 3.25, "groups_label", "All")
 	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups"})
 	info_tog:onToggle(function(self, state, player)
 		if self:getId() == 2 then
@@ -405,7 +405,7 @@ local function crafting_callback(state)
 	update_from_recipelist(state, craftable)
 	group_sel:setSelected(1)
 	if group_sel:getSelectedItem() then
-		state:get("groups_label"):setText(group_sel:getSelectedItem())
+		state:get("inf_area"):getContainerState():get("groups_label"):setText(group_sel:getSelectedItem())
 	end
 end
 
