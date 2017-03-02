@@ -37,7 +37,9 @@ local function update_group_selection(state, changed_group)
 	end
 
 	local sel_id = groups_sel1:getSelected()
-	if state.param.creative_group_list1[sel_id] == "all" or not state.param.creative_group_list1[sel_id] then
+	if state.param.creative_group_list1[sel_id] == "all"
+			or not state.param.creative_group_list1[sel_id]
+			or not grouped[state.param.creative_group_list1[sel_id]] then
 		outlist = grouped["all"].items
 		groups_sel2:clearItems()
 		groups_sel3:clearItems()
@@ -50,7 +52,9 @@ local function update_group_selection(state, changed_group)
 		end
 
 		sel_id = groups_sel2:getSelected()
-		if state.param.creative_group_list2[sel_id] == "all" or not state.param.creative_group_list2[sel_id] then
+		if state.param.creative_group_list2[sel_id] == "all"
+				or not state.param.creative_group_list2[sel_id]
+				or not grouped[state.param.creative_group_list2[sel_id]] then
 			outlist = grouped["all"].items
 			groups_sel3:clearItems()
 		else
