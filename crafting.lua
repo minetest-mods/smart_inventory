@@ -366,36 +366,7 @@ local function crafting_callback(state)
 	state:onInput(function(state, fields, player)
 		local search_string = state:get("search"):getText()
 		if search_string ~= "" and search_string ~= state.param.survival_search_string then
-			local filtered_list = {}
-			local revealed_list = cache.get_revealed_items(player)
-			state.param.survival_search_string = search_string:lower()
-			for _, entry in ipairs(revealed_list) do
-				local def = minetest.registered_items[entry.item]
-				if string.find(def.description:lower(), search_string) or
-					string.find(def.name:lower(), search_string) then
-					table.insert(filtered_list, entry)
-				else
-					for _, cgroup in pairs(entry.citem.cgroups) do
-						if string.find(cgroup.name:lower(), search_string) then
-							table.insert(filtered_list, entry)
-							break
-						end
-					end
-				end
-			end
-			if smart_inventory.doc_items_mod then
-				for _, entry in ipairs(filtered_list) do
-					if entry.recipes then
-						local valid_recipes = {}
-						for _, recipe in ipairs(entry.recipes) do
-							if cache.crecipes[recipe]:is_revealed(player) then
-								table.insert(valid_recipes, recipe)
-							end
-						end
-						entry.recipes = valid_recipes
-					end
-				end
-			end
+			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string)
 			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
 			update_group_selection(state, true)
 		end

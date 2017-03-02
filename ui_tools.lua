@@ -12,7 +12,6 @@ local cache = smart_inventory.cache
 -- Return: updated groups_tab
 
 function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
-
 	-- save old selection
 	local sel_id = groups_sel:getSelected()
 	local sel_grp
@@ -59,7 +58,6 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 	return groups_tab
 end
 
-
 function ui_tools.create_trash_inv(state, name)
 	local player = minetest.get_player_by_name(name)
 	local invname = name.."_trash_inv"
@@ -89,6 +87,40 @@ function ui_tools.create_trash_inv(state, name)
 		}, name)
 	end
 	inv:set_size(listname, 1)
+end
+
+function ui_tools.search_in_list(list, search_string)
+	local filtered_list = {}
+	search_string = search_string:lower()
+	for _, entry in ipairs(list) do
+		local def = minetest.registered_items[entry.item]
+		if string.find(def.description:lower(), search_string) or
+			string.find(def.name:lower(), search_string) then
+			table.insert(filtered_list, entry)
+		else
+			for _, cgroup in pairs(entry.citem.cgroups) do
+				local prefix_end_pos = cgroup.name:find(":")
+				if string.find(cgroup.name:lower(), search_string, prefix_end_pos) then
+					table.insert(filtered_list, entry)
+					break
+				end
+			end
+		end
+	end
+	if smart_inventory.doc_items_mod then
+		for _, entry in ipairs(filtered_list) do
+			if entry.recipes then
+				local valid_recipes = {}
+				for _, recipe in ipairs(entry.recipes) do
+					if cache.crecipes[recipe]:is_revealed(player) then
+						table.insert(valid_recipes, recipe)
+					end
+				end
+				entry.recipes = valid_recipes
+			end
+		end
+	end
+	return filtered_list
 end
 
 --------------------------------

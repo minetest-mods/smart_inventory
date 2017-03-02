@@ -132,39 +132,9 @@ local function creative_callback(state)
 	state:onInput(function(state, fields, player)
 		local search_string = state:get("search"):getText()
 		if search_string ~= (state.param.creative_search_string or "") then
-			local filtered_list = {}
-			state.param.creative_search_string = search_string:lower()
-			for _, entry in ipairs(state.param.creative_grouped_items_all) do
-				local def = minetest.registered_items[entry.item]
-				if string.find(def.description:lower(), search_string) or
-					string.find(def.name:lower(), search_string) then
-					table.insert(filtered_list, entry)
-				else
-					for _, cgroup in pairs(entry.citem.cgroups) do
-						if string.find(cgroup.name:lower(), search_string) then
-							table.insert(filtered_list, entry)
-							break
-						end
-					end
-				end
-			end
+			local filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_all, search_string)
 			state.param.creative_grouped_items = cache.get_list_grouped(filtered_list)
-
-			filtered_list = {}
-			for _, entry in ipairs(state.param.creative_grouped_items_material_all) do
-				local def = minetest.registered_items[entry.item]
-				if string.find(def.description, search_string) or
-					string.find(def.name, search_string) then
-					table.insert(filtered_list, entry)
-				else
-					for _, cgroup in ipairs(entry.citem.cgroups) do
-						if string.find(cgroup.name, search_string) then
-							table.insert(filtered_list, entry)
-							break
-						end
-					end
-				end
-			end
+			filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_material_all, search_string)
 			state.param.creative_grouped_material_items = filtered_list
 			update_group_selection(state, 0)
 		end
