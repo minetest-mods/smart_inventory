@@ -409,6 +409,9 @@ local function crafting_callback(state)
 	end
 end
 
+-----------------------------------------------------
+-- Register page in smart_inventory
+-----------------------------------------------------
 smart_inventory.register_page({
 	name = "crafting",
 	tooltip = "Craft new items",
