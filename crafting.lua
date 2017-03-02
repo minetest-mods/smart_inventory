@@ -150,7 +150,7 @@ local function update_from_recipelist(state, recipelist)
 	local craftable_itemlist = {}
 
 	for recipe, _ in pairs(recipelist) do
-		def = cache.crecipes[recipe].out_item
+		local def = cache.crecipes[recipe].out_item
 		if duplicate_index_tmp[def.name] then
 			table.insert(duplicate_index_tmp[def.name].recipes, recipe)
 		else
@@ -289,6 +289,19 @@ local function crafting_callback(state)
 						end
 					end
 				end
+			end
+		end
+	end)
+
+	state:button(3, 4.2, 2, 0.5, "clear", "Sweep"):onClick(function(self, state, player)
+		local name = state.location.rootState.location.player
+		local inventory = minetest.get_player_by_name(name):get_inventory()
+		local invsize = inventory:get_size("craft")
+		for idx = 1, invsize do
+			local stack = inventory:get_stack("craft", idx)
+			if not stack:is_empty() then
+				local left = inventory:add_item("main", stack)
+				inventory:set_stack("craft", idx, left)
 			end
 		end
 	end)
