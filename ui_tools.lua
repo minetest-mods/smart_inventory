@@ -107,7 +107,7 @@ function ui_tools.search_in_list(list, search_string, playername)
 			end
 		end
 	end
-	if smart_inventory.doc_items_mod then
+	if smart_inventory.doc_items_mod and playername then
 		for _, entry in ipairs(filtered_list) do
 			if entry.recipes then
 				local valid_recipes = {}

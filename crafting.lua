@@ -381,6 +381,7 @@ local function crafting_callback(state)
 		local search_string = state:get("search"):getText()
 		if search_string ~= "" and search_string ~= state.param.survival_search_string then
 			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string, player)
+			state.param.survival_search_string = search_string
 			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
 			update_group_selection(state, true)
 		end
