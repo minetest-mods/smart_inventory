@@ -311,7 +311,7 @@ end
 ------------------------------------------------------
 minetest.register_on_player_receive_fields(function(player, formname, fields)
 	local name = player:get_player_name()
-	if smartfs.opened[name] and smartfs.opened[name].location.type == "player"then
+	if smartfs.opened[name] and smartfs.opened[name].location.type == "player" then
 		if smartfs.opened[name].def.name == formname then
 			local state = smartfs.opened[name]
 			state:_sfs_on_receive_fields_(name, fields)
@@ -377,7 +377,6 @@ end
 ------------------------------------------------------
 -- Smartfs Framework - create a form object (state)
 ------------------------------------------------------
---function smartfs._makeState_(form, newplayer, params, is_inv, nodepos)
 function smartfs._makeState_(form, params, location, newplayer)
 	------------------------------------------------------
 	-- State - -- Object to manage players
@@ -449,7 +448,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 				res = "size["..self._size.w..","..self._size.h.."]"
 			end
 			for key,val in pairs(self._ele) do
-				if val:getVisible() == true then
+				if val:getVisible() then
 					res = res .. val:getBackgroundString() .. val:build()
 				end
 			end
@@ -457,7 +456,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 		end,
 		show = location._show_,
 		-- process /apply received field value
-		_sfs_process_value_ = function(self, field, value) -- process each single received field
+		_sfs_process_value_ = function(self, field, value)
 			local cur_namespace = self:getNamespace()
 			if cur_namespace == "" or cur_namespace == string.sub(field, 1, string.len(cur_namespace)) then -- Check current namespace
 				local rel_fieldname = string.sub(field, string.len(cur_namespace)+1)  --cut the namespace
@@ -491,14 +490,13 @@ function smartfs._makeState_(form, params, location, newplayer)
 			end
 		end,
 		-- process onInput hook for the state
-		_sfs_process_oninput_ = function(self, fields, player) --process hooks
-			-- call onInput hook if enabled
+		_sfs_process_oninput_ = function(self, fields, player)
 			if self._onInput then
 				self:_onInput(fields, player)
 			end
 			-- recursive all onInput hooks on visible containers
 			for elename, eledef in pairs(self._ele) do
-				if eledef.getContainerState and eledef:getVisible() == true then
+				if eledef.getContainerState and eledef:getVisible() then
 					eledef:getContainerState():_sfs_process_oninput_(fields, player)
 				end
 			end
@@ -511,12 +509,11 @@ function smartfs._makeState_(form, params, location, newplayer)
 			end
 			-- process onInput hooks
 			self:_sfs_process_oninput_(fields, player)
-
 			-- do actions
 			for field, value in pairs(fields) do
 				self:_sfs_process_action_(field, value, player)
 			end
-
+			-- handle quit/exit
 			if not fields.quit and not self.closed and not self.obsolete then
 				self:show()
 			else
@@ -681,12 +678,20 @@ function smartfs._makeState_(form, params, location, newplayer)
 				closes = exitf or false
 			})
 		end,
-		label = function(self, x, y, name, text, vertical)
+		label = function(self, x, y, name, text)
 			return self:element("label", {
 				pos   = {x=x,y=y},
 				name  = name,
 				value = text,
-				vertical = vertical
+				vertical = false
+			})
+		end,
+		vertlabel = function(self, x, y, name, text)
+			return self:element("label", {
+				pos   = {x=x,y=y},
+				name  = name,
+				value = text,
+				vertical = true
 			})
 		end,
 		toggle = function(self, x, y, w, h, name, list)
@@ -789,10 +794,17 @@ function smartfs._makeState_(form, params, location, newplayer)
 			})
 		end,
 		container = function(self, x, y, name, relative)
-			return self:element("container", { 
+			return self:element("container", {
 				pos  = {x=x, y=y},
 				name = name,
-				relative = relative
+				relative = false
+			})
+		end,
+		view = function(self, x, y, name, relative)
+			return self:element("container", {
+				pos  = {x=x, y=y},
+				name = name,
+				relative = true
 			})
 		end,
 	}
@@ -850,11 +862,6 @@ smartfs.element("button", {
 		if self._click then
 			self:_click(self.root, player)
 		end
-		--[[ not needed. there is a quit field received in this case
-		if self.data.closes then
-			self.root.location.rootState:close()
-		end
-		]]--
 	end,
 	onClick = function(self,func)
 		self._click = func
@@ -890,6 +897,9 @@ smartfs.element("button", {
 	end,
 	setClose = function(self,bool)
 		self.data.closes = bool
+	end,
+	getClose = function(self)
+		return self.data.closes or false
 	end
 })
 
@@ -1358,17 +1368,12 @@ smartfs.element("container", {
 
 	-- element interface methods
 	build = function(self)
-		--the background string is "under" the container. Parts of this background can be overriden by elements (with background) from container
-		if self:getVisible() == true then
-			if self.data.relative ~= true then
-				return "container["..self.data.pos.x..","..self.data.pos.y.."]"..
-						self:getContainerState():_buildFormspec_(false)..
-						"container_end[]"
-			else
-				return self:getContainerState():_buildFormspec_(false)
-			end
+		if self.data.relative ~= true then
+			return "container["..self.data.pos.x..","..self.data.pos.y.."]"..
+					self:getContainerState():_buildFormspec_(false)..
+					"container_end[]"
 		else
-			return ""
+			return self:getContainerState():_buildFormspec_(false)
 		end
 	end,
 	getContainerState = function(self)
