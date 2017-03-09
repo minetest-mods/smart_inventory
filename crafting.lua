@@ -116,14 +116,14 @@ local function update_crafting_preview(state)
 			if not string.find(group1, "ingredient:") then
 				out_list[group1] = groupdef1
 				for group2, groupdef2 in pairs(out_list) do
-					if group1 ~= group2 then
-						if string.find(group1, group2) then
+					if string.len(group1) > string.len(group2) and
+							string.sub(group1,1,string.len(group2)) == group2 then
 							-- group2 is top-group of group1. Remove the group2
-							out_list[group2] = nil
-						elseif string.find(group2, group1) then
+						out_list[group2] = nil
+					elseif string.len(group1) < string.len(group2) and
+							string.sub(group2,1,string.len(group1)) == group1 then
 							-- group2 is top-group of group1. Remove the group2
-							out_list[group1] = nil
-						end
+						out_list[group1] = nil
 					end
 				end
 			end
@@ -364,7 +364,7 @@ local function crafting_callback(state)
 
 	-- (dynamic-2) item preview area
 	state:background(10.0, 0.1, 8, 3.8, "craft_img2", "minimap_overlay_square.png")
-	local inf_area = state:container(6.4, 0.1, "inf_area", true)
+	local inf_area = state:view(6.4, 0.1, "inf_area")
 	local inf_state = inf_area:getContainerState()
 	inf_state:label(11.5,0.5,"info1", "")
 	inf_state:label(11.5,1.0,"info2", "")

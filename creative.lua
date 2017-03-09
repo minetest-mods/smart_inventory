@@ -24,11 +24,11 @@ local function update_group_selection(state, changed_group)
 	if state.param.creative_grouped_material_items and
 			next(state.param.creative_grouped_material_items) then
 		local group_info = {}
-		group_info.name = "filter:material"
-		group_info.cgroup = cache.cgroups["filter:material"]
-		group_info.group_desc = group_info.cgroup.group_desc
+		group_info.name = "shape"
+		group_info.cgroup = cache.cgroups["shape"]
+		group_info.group_desc = "#01DF74> "..group_info.cgroup.group_desc
 		group_info.items = state.param.creative_grouped_material_items
-		grouped["filter:material"] = group_info
+		grouped["shape"] = group_info
 	end
 
 	-- update group 1
@@ -44,7 +44,6 @@ local function update_group_selection(state, changed_group)
 		groups_sel2:clearItems()
 		groups_sel3:clearItems()
 	else
-		local is_material_selected = ( state.param.creative_group_list1[sel_id] == "filter:material" )
 		-- update group 2
 		grouped = cache.get_list_grouped(grouped[state.param.creative_group_list1[sel_id]].items)
 		if changed_group < 2 or not state.param.creative_group_list2 then

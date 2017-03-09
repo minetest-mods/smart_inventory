@@ -183,7 +183,6 @@ function buttons_grid:update()
 		else
 			-- functional button
 			local entry = self.data.list[itemindex]
-			-- TODO: support for list[]
 			if entry then
 				if entry.size then
 					button:setSize(entry.size.w, entry.size.h)

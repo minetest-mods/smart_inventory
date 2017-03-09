@@ -27,7 +27,7 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 
 	table.sort(group_sorted, function(a,b)
 		local sort_fixed_order = {
-			["filter:material"] = "ZZZ2",
+			["shape"] = "ZZZ2",
 			["all"] = "__1",
 			["other"] = "ZZZ1",
 		}

@@ -199,36 +199,8 @@ end
 -- Group labels
 -----------------------------------------------------
 cache.group_info = {
---[[	group_level = { shortdesc = "Uses level information" },
-	group_dig_immediate = { shortdesc = "Fast removable" },
-	group_disable_jump = { shortdesc = "Not jumpable" },
-	group_less_damage  = { shortdesc = "Less damage" },
-	group_more_damage  = { shortdesc = "More damage" },
-	group_bouncy = { shortdesc = "Bouncy" },
-	group_falling_node = { shortdesc = "Falling" },
-	group_attached_node = { shortdesc = "Attachable" },
-	group_connect_to_raillike = { shortdesc = "Rail-like" },
-	-- TODO: http://dev.minetest.net/Groups/Custom_groups
-
-	group_armor_use = { shortdesc = "Armor" },
-	group_armor_heal = { shortdesc = "Armor" },
-	group_cracky = { shortdesc = "Cracky" },
-	group_flammable = { shortdesc = "Flammable" },
-	group_snappy = { shortdesc = "Snappy" },
-	group_choppy = { shortdesc = "Choppy" },
-	group_oddly_breakable_by_hand = { shortdesc = "Oddly breakable" },
-	type_tool = { shortdesc = "Tools" },
-	type_node = { shortdesc = "Nodes" },
-	type_craft = { shortdesc = "Craft Items" },
-
-	-- custom
-	transluc = { shortdesc = "Translucent blocks" },
-	inventory = { shortdesc = "Chestlike vessels" },
-]]
-	-- list specific
 	all = {shortdesc = "All items" },
 	other = {shortdesc = "Other items" },
-	["filter:material"] = {shortdesc = "#01DF74> Shaped" }
 }
 
 
@@ -242,13 +214,14 @@ function cache.add_to_cache_group(group_name, itemdef, flt)
 			items = {}
 			}
 		if flt then
-			group.group_desc = flt.shortdesc
-		end
-		if not group.group_desc and cache.group_info[group_name] then
+			group.group_desc = flt:get_group_description(group_name)
+		elseif cache.group_info[group_name] then
 			group.group_desc = cache.group_info[group_name].shortdesc
-		end
-		if not group.group_desc then
+		else
 			group.group_desc = group_name
+		end
+		if group.group_desc == "" or group.group_desc == "nogroup" then
+			return
 		end
 		cache.cgroups[group_name] = group
 	end
@@ -274,25 +247,29 @@ function cache.fill_cache()
 		-- build groups and items cache
 		if def.description and def.description ~= "" and
 				(not def.groups.not_in_creative_inventory or def.base_material) then
-			for group, grval in pairs(def.groups) do
-				local group_name = "group:"..group
-				cache.add_to_cache_group(group_name, def)
-				cache.add_to_cache_group(group_name..":"..tostring(grval), def)
-			end
-			cache.add_to_cache_group("type:"..def.type, def)
-			cache.add_to_cache_group("mod:"..def.mod_origin, def)
 
 			-- extended registred filters
 			for _, flt in pairs(filter.registered_filter) do
 				local filter_result = flt:check_item_by_def(def)
 				if filter_result then
-					local filtername = "filter:"..flt.name
-					cache.add_to_cache_group(filtername, def, flt)
-					if filter_result ~= true then
-						filter_result:gsub("[^:]+", function(z)
-							filtername = filtername..":"..z
+					if filter_result == true then
+						cache.add_to_cache_group(flt.name, def, flt)
+					else
+						if type(filter_result) ~= "table" then
+							filter_result = {[filter_result] = true}
+						end
+						for key, val in pairs(filter_result) do
+							local filter_entry = key
+							if val ~= true then
+								filter_entry = filter_entry..":"..tostring(val)
+							end
+							local filtername = flt.name
 							cache.add_to_cache_group(filtername, def, flt)
-						end)
+							filter_entry:gsub("[^:]+", function(z)
+								filtername = filtername..":"..z
+								cache.add_to_cache_group(filtername, def, flt)
+							end)
+						end
 					end
 				end
 			end
@@ -440,13 +417,14 @@ function cache.get_list_grouped_by_base_material(itemtable)
 	local grouped = {}
 	-- sort the entries to groups
 	for _, entry in ipairs(itemtable) do
-		local groupname = filter.get("material"):check_item_by_name(entry.item)
+		local flt = filter.get("shape")
+		local groupname = flt:check_item_by_name(entry.item)
 		if groupname then
-			groupname = "filter:material:"..groupname
+			groupname = "shape"..groupname
 			if not grouped[groupname] then
 				local group_info = {}
 				group_info.name = groupname
-				group_info.group_desc = groupname --TODO
+				group_info.group_desc = flt:get_group_description(groupname)
 				group_info.items = {}
 				grouped[groupname] = group_info
 			end
@@ -469,7 +447,7 @@ function cache.get_all_items()
 			item = itemname,
 			is_button = true
 		}
-		if cache.citems[itemname].cgroups["filter:material"] then
+		if cache.citems[itemname].cgroups["shape"] then
 			table.insert(outtab_material, entry)
 		else
 			table.insert(outtab, entry)

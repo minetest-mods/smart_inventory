@@ -168,7 +168,7 @@ local function player_callback(state)
 		if creative == true then
 			-- fill creative list once, not each page update
 			local list = {}
-			for _, itemdef in pairs(cache.cgroups["filter:armor"].items) do
+			for _, itemdef in pairs(cache.cgroups["armor"].items) do
 				table.insert(list, {
 						itemdef = itemdef,
 						-- buttons_grid related
@@ -240,10 +240,7 @@ if smart_inventory.armor_mod then
 	smart_inventory.filter.register_filter({
 			name = "armor", 
 			shortdesc = "Armor",
-			filter_func = function(def, name)
-				if not def or not name then
-					return false
-				end
+			filter_func = function(def)
 				for _, v in pairs(armor.elements) do
 					if def.groups["armor_"..v] then
 						return true
