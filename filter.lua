@@ -48,7 +48,9 @@ function filter.register_filter(def)
 		if self.shortdesc_func then
 			descr = self.shortdesc_func(rela_group)
 		end
-		if not descr and self.shortdesc then
+		if descr then
+			return descr
+		elseif self.shortdesc then
 			return self.shortdesc
 		else
 			return group
@@ -86,6 +88,12 @@ filter.register_filter({
 		name = "group",
 		filter_func = function(def)
 			return def.groups
+		end,
+		shortdesc_func = function(group)
+			-- hide the top group because of meaningless
+			if group == "" then
+				return ""
+			end
 		end
 	})
 
@@ -93,6 +101,12 @@ filter.register_filter({
 		name = "type",
 		filter_func = function(def)
 			return def.type
+		end,
+		shortdesc_func = function(group)
+			-- hide the top group because of meaningless
+			if group == "" then
+				return ""
+			end
 		end
 	})
 
@@ -100,6 +114,12 @@ filter.register_filter({
 		name = "mod",
 		filter_func = function(def)
 			return def.mod_origin
+		end,
+		shortdesc_func = function(group)
+			-- hide the top group because of meaningless
+			if group == "" then
+				return ""
+			end
 		end
 	})
 
@@ -126,7 +146,17 @@ filter.register_filter({
 filter.register_filter({
 		name = "drawtype",
 		filter_func = function(def)
-			return def.drawtype
+			if not def.drawtype then
+				return "normal"
+			else
+				return def.drawtype
+			end
+		end,
+		shortdesc_func = function(group)
+			-- hide the top group because of meaningless
+			if group == "group" then
+				return ""
+			end
 		end
 	})
 
