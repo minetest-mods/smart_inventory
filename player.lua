@@ -14,7 +14,7 @@ local function update_grid(state, listname)
 		local itemname = stack:get_name()
 		local itemdef
 		local is_armor = false
-		if filter.get("armor"):check_item_by_name(itemname) then
+		if cache.cgroups["armor"].items[itemname] then
 			itemdef = minetest.registered_items[itemname]
 			table.insert(list, {
 					itemdef = itemdef,
@@ -102,12 +102,82 @@ end
 local function move_item_to_armor(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
+	local itemstack
+	-- get item and try to move
 	if creative == true then
-		inventory:add_item("armor", item.item)
+		itemstack = inventory:add_item("armor", item.item)
 	else
-		local itemstack = inventory:get_stack("main", item.stack_index)
+		itemstack = inventory:get_stack("main", item.stack_index)
 		itemstack = inventory:add_item("armor", itemstack)
 		inventory:set_stack("main", item.stack_index, itemstack)
+	end
+	-- second try: empty place and move again
+	if not itemstack:is_empty() then
+		local itemname = itemstack:get_name()
+		local removestack, removeindex
+		local newgroups = {}
+		for groupname, groupdef in pairs(cache.citems[itemname].cgroups) do
+			if string.sub(groupname, 1, 6) == "armor:" then
+				newgroups[groupname] = groupdef
+			end
+		end
+		-- check items group assignment. Prefer same group as new item to remove
+		local oldgroups = {}
+		for stack_index, stack in ipairs(inventory:get_list("armor")) do
+			local itemname = stack:get_name()
+			for groupname, groupdef in pairs(cache.citems[itemname].cgroups) do
+				if newgroups[groupname] then
+					removestack = stack
+					removeindex = stack_index
+					break
+				end
+				if string.sub(groupname, 1, 6) == "armor:" then
+					if not oldgroups[groupname] then
+						oldgroups[groupname] = 1
+					else
+						oldgroups[groupname] = oldgroups[groupname] + 1
+					end
+				end
+			end
+			if removestack then
+				break
+			end
+		end
+		-- no same group found. Check for biggest group (duplicates) to remove the item
+		if not removestack then
+			local maxcounter
+			local removegroup
+			for k, v in pairs(oldgroups) do
+				if not maxcounter or maxcounter < v then
+					maxcounter = v
+					removegroup = k
+				end
+			end
+			if removegroup then
+				for stack_index, stack in ipairs(inventory:get_list("armor")) do
+					local itemname = stack:get_name()
+					if cache.citems[itemname].cgroups[removegroup] then
+						removestack = stack
+						removeindex = stack_index
+						break
+					end
+				end
+			end
+		end
+		-- replace the item
+		if removestack then
+			if creative == true then
+				itemstack = inventory:set_stack("armor", removeindex, itemstack)
+			else
+				removestack = inventory:get_stack("armor", removeindex)
+				removestack = inventory:add_item("main", removestack)
+				inventory:set_stack("armor", removeindex, removestack)
+
+				itemstack = inventory:get_stack("main", item.stack_index)
+				itemstack = inventory:add_item("armor", itemstack)
+				inventory:set_stack("main", item.stack_index, itemstack)
+			end
+		end
 	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
 end
@@ -243,7 +313,7 @@ if smart_inventory.armor_mod then
 			filter_func = function(def)
 				for _, v in pairs(armor.elements) do
 					if def.groups["armor_"..v] then
-						return true
+						return v
 					end
 				end
 			end
