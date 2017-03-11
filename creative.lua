@@ -136,6 +136,7 @@ local function creative_callback(state)
 	end)
 
 	-- inventory
+	state:background(1.4, 8, 8, 1, "inventory_bg", "menu_bg.png")
 	state:inventory(1.4, 8, 16, 2,"main")
 	ui_tools.create_trash_inv(state, player)
 	state:image(17.6,8,1,1,"trash_icon","creative_trash_icon.png")
