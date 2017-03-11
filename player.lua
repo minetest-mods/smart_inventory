@@ -11,18 +11,23 @@ local function update_grid(state, listname)
 	local invlist = inventory:get_list(listname)
 
 	for stack_index, stack in ipairs(invlist) do
-		local itemname = stack:get_name()
-		local itemdef
+		local itemdef = stack:get_definition()
 		local is_armor = false
-		if cache.cgroups["armor"].items[itemname] then
-			itemdef = minetest.registered_items[itemname]
+		if itemdef and cache.cgroups["armor"].items[itemdef.name] then
+			local wear = stack:get_wear()
+			if wear == 0 then
+				wear = ""
+			else
+				wear = " "..wear
+			end
 			table.insert(list, {
 					itemdef = itemdef,
 					stack_index = stack_index,
 					-- buttons_grid related
-					item = itemdef.name,
+					item = itemdef.name..wear,
 					is_button = true
 				})
+			print(itemdef.name.." "..stack:get_wear())
 		end
 	end
 	table.sort(list, function(a,b)
