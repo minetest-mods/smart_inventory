@@ -35,7 +35,9 @@ function filter.register_filter(def)
 	local self = def
 
 	function self:check_item_by_name(itemname)
-		return self.filter_func(minetest.registered_items[itemname])
+		if minetest.registered_items[itemname] then
+			return self.filter_func(minetest.registered_items[itemname])
+		end
 	end
 	function self:check_item_by_def(def)
 		return self.filter_func(def)
