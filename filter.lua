@@ -168,6 +168,36 @@ filter.register_filter({
 		end
 	})
 
+filter.register_filter({
+		name = "tool",
+		filter_func = function(def)
+			if not def.tool_capabilities then
+				return
+			end
+			local rettab = {}
+			for k, v in pairs(def.tool_capabilities) do
+				if type(v) ~= "table" then
+					rettab[k] = v
+				end
+			end
+			if def.tool_capabilities.damage_groups then
+				for k, v in pairs(def.tool_capabilities.damage_groups) do
+					rettab["damage:"..k] = v
+				end
+			end
+			if def.tool_capabilities.groupcaps then
+				for groupcap, gdef in pairs(def.tool_capabilities.groupcaps) do
+					for k, v in pairs(gdef) do
+						if type(v) ~= "table" then
+							rettab["capability:"..groupcap..":"..k] = v
+						end
+					end
+				end
+			end
+			return rettab
+		end
+	})
+
 ----------------
 return filter
 
