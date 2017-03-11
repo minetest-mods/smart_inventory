@@ -27,7 +27,7 @@ The vision is to get items fast searchable and gettable
 - cleanup of inventory trough "delete" field
 - just click to the item to get it in inventory
 - Grouping out mass-generated shaped nodes to own group to keep klarity. "shape_type" enhancement required.
-  "shape_type" is implemented already in ![lib_node_shapes modpack](https://forum.minetest.net/viewtopic.php?f=9&t=16740),[carpets](https://github.com/bell07/minetest-carpets). Prepared (locally, not pulled yet till mtg patch is clarified): ts_doors. [minetest_game patch](https://github.com/minetest/minetest_game/pull/1594)
+  "shape_type" is implemented already in ![lib_node_shapes modpack](https://forum.minetest.net/viewtopic.php?f=9&t=16740),[carpets](https://github.com/bell07/minetest-carpets). Prepared (locally, not pulled yet till mtg patch is clarified): ts_doors, moreblocks/stairsplus. [minetest_game patch](https://github.com/minetest/minetest_game/pull/1594)
 
 ## Player page
 The vision is to get all skins and player customizations visual exposed
