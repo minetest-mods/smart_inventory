@@ -1,28 +1,6 @@
 local filter = {}
 filter.registered_filter = {}
 
---[[- API
-
-* Filter definition
-
-filter.register_filter(filterdef) -- register a new filter
-
-filterdef.name - unique filter name
-filterdef.filter_func(itemdef) - function to check the item classify by item definition
-	returns values:
-		true            -> 1 group
-		string          -> dimension, steps splitted by ":" (a:b:c:d results in a, a:b, a:b:c, a:b:c:d)
-		key/value table -> multiple groups assignment. Values could be dimensions
-
-* Filter useage
-
-filter.get(name)                      get filter object by name
-filter:check_item_by_name(itemname)   classify by itemname
-filter:check_item_by_def(def)         classify by item definition
-filter:get_group_description(group)   get group description. Empty ("") or "nogroup" means the group should be ignored. Usefull so skip some dimension characteristics
-]]
-
-
 function filter.get(name)
 	return filter.registered_filter[name]
 end

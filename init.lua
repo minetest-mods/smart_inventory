@@ -91,17 +91,6 @@ smartfs.set_player_inventory(inventory_form)
 
 
 function smart_inventory.register_page(def)
-	--[[ API:
-	smart_inventory.register_page({
-		name         = name
-		tooltip      = button tooltip
-		icon | label = *.png|text
-		check_active = (optional: function to check if active) (TODO)
-		smartfs_callback = smartfs callback function
-		sequence = number
-		on_button_click = function called after set active page state will be available
-	})
-	]]
 	table.insert(smart_inventory.registered_pages, def)
 end
 
