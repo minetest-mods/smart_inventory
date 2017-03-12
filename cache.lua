@@ -63,6 +63,7 @@ function crecipes.new(recipe)
 	local self = {}
 	self.out_item = nil
 	self._recipe = recipe
+	self.recipe_type = recipe.type
 	self._items = {}
 	self.recipe_items = self._items --???
 
@@ -290,6 +291,9 @@ function cache.fill_recipe_cache()
 				if recipe_obj:analyze() then
 					table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
 					cache.crecipes[recipe] = recipe_obj
+					if recipe_obj.recipe_type ~= "normal" then
+						cache.add_to_cache_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item)
+					end
 					for _, entry in pairs(recipe_obj._items) do
 						for itemname, itemdef in pairs(entry.items) do
 							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems

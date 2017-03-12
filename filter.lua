@@ -124,9 +124,7 @@ filter.register_filter({
 filter.register_filter({
 		name = "drawtype",
 		filter_func = function(def)
-			if not def.drawtype then
-				return "normal"
-			else
+			if def.drawtype ~= "normal" then
 				return def.drawtype
 			end
 		end,

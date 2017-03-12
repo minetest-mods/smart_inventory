@@ -27,7 +27,6 @@ local function update_grid(state, listname)
 					item = itemdef.name..wear,
 					is_button = true
 				})
-			print(itemdef.name.." "..stack:get_wear())
 		end
 	end
 	table.sort(list, function(a,b)
