@@ -2,6 +2,25 @@ local filter = smart_inventory.filter
 local cache = smart_inventory.cache
 local creative = minetest.setting_getbool("creative_mode")
 
+local armor_nfo = {
+	state = { label = "Armor state", default = 0 },
+	level = { label = "Armor level", default = 0 },
+	jump = { label = "Jump high", default = 1 },
+	speed = { label = "Walking speed", default = 1 },
+	gravity = { label = "Gravity", default = 1 },
+	heal = { label = "Heal", default = 0 },
+	water = { label = "Water protection", default = 0 },
+	fire = { label = "Fire protection", default = 0 },
+	radiation = { label = "Radiation protection", default = 0 },
+	head  = { label = "Head level", default = 0 },
+	torso = { label = "Torso level", default = 0 },
+	legs = { label = "Legs level", default = 0 },
+	feet = { label = "Feet level", default = 0 },
+	shield  = { label = "Shield level", default = 0 },
+	use = { label = "Max state", default = 0 },
+
+}
+
 local function update_grid(state, listname)
 -- Update the users inventory grid
 	local list = {}
@@ -37,6 +56,10 @@ local function update_grid(state, listname)
 end
 
 local function update_selected_item(state, listentry)
+	local name = state.location.rootState.location.player
+	local i_list = state:get("i_list")
+	i_list:clearItems()
+
 	if listentry then
 		state.param.armor_selected_item = listentry
 	else
@@ -45,28 +68,23 @@ local function update_selected_item(state, listentry)
 	if not listentry then
 		return
 	end
-	local level = 0
-	local elements = {}
-	for _,v in ipairs(armor.elements) do
-		elements[v] = false
-	end
-	for k, v in pairs(elements) do
-		if listentry.itemdef.groups["armor_"..k] then
-			level = level + listentry.itemdef.groups["armor_"..k]
+
+	for k, v in pairs(listentry.itemdef.groups) do
+		local armor_type
+		if string.sub(k, 1, 6) == "armor_" then
+			armor_type = string.sub(k, 7)
+		elseif string.sub(k, 1, 8) == "physics_" then
+			armor_type = string.sub(k, 9)
+		end
+		if armor_type then
+			local info = armor_nfo[armor_type]
+			if info and v ~= 0 then
+				i_list:addItem(info.label..": "..v)
+			end
 		end
 	end
-	if minetest.get_modpath("shields") then
-		level = level * 0.9
-	end
-	local heal = listentry.itemdef.groups.armor_heal or 0
-	local fire = listentry.itemdef.groups.armor_fire or 0
-	local radiation = listentry.itemdef.groups.armor_radiation or 0
 
 	state:get("item_name"):setText(listentry.itemdef.description)
-	state:get("item_level"):setText("Level: "..level)
-	state:get("item_heal"):setText("Heal:  "..heal)
-	state:get("item_fire"):setText("Fire:  "..fire)
-	state:get("item_radiation"):setText("Radiation:  "..radiation)
 	state:get("item_image"):setImage(listentry.item)
 end
 
@@ -79,10 +97,14 @@ local function update_page(state)
 		update_grid(state, "armor")
 		state:get("preview"):setImage(armor.textures[name].preview)
 		state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
-		state:get("level"):setText("Level: "..armor.def[name].level)
-		state:get("heal"):setText("Heal:  "..armor.def[name].heal)
-		state:get("fire"):setText("Fire:  "..armor.def[name].fire)
-		state:get("radiation"):setText("Radiation:  "..armor.def[name].radiation)
+		local a_list = state:get("a_list")
+		a_list:clearItems()
+		for k, v in pairs(armor.def[name]) do
+			local info = armor_nfo[k]
+			if info and info.default ~= v then
+				a_list:addItem(info.label..": "..v)
+			end
+		end
 		update_selected_item(state)
 	elseif smart_inventory.skins_mod then
 		state.location.parentState:get("player_button"):setImage(skins.skins[name].."_preview.png")
@@ -202,20 +224,13 @@ end
 local function player_callback(state)
 	local name = state.location.rootState.location.player
 	state:background(0, 2.3, 6, 4.6, "it_bg", "minimap_overlay_square.png")
-	state:label(0.1,2.5,"item_name", "")
-	state:label(0.1,3.0,"item_level", "")
-	state:label(0.1,3.5,"item_heal","")
-	state:label(0.1,4.0,"item_fire", "")
-	state:label(0.1,4.5, "item_radiation", "")
-	state:item_image(0,5.0,2,2,"item_image","")
+	state:label(2,5,"item_name", "")
+	state:listbox(2.2,2.5,3.2,2.5,"i_list", nil, true)
+	state:item_image(0,3.5,2,2,"item_image","")
 
 	state:background(6.7, 2.3, 6, 4.6, "pl_bg", "minimap_overlay_square.png")
 	state:image(7,3.0,2,4,"preview","")
-	state:label(9,2.5,"level", "")
-	state:label(9,3.0,"heal","")
-	state:label(9,3.5,"fire", "")
-	state:label(9,4.0, "radiation", "")
-
+	state:listbox(9.2,2.5,3.2,2.5,"a_list", nil, true)
 	state:label(9,5.0,"skinname","")
 	state:label(9,5.5,"skinauthor", "")
 	state:label(9,6.0, "skinlicense", "")
