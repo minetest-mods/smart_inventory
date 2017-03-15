@@ -1,3 +1,5 @@
+local txt = smart_inventory.txt
+
 local filter = {}
 filter.registered_filter = {}
 
@@ -14,65 +16,56 @@ function filter.register_filter(def)
 
 	function self:check_item_by_name(itemname)
 		if minetest.registered_items[itemname] then
-			return self.filter_func(minetest.registered_items[itemname])
+			return self.filteget_group_descriptionr_func(minetest.registered_items[itemname])
 		end
 	end
 	function self:check_item_by_def(def)
 		return self.filter_func(def)
 	end
-	function self:get_group_description(group)
-		local rela_group = group:sub(string.len(self.name)+2)
-		local descr
+	function self:get_description(group)
 		if self.shortdesc_func then
-			descr = self.shortdesc_func(rela_group)
-		end
-		if descr then
-			return descr
-		elseif self.shortdesc then
-			return self.shortdesc
+			return self:shortdesc_func(group)
+		elseif txt[group.name] then
+			return txt[group.name].label
+		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
+			return txt[group.parent.name].label.." "..group.parent.childs[group.name]
 		else
-			return group
+			return group.name
 		end
 	end
 
 	filter.registered_filter[self.name] = self
 end
 
---[[	level = { shortdesc = "Uses level information" },
-	dig_immediate = { shortdesc = "Fast removable" },
-	disable_jump = { shortdesc = "Not jumpable" },
-	less_damage  = { shortdesc = "Less damage" },
-	more_damage  = { shortdesc = "More damage" },
-	bouncy = { shortdesc = "Bouncy" },
-	falling_node = { shortdesc = "Falling" },
-	attached_node = { shortdesc = "Attachable" },
-	connect_to_raillike = { shortdesc = "Rail-like" },
-	-- TODO: http://dev.minetest.net/Groups/Custom_groups
-
-	armor_use = { shortdesc = "Armor" },
-	armor_heal = { shortdesc = "Armor" },
-	cracky = { shortdesc = "Cracky" },
-	flammable = { shortdesc = "Flammable" },
-	snappy = { shortdesc = "Snappy" },
-	choppy = { shortdesc = "Choppy" },
-	oddly_breakable_by_hand = { shortdesc = "Oddly breakable" },
-
-	tool = { shortdesc = "Tools" },
-	type_node = { shortdesc = "Nodes" },
-	type_craft = { shortdesc = "Craft Items" },
-]]
-
 filter.register_filter({
 		name = "group",
 		filter_func = function(def)
-			return def.groups
-		end,
-		shortdesc_func = function(group)
-			-- hide the top group because of meaningless
-			if group == "" then
-				return ""
+			local ret = {}
+			for k, v in pairs(def.groups) do
+				local mk, mv
+				-- dimension groups. replace _ by :
+				if k:sub(1,5) == "armor" or
+						k:sub(1, 7) == "physics" or
+						k:sub(1, 9) == "basecolor" or
+						k:sub(1, 7) == "excolor" or
+						k:sub(1, 5) == "color" or
+						k:sub(1, 8) == "unicolor" or
+						k:sub(1, 4) == "food" then
+					mk = string.gsub(k, "_", ":")
+				else
+					mk = k
+				end
+
+				-- value-expandable groups
+				if v ~= 1 or k == "oddly_breakable_by_hand" then
+					mv = v
+				else
+					mv = true
+				end
+				ret[mk] = mv
 			end
-		end
+			return ret
+		end,
 	})
 
 filter.register_filter({
@@ -80,12 +73,6 @@ filter.register_filter({
 		filter_func = function(def)
 			return def.type
 		end,
-		shortdesc_func = function(group)
-			-- hide the top group because of meaningless
-			if group == "" then
-				return ""
-			end
-		end
 	})
 
 filter.register_filter({
@@ -93,17 +80,10 @@ filter.register_filter({
 		filter_func = function(def)
 			return def.mod_origin
 		end,
-		shortdesc_func = function(group)
-			-- hide the top group because of meaningless
-			if group == "" then
-				return ""
-			end
-		end
 	})
 
 filter.register_filter({
 		name = "transluc",
-		shortdesc = "Translucent blocks",
 		filter_func = function(def)
 			return def.sunlight_propagates
 		end
@@ -111,7 +91,6 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "vessel",
-		shortdesc = "Vessel",
 		filter_func = function(def)
 			if def.allow_metadata_inventory_move or
 					def.allow_metadata_inventory_take or
@@ -121,6 +100,7 @@ filter.register_filter({
 		end
 	})
 
+--[[ does it sense to filter them? I cannot define the human readable groups for them
 filter.register_filter({
 		name = "drawtype",
 		filter_func = function(def)
@@ -128,13 +108,8 @@ filter.register_filter({
 				return def.drawtype
 			end
 		end,
-		shortdesc_func = function(group)
-			-- hide the top group because of meaningless
-			if group == "group" then
-				return ""
-			end
-		end
 	})
+]]
 
 filter.register_filter({
 		name = "material",
@@ -191,16 +166,29 @@ filter.register_filter({
 					rettab["damage:"..k] = v
 				end
 			end
+--[[ disabled, I cannot find right human readable interpretation for this
 			if def.tool_capabilities.groupcaps then
 				for groupcap, gdef in pairs(def.tool_capabilities.groupcaps) do
 					for k, v in pairs(gdef) do
 						if type(v) ~= "table" then
-							rettab["capability:"..groupcap..":"..k] = v
+							rettab["groupcaps:"..groupcap..":"..k] = v
 						end
 					end
 				end
 			end
+]]
 			return rettab
+		end,
+		shortdesc_func = function(self, group)
+			if group == "max_drop_level" or group == "full_punch_interval" or group == "damage" then
+				return false
+			elseif txt[group.name] then
+				return txt[group.name].label
+			elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
+				return txt[group.parent.name].label.." "..group.parent.childs[group.name]
+			else
+				return group.name
+			end
 		end
 	})
 

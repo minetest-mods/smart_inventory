@@ -1,5 +1,6 @@
 local filter = smart_inventory.filter
 local doc_addon = smart_inventory.doc_addon
+local txt = smart_inventory.txt
 
 local cache = {}
 cache.cgroups = {}
@@ -197,31 +198,34 @@ function crecipes.new(recipe)
 end
 
 -----------------------------------------------------
--- Group labels
------------------------------------------------------
-cache.group_info = {
-	all = {shortdesc = "All items" },
-	other = {shortdesc = "Other items" },
-}
-
-
------------------------------------------------------
 -- Add a item to cache group
 -----------------------------------------------------
-function cache.add_to_cache_group(group_name, itemdef, flt)
+function cache.add_to_cache_group(group_name, itemdef, flt, parent, parent_value)
+	local parent_ref
+	if parent then
+		parent_ref = cache.cgroups[parent]
+		if parent_ref then
+			parent_ref.childs[group_name] = parent_value
+		end
+	end
+
 	if not cache.cgroups[group_name] then
 		local group = {
 			name = group_name,
-			items = {}
+			items = {},
+			parent = parent_ref,
+			childs = {},
 			}
+
 		if flt then
-			group.group_desc = flt:get_group_description(group_name)
-		elseif cache.group_info[group_name] then
-			group.group_desc = cache.group_info[group_name].shortdesc
+			group.group_desc = flt:get_description(group)
 		else
 			group.group_desc = group_name
 		end
-		if group.group_desc == "" or group.group_desc == "nogroup" then
+		if not group.group_desc then
+			if parent_ref then
+				parent_ref.childs[group_name] = nil
+			end
 			return
 		end
 		cache.cgroups[group_name] = group
@@ -266,9 +270,12 @@ function cache.fill_cache()
 							end
 							local filtername = flt.name
 							cache.add_to_cache_group(filtername, def, flt)
+							local parent = filtername
 							filter_entry:gsub("[^:]+", function(z)
+								local parentvalue = string.sub(flt.name..":"..filter_entry, string.len(filtername)+2)
 								filtername = filtername..":"..z
-								cache.add_to_cache_group(filtername, def, flt)
+								cache.add_to_cache_group(filtername, def, flt, parent, parentvalue)
+								parent = filtername
 							end)
 						end
 					end
@@ -299,7 +306,7 @@ function cache.fill_recipe_cache()
 							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
 								table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 							end
-							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item)
+--							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item)
 						end
 					end
 				end
@@ -384,7 +391,10 @@ function cache.get_list_grouped(itemtable)
 			end
 
 			for idx = #sorttab, 1, -1 do
-				if sorttab[idx].unique_count <= 1 then
+				if sorttab[idx].unique_count <= 1 or
+					( sel.cgroup.parent and sel.cgroup.parent.name == sorttab[idx].name ) or
+					( sel.cgroup.childs and sel.cgroup.childs[sorttab[idx].name] )
+				then
 					table.remove(sorttab, idx)
 				end
 			end
@@ -402,41 +412,17 @@ function cache.get_list_grouped(itemtable)
 	-- default groups
 	outtab.all = {}
 	outtab.all.name = "all"
-	outtab.all.group_desc = cache.group_info[outtab.all.name].shortdesc
+	outtab.all.group_desc = txt[outtab.all.name].label
 	outtab.all.items = itemtable
 
 	outtab.other = {}
 	outtab.other.name = "other"
-	outtab.other.group_desc = cache.group_info[outtab.other.name].shortdesc
+	outtab.other.group_desc = txt[outtab.other.name].label
 	outtab.other.items = other
 
 	return outtab
 end
 
-
------------------------------------------------------
--- Sort items to groups by base material
------------------------------------------------------
-function cache.get_list_grouped_by_base_material(itemtable)
-	local grouped = {}
-	-- sort the entries to groups
-	for _, entry in ipairs(itemtable) do
-		local flt = filter.get("shape")
-		local groupname = flt:check_item_by_name(entry.item)
-		if groupname then
-			groupname = "shape"..groupname
-			if not grouped[groupname] then
-				local group_info = {}
-				group_info.name = groupname
-				group_info.group_desc = flt:get_group_description(groupname)
-				group_info.items = {}
-				grouped[groupname] = group_info
-			end
-			table.insert(grouped[groupname].items, entry)
-		end
-	end
-	return grouped
-end
 
 -----------------------------------------------------
 -- Get all items available

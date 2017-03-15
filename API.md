@@ -30,7 +30,6 @@ Maybe the framework will be moved to own mod in the feature if needed. Please no
 smart_inventory.filter.register_filter({
                 name             = string,
                 filter_func      = function,
-                shortdesc        = string,
                 shortdesc_func   = function,
         })
 ```
@@ -41,12 +40,12 @@ smart_inventory.filter.register_filter({
     - string -> dimension, steps splitted by ":" (`a:b:c:d results in filtername, filtername:a, filtername:a:b, filtername:a:b:c, filtername:a:b:c:d`)
     - key/value table -> multiple groups assignment. Values could be dimensions as above (`{a,b} results in filtername, filtername:a, filtername:b`)
     - nil -> no group assingment by this filter
-  - shortdesc_func(filterstring) - optional - get human readable description for the dimension string (`filtername:a:b:c`). Empty ("") or "nogroup" means the group should be ignored. Usefull so skip some dimension characteristics
-  - shortdesc - optional - static human readable description. Should be used only with boalean return values
+  - shortdesc_func(fltobj, filterstring, textstring) - optional - get human readable description for the dimension string (`filtername:a:b:c`). "false" means the group should be ignored. Usefull so skip some dimension characteristics
+  - if no function is given the descriptions can be added to smart_inventory.txt[filterstring].label See classify_description.lua. If nothing defined the filterstring will be displayed
  
 ### Filter Object methods
 
 smart_inventory.filter.get(name)       get filter object by registered name. Returns filter object fltobj
   - fltobj:check_item_by_name(itemname)   classify by itemname
   - fltobj:check_item_by_def(def)         classify by item definition
-  - fltobj:get_group_description(group)   get group description
+  - fltobj:get_description(group)         get group description

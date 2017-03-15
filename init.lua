@@ -115,6 +115,7 @@ function smart_inventory.get_registered_page(pagename)
 end
 
 -- build up caches
+smart_inventory.txt = dofile(modpath.."/classify_description.lua")
 smart_inventory.filter = dofile(modpath.."/filter.lua")
 smart_inventory.doc_addon = dofile(modpath.."/doc_addon.lua")
 smart_inventory.cache = dofile(modpath.."/cache.lua")

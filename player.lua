@@ -1,25 +1,14 @@
 local filter = smart_inventory.filter
 local cache = smart_inventory.cache
+local txt = smart_inventory.txt
 local creative = minetest.setting_getbool("creative_mode")
 
-local armor_nfo = {
-	state = { label = "Armor state", default = 0 },
-	level = { label = "Armor level", default = 0 },
-	jump = { label = "Jump high", default = 1 },
-	speed = { label = "Walking speed", default = 1 },
-	gravity = { label = "Gravity", default = 1 },
-	heal = { label = "Heal", default = 0 },
-	water = { label = "Water protection", default = 0 },
-	fire = { label = "Fire protection", default = 0 },
-	radiation = { label = "Radiation protection", default = 0 },
-	head  = { label = "Head level", default = 0 },
-	torso = { label = "Torso level", default = 0 },
-	legs = { label = "Legs level", default = 0 },
-	feet = { label = "Feet level", default = 0 },
-	shield  = { label = "Shield level", default = 0 },
-	use = { label = "Max state", default = 0 },
-
-}
+local armor_type = {}
+if smart_inventory.armor_mod then
+	for _,v in ipairs(armor.elements) do
+		armor_type["group:armor:"..v] = true
+	end
+end
 
 local function update_grid(state, listname)
 -- Update the users inventory grid
@@ -32,20 +21,25 @@ local function update_grid(state, listname)
 	for stack_index, stack in ipairs(invlist) do
 		local itemdef = stack:get_definition()
 		local is_armor = false
-		if itemdef and cache.cgroups["armor"].items[itemdef.name] then
-			local wear = stack:get_wear()
-			if wear == 0 then
-				wear = ""
-			else
-				wear = " "..wear
+		if itemdef and cache.citems[itemdef.name] then
+			for groupname, groupinfo in pairs(cache.citems[itemdef.name].cgroups) do
+				if groupinfo.parent and armor_type[groupinfo.parent.name] then
+					local wear = stack:get_wear()
+					if wear == 0 then
+						wear = ""
+					else
+						wear = " "..wear
+					end
+					table.insert(list, {
+							itemdef = itemdef,
+							stack_index = stack_index,
+							-- buttons_grid related
+							item = itemdef.name..wear,
+							is_button = true
+						})
+					break
+				end
 			end
-			table.insert(list, {
-					itemdef = itemdef,
-					stack_index = stack_index,
-					-- buttons_grid related
-					item = itemdef.name..wear,
-					is_button = true
-				})
 		end
 	end
 	table.sort(list, function(a,b)
@@ -57,8 +51,6 @@ end
 
 local function update_selected_item(state, listentry)
 	local name = state.location.rootState.location.player
-	local i_list = state:get("i_list")
-	i_list:clearItems()
 
 	if listentry then
 		state.param.armor_selected_item = listentry
@@ -69,17 +61,18 @@ local function update_selected_item(state, listentry)
 		return
 	end
 
-	for k, v in pairs(listentry.itemdef.groups) do
-		local armor_type
-		if string.sub(k, 1, 6) == "armor_" then
-			armor_type = string.sub(k, 7)
-		elseif string.sub(k, 1, 8) == "physics_" then
-			armor_type = string.sub(k, 9)
-		end
-		if armor_type then
-			local info = armor_nfo[armor_type]
-			if info and v ~= 0 then
-				i_list:addItem(info.label..": "..v)
+	local i_list = state:get("i_list")
+	i_list:clearItems()
+	for groupname, groupinfo in pairs(cache.citems[listentry.itemdef.name].cgroups) do
+		if groupinfo.group_desc and cache.cgroups[groupname].parent then
+			local parent = cache.cgroups[groupname].parent
+			local parentvalue = cache.cgroups[groupname].parent.childs[groupname]
+			if parentvalue and parentvalue ~= "0" and
+					cache.cgroups[parent.name] and
+					cache.cgroups[parent.name].parent and
+					( cache.cgroups[parent.name].parent.name == "group:armor" or
+						cache.cgroups[parent.name].parent.name == "group:physics" ) then
+				i_list:addItem(parent.group_desc..": "..parentvalue)
 			end
 		end
 	end
@@ -100,9 +93,17 @@ local function update_page(state)
 		local a_list = state:get("a_list")
 		a_list:clearItems()
 		for k, v in pairs(armor.def[name]) do
-			local info = armor_nfo[k]
-			if info and info.default ~= v then
-				a_list:addItem(info.label..": "..v)
+			local skipval = 1
+			local groupinfo = cache.cgroups["group:physics:"..k]
+			local grouptext
+			if groupinfo then
+				grouptext = groupinfo.group_desc
+			else
+				grouptext = filter.get("group"):get_description({name = "group:armor:"..k})
+				skipval = 0
+			end
+			if grouptext and skipval ~= v then
+				a_list:addItem(grouptext..": "..v)
 			end
 		end
 		update_selected_item(state)
@@ -143,7 +144,7 @@ local function move_item_to_armor(state, item)
 		local removestack, removeindex
 		local newgroups = {}
 		for groupname, groupdef in pairs(cache.citems[itemname].cgroups) do
-			if string.sub(groupname, 1, 6) == "armor:" then
+			if string.sub(groupname, 1, 12) == "group:armor_" then
 				newgroups[groupname] = groupdef
 			end
 		end
@@ -157,7 +158,7 @@ local function move_item_to_armor(state, item)
 					removeindex = stack_index
 					break
 				end
-				if string.sub(groupname, 1, 6) == "armor:" then
+				if string.sub(groupname, 1, 6) == "group:armor_" then
 					if not oldgroups[groupname] then
 						oldgroups[groupname] = 1
 					else
@@ -257,7 +258,13 @@ local function player_callback(state)
 		if creative == true then
 			-- fill creative list once, not each page update
 			local list = {}
-			for _, itemdef in pairs(cache.cgroups["armor"].items) do
+			local list_dedup = {}
+			for armor_group, _ in pairs(armor_type) do
+				for _, itemdef in pairs(cache.cgroups[armor_group].items) do
+					list_dedup[itemdef.name] = itemdef
+				end
+			end
+			for _, itemdef in pairs(list_dedup) do
 				table.insert(list, {
 						itemdef = itemdef,
 						-- buttons_grid related
@@ -322,19 +329,3 @@ smart_inventory.register_page({
 	sequence = 20,
 	on_button_click = update_page
 })
-
-
-if smart_inventory.armor_mod then
-	-- Armor filter
-	smart_inventory.filter.register_filter({
-			name = "armor", 
-			shortdesc = "Armor",
-			filter_func = function(def)
-				for _, v in pairs(armor.elements) do
-					if def.groups["armor_"..v] then
-						return v
-					end
-				end
-			end
-		})
-end
