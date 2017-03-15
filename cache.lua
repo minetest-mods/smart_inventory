@@ -299,7 +299,7 @@ function cache.fill_recipe_cache()
 					table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
 					cache.crecipes[recipe] = recipe_obj
 					if recipe_obj.recipe_type ~= "normal" then
-						cache.add_to_cache_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item)
+						cache.add_to_cache_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item, filter.get("recipetype"))
 					end
 					for _, entry in pairs(recipe_obj._items) do
 						for itemname, itemdef in pairs(entry.items) do

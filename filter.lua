@@ -192,6 +192,12 @@ filter.register_filter({
 		end
 	})
 
+-- dummy, used internal
+filter.register_filter({
+		name = "recipetype",
+		filter_func = function(def) end,
+})
+
 ----------------
 return filter
 

@@ -103,6 +103,9 @@ function ui_tools.search_in_list(list, search_string, playername)
 				if string.find(cgroup.name:lower(), search_string, prefix_end_pos) then
 					table.insert(filtered_list, entry)
 					break
+				elseif string.find(cgroup.group_desc:lower(), search_string) then
+					table.insert(filtered_list, entry)
+					break
 				end
 			end
 		end

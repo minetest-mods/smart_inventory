@@ -114,8 +114,20 @@ function smart_inventory.get_registered_page(pagename)
 	end
 end
 
+-- get language for texts
+local LANG = minetest.setting_get("language")
+if not (LANG and (LANG ~= "")) then LANG = os.getenv("LANG") end
+if not (LANG and (LANG ~= "")) then LANG = "en" end
+local txtfile = modpath.."/classify_description_"..LANG:sub(1,2)..".lua"
 -- build up caches
-smart_inventory.txt = dofile(modpath.."/classify_description.lua")
+local f=io.open(txtfile,"r")
+if f~=nil then
+	io.close(f)
+	smart_inventory.txt = dofile(txtfile)
+else
+	smart_inventory.txt = dofile(modpath.."/classify_description_en.lua")
+end
+
 smart_inventory.filter = dofile(modpath.."/filter.lua")
 smart_inventory.doc_addon = dofile(modpath.."/doc_addon.lua")
 smart_inventory.cache = dofile(modpath.."/cache.lua")
