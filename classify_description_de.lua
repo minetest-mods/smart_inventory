@@ -22,7 +22,7 @@ return {
 	-- http://dev.minetest.net/Groups
 	-- http://dev.minetest.net/Groups/Custom_groups
 	["group"] = { label = false },
-	["group:level"] = { label = "Wertfoll" },
+	["group:level"] = { label = "Wertvoll" },
 	["group:oddly_breakable_by_hand"] = { label = "Ohne Werkzeug abbaubar" },
 	["group:dig_immediate"] = { label = false },
 	["group:dig_immediate:2"] = { label = "Schnell abbaubar" },

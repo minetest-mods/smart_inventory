@@ -8,7 +8,7 @@ smart_inventory.registered_pages = {}
 smart_inventory.smartfs = dofile(modpath.."/smartfs.lua")
 smart_inventory.smartfs_elements = dofile(modpath.."/smartfs-elements.lua")
 smartfs = smart_inventory.smartfs
-
+smart_inventory.txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or false
 
 -- start with empty group items replacement table.
 -- Will be filled at runtime with used items. partially independend on user

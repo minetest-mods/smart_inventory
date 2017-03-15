@@ -27,9 +27,9 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 
 	table.sort(group_sorted, function(a,b)
 		local sort_fixed_order = {
-			["shape"] = "ZZZ2",
-			["all"] = "__1",
-			["other"] = "ZZZ1",
+			["all"] = "  ",    -- at the begin
+			["other"] = "ZZ1", -- at the end
+			["shape"] = "ZZ2", --at the end
 		}
 		local aval = sort_fixed_order[a.name] or a.name
 		local bval = sort_fixed_order[b.name] or b.name

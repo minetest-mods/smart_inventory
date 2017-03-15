@@ -111,7 +111,7 @@ function crecipes.new(recipe)
 								if cache.cgroups["group:"..groupname] then
 									retitems = table.copy(cache.cgroups["group:"..groupname].items)
 								else
-									minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item, groupname)
+									minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname)
 								end
 							else
 								for itemname, itemdef in pairs(retitems) do
@@ -324,14 +324,16 @@ function cache.get_list_grouped(itemtable)
 	for _, entry in ipairs(itemtable) do
 		if cache.citems[entry.item] then
 			for _, group in pairs(cache.citems[entry.item].cgroups) do
-				if not grouped[group.name] then
-					local group_info = {}
-					group_info.name = group.name
-					group_info.cgroup = cache.cgroups[group.name]
-					group_info.items = {}
-					grouped[group.name] = group_info
+				if group ~= "shape" then -- this group is handeled in other way
+					if not grouped[group.name] then
+						local group_info = {}
+						group_info.name = group.name
+						group_info.cgroup = cache.cgroups[group.name]
+						group_info.items = {}
+						grouped[group.name] = group_info
+					end
+					table.insert(grouped[group.name].items, entry)
 				end
-				table.insert(grouped[group.name].items, entry)
 			end
 		end
 	end

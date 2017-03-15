@@ -1,0 +1,2 @@
+#If enabled, the mod will show alternative human readable filterstrings if available.
+smart_inventory_friendly_group_names (Show “friendly” filter grouping names) bool true

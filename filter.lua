@@ -23,12 +23,18 @@ function filter.register_filter(def)
 		return self.filter_func(def)
 	end
 	function self:get_description(group)
+		local ret_desc
 		if self.shortdesc_func then
-			return self:shortdesc_func(group)
+			ret_desc = self:shortdesc_func(group)
 		elseif txt[group.name] then
-			return txt[group.name].label
+			ret_desc = txt[group.name].label
 		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
-			return txt[group.parent.name].label.." "..group.parent.childs[group.name]
+			ret_desc = txt[group.parent.name].label.." "..group.parent.childs[group.name]
+		else
+			ret_desc = group.name
+		end
+		if not smart_inventory.txt_usage or ret_desc == false then
+			return ret_desc
 		else
 			return group.name
 		end
@@ -115,6 +121,9 @@ filter.register_filter({
 		name = "material",
 		filter_func = function(def)
 			return def.base_material
+		end,
+		shortdesc_func = function(self, group)
+			return txt["material"].label.." "..group.name:sub(10)
 		end
 	})
 
@@ -180,7 +189,7 @@ filter.register_filter({
 			return rettab
 		end,
 		shortdesc_func = function(self, group)
-			if group == "max_drop_level" or group == "full_punch_interval" or group == "damage" then
+			if group.name == "max_drop_level" or group.name == "full_punch_interval" or group.name == "damage" then
 				return false
 			elseif txt[group.name] then
 				return txt[group.name].label
