@@ -117,20 +117,22 @@ filter.register_filter({
 	})
 ]]
 
-filter.register_filter({
-		name = "material",
-		filter_func = function(def)
-			return def.base_material
-		end,
-		shortdesc_func = function(self, group)
-			return txt["material"].label.." "..group.name:sub(10)
-		end
-	})
+local shaped_groups = {}
+local shaped_list = minetest.setting_get("smart_inventory_shaped_groups") or "carpet,door,fence,stair,slab,wall,micro,panel,slope"
+if shaped_list then
+	shaped_list:gsub("[^,]+", function(z)
+		shaped_groups[z] = true
+	end)
+end
 
 filter.register_filter({
 		name = "shape",
 		filter_func = function(def)
-			return def.shape_type
+			for k, v in pairs(def.groups) do
+				if shaped_groups[k] then
+					return true
+				end
+			end
 		end
 	})
 

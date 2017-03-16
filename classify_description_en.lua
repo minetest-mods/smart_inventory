@@ -62,8 +62,14 @@ return {
 	["group:food"] = {label = "Food"},
 
 	["group:stair"] = {label = "Stair"},
+	["group:door"] = {label = "Door"},
+	["group:fence"] = {label = "Fence"},
 	["group:slab"] = {label = "Slab"},
 	["group:wall"] = {label = "Wall"},
+	["group:carpet"] = {label = "Carpet"},
+	["group:micro"] = {label = "Micro"},
+	["group:panel"] = {label = "Panel"},
+	["group:slope"] = {label = "Slope"},
 
 	["type:tool"] = { label = "Tools" },
 	["type:node"] = { label = "Nodes" },
@@ -74,8 +80,7 @@ return {
 	["transluc"] = { label = "Translucent" },
 	["vessel"] = { label = "Vessel" },
 	["eatable"] = { label = "Eatable" },
-	["material"] = { label = "Shaped" },
-	["shape"] = { label = "Shape"},
+	["shape"] = { label = "Shaped"},
 
 	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Punch interval" },

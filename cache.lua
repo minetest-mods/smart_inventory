@@ -248,14 +248,33 @@ end
 -- Fill the cache at init
 -----------------------------------------------------
 function cache.fill_cache()
-	for name, def in pairs(minetest.registered_items) do
+	local shape_filter = filter.get("shape")
+	for _name_, _def_ in pairs(minetest.registered_items) do
+		-- special handling for doors. In inventory the item should be displayed instead of the node_a/node_b
+		local def
+		if _def_.groups.door then
+			if _def_.door then
+				def = minetest.registered_items[_def_.door.name]
+			elseif _def_.drop and type(_def_.drop) == "string" then
+				def = minetest.registered_items[_def_.drop]
+			else
+				def = _def_
+			end
+			if not def then
+				minetest.log("[smart_inventory] Buggy door found: ".._def_.name)
+				def = _def_
+			end
+		else
+			def = _def_
+		end
+
 		-- build groups and items cache
 		if def.description and def.description ~= "" and
-				(not def.groups.not_in_creative_inventory or def.base_material) then
+				(not def.groups.not_in_creative_inventory or shape_filter:check_item_by_def(_def_)) then
 
 			-- extended registred filters
 			for _, flt in pairs(filter.registered_filter) do
-				local filter_result = flt:check_item_by_def(def)
+				local filter_result = flt:check_item_by_def(_def_)
 				if filter_result then
 					if filter_result == true then
 						cache.add_to_cache_group(flt.name, def, flt)

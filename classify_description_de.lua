@@ -62,8 +62,14 @@ return {
 	["group:food"] = {label = "Nahrung"},
 
 	["group:stair"] = {label = "Treppe"},
+	["group:door"] = {label = "Tür"},
+	["group:fence"] = {label = "Zaun"},
 	["group:slab"] = {label = "Platte"},
 	["group:wall"] = {label = "Mauer"},
+	["group:carpet"] = {label = "Teppich"},
+	["group:micro"] = {label = "Mikro"},
+	["group:panel"] = {label = "Paneel"},
+	["group:slope"] = {label = "Neigung"},
 
 	["type:tool"] = { label = "Werkzeuge" },
 	["type:node"] = { label = "Blöcke" },
@@ -74,8 +80,7 @@ return {
 	["transluc"] = { label = "Lichtdurchlässig" },
 	["vessel"] = { label = "Behälter" },
 	["eatable"] = { label = "Essbar" },
-	["material"] = { label = "Geformt" },
-	["shape"] = { label = "Form"},
+	["shape"] = { label = "Geformt"},
 
 	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Verwendungsinterval" },

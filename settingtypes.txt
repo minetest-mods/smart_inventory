@@ -1,2 +1,6 @@
 #If enabled, the mod will show alternative human readable filterstrings if available.
 smart_inventory_friendly_group_names (Show “friendly” filter grouping names) bool true
+
+#List of groups defined for special handling of "Shaped nodes" (Comma separated).
+#Items in this groups ignores the "not_in_inventory" group and are moved to separate "Shaped" category
+smart_inventory_shaped_groups (List of groups to be handled as separate) string carpet,door,fence,stair,slab,wall,micro,panel,slope

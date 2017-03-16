@@ -15,7 +15,11 @@ function doc_addon.is_revealed_item(itemname, playername)
 		else
 			for _, group in pairs(cache.citems[itemname].cgroups) do
 				if group.name == "type:node" then
-					category_id = "nodes"
+					if cache.citems[itemname].cgroups["group:door"] then
+						category_id = "craftitems" -- map back for doc compatibility
+					else
+						category_id = "nodes"
+					end
 				elseif group.name == "type:tool" then
 					category_id = "tools"
 				elseif group.name == "type:craft" then
