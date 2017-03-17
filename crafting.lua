@@ -405,7 +405,7 @@ local function crafting_callback(state)
 	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
 	-- Refresh from inventory
-	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory")
+	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Craftable")
 	refresh_button:onClick(function(self, state, player)
 		state.param.crafting_items_in_inventory = get_inventory_items(player)
 		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
