@@ -68,7 +68,10 @@ filter.register_filter({
 				else
 					mv = true
 				end
-				ret[mk] = mv
+
+				if v ~= 0 then
+					ret[mk] = mv
+				end
 			end
 			return ret
 		end,
