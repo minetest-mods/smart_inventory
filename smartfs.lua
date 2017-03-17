@@ -217,7 +217,7 @@ smartfs._ldef.inventory = {
 			player = name,
 			_show_ = function(state)
 				local player = minetest.get_player_by_name(state.location.player)
-				--print(state:_buildFormspec_(true))
+				--print("smartfs formspec:", state:_buildFormspec_(true))
 				player:set_inventory_formspec(state:_buildFormspec_(true))
 			end
 		}
@@ -503,6 +503,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 		end,
 		-- Receive fields and actions from formspec
 		_sfs_on_receive_fields_ = function(self, player, fields)
+			--print("smartfs: fields received", dump(fields))
 			-- fields assignment
 			for field, value in pairs(fields) do
 				self:_sfs_process_value_(field, value)
@@ -890,7 +891,7 @@ smartfs.element("button", {
 		return self.data.item
 	end,
 	setTooltip = function(self,text)
-		self.data.tooltip = text
+		self.data.tooltip = minetest.formspec_escape(text)
 	end,
 	getTooltip = function(self)
 		return self.data.tooltip
