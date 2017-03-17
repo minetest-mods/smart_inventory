@@ -33,6 +33,7 @@ local function update_crafting_preview(state)
 	local selected = state.param.crafting_recipes_preivew_selected
 	local itemdef = listentry.itemdef
 	local inf_state = state:get("inf_area"):getContainerState()
+	local cr_type_img = state:get("cr_type_img")
 	local craft_result = inf_state:get("craft_result")
 	local group_list = inf_state:get("item_groups")
 
@@ -68,10 +69,17 @@ local function update_crafting_preview(state)
 
 	-- display the recipe result or selected item
 	if recipe then
-		if recipe.type ~="normal" then
-			state:get("cr_type"):setText(recipe.type)
-		else
+		if recipe.type == "normal" then
 			state:get("cr_type"):setText("")
+			cr_type_img:setVisible(false)
+		elseif recipe.type == "cooking" then
+			state:get("cr_type"):setText(recipe.type)
+			state:get("cr_type"):setText("")
+			cr_type_img:setVisible(true)
+			cr_type_img:setImage("default_furnace_front.png")
+		else
+			state:get("cr_type"):setText(recipe.type)
+			cr_type_img:setVisible(false)
 		end
 		craft_result:setImage(recipe.output)
 		craft_result:setVisible()
@@ -79,6 +87,7 @@ local function update_crafting_preview(state)
 	else
 		state:get("cr_type"):setText("")
 		state:get("craft_preview"):setCraft(nil)
+		cr_type_img:setVisible(false)
 		if itemdef then
 			craft_result:setVisible(true)
 			craft_result:setImage(itemdef.name)
@@ -339,6 +348,7 @@ local function crafting_callback(state)
 
 	-- recipe preview area
 	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
+	state:image(7,2.8,1,1,"cr_type_img",""):setVisible(false)
 	state:label(7,3,"cr_type", "")
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
 	pr_prev_btn:onClick(function(self, state, player)
@@ -395,7 +405,7 @@ local function crafting_callback(state)
 	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
 	-- Refresh from inventory
-	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory ")
+	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Read inventory")
 	refresh_button:onClick(function(self, state, player)
 		state.param.crafting_items_in_inventory = get_inventory_items(player)
 		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
