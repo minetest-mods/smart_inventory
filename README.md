@@ -1,13 +1,13 @@
 # smart_inventory
 
 ## Overview
-Minetest inventory with focus on very much items.
+A fast Minetest inventory with focus on a great number of items and big screens. The special feature of this inventory is the dynamic classification filters that allow fast searching and browsing trough available items and show relevant invormations only to the user.
 
-The mod is organized in multiple pages, each page does have own focus. There is a cached classification system implented that allow fast searching and browsing trough available items.
+The mod is organized in multiple pages, each page does have own focus and follow own vision.
 
 ## Crafting page
 ![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot.png)
-The vision is to not affect the gameplay trough crafting helpers. The helper should display currently relevant craft recipes only.
+The vision is to not affect the gameplay trough crafting helpers. The dynamic search helper display currently relevant craft recipes only based on inventory content by default.
 - Contains the usual player-, and crafting inventory
 - Additional view of "craftable items" based on players inventory content
 - Dynamic grouping of craftable items for better overview
@@ -22,20 +22,39 @@ A lookup button is available on already known items to jump to the documntation 
 
 
 ## Creative page
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170317_175339.png)
 The vision is to get items fast searchable and gettable
 - 3 dynamic filters + text search field for fast items search
 - cleanup of inventory trough "delete" field
 - just click to the item to get it in inventory
 - Sort out "mass"-groups to a special "Shaped" category
 
+
 ## Player page
-The vision is to get all skins and player customizations visual exposed
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170317_175415.png)
+The vision is to get all skins and player customizations visual exposed.
 
 ### 3d_armor
-In creative mode there are all armor items available for 3d_armor support. The players inventory is not used in this mode. In survival only the armor from players inventory is shown
+In creative mode there are all armor items available for 3d_armor support. The players inventory is not used in this mode. In survival only the armor from players inventory is shown.
+Supported version: current stable 0.4.8
 
 ### skins
-tested with my fork https://github.com/bell07/minetest-skinsdb
+tested only with my fork https://github.com/bell07/minetest-skinsdb
 But it should be work with any fork that uses skins.skins[] and have *_preview.png files
+
+## Dependencies: 
+Screen size at least 1024x768 / big screen. On my mobile with "full HD" it does not work.
+Minetest stable 0.4.15 or newer
+default mod (some graphics are used from this mod)
+
+## Settings
+```
+#If enabled, the mod will show alternative human readable filterstrings if available.
+smart_inventory_friendly_group_names (Show “friendly” filter grouping names) bool true
+
+#List of groups defined for special handling of "Shaped nodes" (Comma separated).
+#Items in this groups ignores the "not_in_inventory" group and are moved to separate "Shaped" category
+smart_inventory_shaped_groups (List of groups to be handled as separate) string carpet,door,fence,stair,slab,wall,micro,panel,slope
+```
 
 License: [LGPL-3](https://github.com/bell07/minetest-smart_inventory/blob/master/LICENSE)
