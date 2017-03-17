@@ -80,6 +80,7 @@ return {
 	["vessel"] = { label = "Vessel" },
 	["eatable"] = { label = "Eatable" },
 	["shape"] = { label = "Shaped"},
+	["light"] = { label = "Light source"},
 
 	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Punch interval" },

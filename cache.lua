@@ -283,7 +283,7 @@ function cache.fill_cache()
 							filter_result = {[filter_result] = true}
 						end
 						for key, val in pairs(filter_result) do
-							local filter_entry = key
+							local filter_entry = tostring(key)
 							if val ~= true then
 								filter_entry = filter_entry..":"..tostring(val)
 							end

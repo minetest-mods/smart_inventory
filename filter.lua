@@ -99,6 +99,15 @@ filter.register_filter({
 	})
 
 filter.register_filter({
+		name = "light",
+		filter_func = function(def)
+			if def.light_source and def.light_source ~= 0 then
+				return def.light_source
+			end
+		end
+	})
+
+filter.register_filter({
 		name = "vessel",
 		filter_func = function(def)
 			if def.allow_metadata_inventory_move or
