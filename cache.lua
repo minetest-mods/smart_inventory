@@ -111,7 +111,12 @@ function crecipes.new(recipe)
 								if cache.cgroups["group:"..groupname] then
 									retitems = table.copy(cache.cgroups["group:"..groupname].items)
 								else
-									minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname)
+									groupname = groupname:gsub("_", ":")
+									if cache.cgroups["group:"..groupname] then
+										retitems = table.copy(cache.cgroups["group:"..groupname].items)
+									else
+										minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname)
+									end
 								end
 							else
 								for itemname, itemdef in pairs(retitems) do
