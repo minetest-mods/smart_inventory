@@ -3,6 +3,7 @@ local doc_addon = {}
 
 function doc_addon.is_revealed_item(itemname, playername)
 	local cache = smart_inventory.cache
+	itemname = minetest.registered_aliases[itemname] or itemname
 	local itemdef = minetest.registered_items[itemname]
 	if not itemdef then
 		return false
