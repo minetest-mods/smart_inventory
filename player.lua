@@ -129,81 +129,48 @@ end
 local function move_item_to_armor(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
-	local itemstack
-	-- get item and try to move
+
+	-- get item to be moved to armor inventory
+	local itemstack, itemname, itemdef
 	if creative == true then
-		itemstack = inventory:add_item("armor", item.item)
+		itemstack = ItemStack(item.item)
+		itemname = item.item
 	else
 		itemstack = inventory:get_stack("main", item.stack_index)
-		itemstack = inventory:add_item("armor", itemstack)
-		inventory:set_stack("main", item.stack_index, itemstack)
+		itemname = itemstack:get_name()
 	end
-	-- second try: empty place and move again
-	if not itemstack:is_empty() then
-		local itemname = itemstack:get_name()
-		local removestack, removeindex
-		local newgroups = {}
-		for groupname, groupdef in pairs(cache.citems[itemname].cgroups) do
-			if string.sub(groupname, 1, 12) == "group:armor_" then
-				newgroups[groupname] = groupdef
-			end
-		end
-		-- check items group assignment. Prefer same group as new item to remove
-		local oldgroups = {}
-		for stack_index, stack in ipairs(inventory:get_list("armor")) do
-			local itemname = stack:get_name()
-			for groupname, groupdef in pairs(cache.citems[itemname].cgroups) do
-				if newgroups[groupname] then
-					removestack = stack
-					removeindex = stack_index
-					break
-				end
-				if string.sub(groupname, 1, 6) == "group:armor_" then
-					if not oldgroups[groupname] then
-						oldgroups[groupname] = 1
-					else
-						oldgroups[groupname] = oldgroups[groupname] + 1
-					end
-				end
-			end
-			if removestack then
-				break
-			end
-		end
-		-- no same group found. Check for biggest group (duplicates) to remove the item
-		if not removestack then
-			local maxcounter
-			local removegroup
-			for k, v in pairs(oldgroups) do
-				if not maxcounter or maxcounter < v then
-					maxcounter = v
-					removegroup = k
-				end
-			end
-			if removegroup then
-				for stack_index, stack in ipairs(inventory:get_list("armor")) do
-					local itemname = stack:get_name()
-					if cache.citems[itemname].cgroups[removegroup] then
-						removestack = stack
-						removeindex = stack_index
-						break
-					end
-				end
-			end
-		end
-		-- replace the item
-		if removestack then
-			if creative == true then
-				itemstack = inventory:set_stack("armor", removeindex, itemstack)
-			else
-				removestack = inventory:get_stack("armor", removeindex)
-				removestack = inventory:add_item("main", removestack)
-				inventory:set_stack("armor", removeindex, removestack)
+	itemdef = minetest.registered_items[itemname]
 
-				itemstack = inventory:get_stack("main", item.stack_index)
-				itemstack = inventory:add_item("armor", itemstack)
-				inventory:set_stack("main", item.stack_index, itemstack)
+	local new_groups = {}
+	for _, element in ipairs(armor.elements) do
+		if itemdef.groups["armor_"..element] then
+			new_groups["armor_"..element] = true
+		end
+	end
+
+	-- remove all items with the same group
+	local removed_items = {}
+	for stack_index, stack in ipairs(inventory:get_list("armor")) do
+		local old_def = stack:get_definition()
+		if old_def then
+			for groupname, groupdef in pairs(old_def.groups) do
+				if new_groups[groupname] then
+					table.insert(removed_items, stack)
+					stack = inventory:set_stack("armor", stack_index, {})
+				end
 			end
+		end
+	end
+
+	-- move the new item to the armor inventory
+	itemstack = inventory:add_item("armor", itemstack)
+
+	-- handle put backs in non-creative to not lost items
+	if creative == false then
+		inventory:set_stack("main", item.stack_index, itemstack)
+		for _, stack in ipairs(removed_items) do
+			stack = inventory:add_item("main", stack)
+			stack = inventory:add_item("armor", stack)
 		end
 	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
