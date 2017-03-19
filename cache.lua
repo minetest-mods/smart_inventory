@@ -122,7 +122,9 @@ function crecipes.new(recipe)
 								for itemname, itemdef in pairs(retitems) do
 									local item_in_group = false
 									for _, item_group in pairs(cache.citems[itemname].cgroups) do
-										if item_group.name == "group:"..groupname then
+										if item_group.name == "group:"..groupname or
+												item_group.name == "group:"..groupname:gsub("_", ":")
+										then
 											item_in_group = true
 											break
 										end
