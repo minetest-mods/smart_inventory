@@ -296,3 +296,14 @@ smart_inventory.register_page({
 	sequence = 20,
 	on_button_click = update_page
 })
+
+-- register callback in 3d_armor for updates
+if smart_inventory.armor_mod and armor.register_on_update then
+	armor:register_on_update(function(player)
+		local name = player:get_player_name()
+		local state = smart_inventory.get_page_state("player", name)
+		if state then
+			state:get("update_hook"):submit()
+		end
+	end)
+end
