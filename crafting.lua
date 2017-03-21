@@ -121,31 +121,33 @@ local function update_crafting_preview(state)
 
 		group_list:clearItems()
 		local out_list = {}
-		for group1, groupdef1 in pairs(cache.citems[itemdef.name].cgroups) do
-			if not string.find(group1, "ingredient:") then
-				out_list[group1] = groupdef1
-				for group2, groupdef2 in pairs(out_list) do
-					if string.len(group1) > string.len(group2) and
-							string.sub(group1,1,string.len(group2)) == group2 then
-							-- group2 is top-group of group1. Remove the group2
-						out_list[group2] = nil
-					elseif string.len(group1) < string.len(group2) and
-							string.sub(group2,1,string.len(group1)) == group1 then
-							-- group2 is top-group of group1. Remove the group2
-						out_list[group1] = nil
+		if cache.citems[itemdef.name] then
+			for group1, groupdef1 in pairs(cache.citems[itemdef.name].cgroups) do
+				if not string.find(group1, "ingredient:") then
+					out_list[group1] = groupdef1
+					for group2, groupdef2 in pairs(out_list) do
+						if string.len(group1) > string.len(group2) and
+								string.sub(group1,1,string.len(group2)) == group2 then
+								-- group2 is top-group of group1. Remove the group2
+							out_list[group2] = nil
+						elseif string.len(group1) < string.len(group2) and
+								string.sub(group2,1,string.len(group1)) == group1 then
+								-- group2 is top-group of group1. Remove the group2
+							out_list[group1] = nil
+						end
 					end
 				end
 			end
-		end
-		local out_list_sorted = {}
-		for group, groupdef in pairs(out_list) do
-			table.insert(out_list_sorted, groupdef)
-		end
-		table.sort(out_list_sorted, function(a,b)
-			return a.group_desc < b.group_desc
-		end)
-		for _, groupdef in ipairs(out_list_sorted) do
-			group_list:addItem(groupdef.group_desc)
+			local out_list_sorted = {}
+			for group, groupdef in pairs(out_list) do
+				table.insert(out_list_sorted, groupdef)
+			end
+			table.sort(out_list_sorted, function(a,b)
+				return a.group_desc < b.group_desc
+			end)
+			for _, groupdef in ipairs(out_list_sorted) do
+				group_list:addItem(groupdef.group_desc)
+			end
 		end
 	else
 		inf_state:get("info1"):setText("")

@@ -18,7 +18,7 @@ function doc_addon.is_revealed_item(itemname, playername)
 		elseif itemdef.type == "craft" then
 			category_id = "craftitems"
 		end
-		if category_id then
+		if category_id and doc.entry_exists(category_id, itemname) then
 			return doc.entry_revealed(playername, category_id, itemname)
 		else
 			-- unknown item
@@ -43,7 +43,7 @@ function doc_addon.show(itemname, playername)
 					category_id = "craftitems"
 				end
 			end
-			if category_id then
+			if category_id and doc.entry_exists(category_id, itemname) then
 				doc.show_entry(playername, category_id, itemname, true)
 			end
 		end
