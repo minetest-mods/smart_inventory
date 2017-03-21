@@ -94,12 +94,14 @@ local function update_page(state)
 		a_list:clearItems()
 		for k, v in pairs(armor.def[name]) do
 			local skipval = 1
-			local groupinfo = cache.cgroups["group:physics:"..k]
 			local grouptext
-			if groupinfo then
-				grouptext = groupinfo.group_desc
+			if txt["group:physics:"..k] then
+				grouptext = txt["group:physics:"..k].label
+			elseif txt["group:armor:"..k] then
+				grouptext = txt["group:armor:"..k].label
+				skipval = 0
 			else
-				grouptext = filter.get("group"):get_description({name = "group:armor:"..k})
+				grouptext = "group:armor:"..k
 				skipval = 0
 			end
 			if grouptext and skipval ~= v then
