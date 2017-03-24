@@ -269,9 +269,13 @@ local function create_lookup_inv(state, name)
 				if state:get("info_tog"):getId() == 1 then
 					state:get("info_tog"):submit()
 				end
-				state:get("search"):setText("")
-				state.param.survival_search_string = ""
-
+				-- reset group selection and search field on proposal mode change
+				if state.param.survival_proposal_mode ~= "lookup" then
+					state.param.survival_proposal_mode = "lookup"
+					state:get("groups_sel"):setSelected(1)
+					state:get("search"):setText("")
+					state.param.survival_search_string = ""
+				end
 				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				smartfs.inv[name]:show()
 
@@ -406,17 +410,22 @@ local function crafting_callback(state)
 	state:image(10, 4, 1, 1,"lookup_icon", "default_bookshelf_slot.png")
 	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
-	-- Refresh from inventory
-	local refresh_button = state:button(11, 4.2, 2, 0.5, "refresh", "Craftable")
-	refresh_button:onClick(function(self, state, player)
+	-- Get craftable by items in inventory
+	local craftable_button = state:button(11, 4.2, 2, 0.5, "craftable", "Craftable")
+	craftable_button:onClick(function(self, state, player)
+		-- reset group selection and search field on proposal mode change
+		if state.param.survival_proposal_mode ~= "craftable" then
+			state.param.survival_proposal_mode = "craftable"
+			state:get("groups_sel"):setSelected(1)
+			state:get("search"):setText("")
+			state.param.survival_search_string = ""
+		end
 		state.param.crafting_items_in_inventory = get_inventory_items(player)
 		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
 		if state:get("info_tog"):getId() == 2 then
 			state:get("info_tog"):submit()
 		end
-		state:get("search"):setText("")
-		state.param.survival_search_string = ""
 	end)
 
 	-- search
@@ -428,6 +437,11 @@ local function crafting_callback(state)
 			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string, player)
 			state.param.survival_search_string = search_string
 			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
+			-- reset group selection if proposal mode is changed
+			if state.param.survival_proposal_mode ~= "search" then
+				state.param.survival_proposal_mode = "search"
+				state:get("groups_sel"):setSelected(1)
+			end
 			update_group_selection(state, true)
 		end
 	end)
@@ -458,14 +472,7 @@ local function crafting_callback(state)
 	end)
 
 	-- initial values
-	local player = state.location.rootState.location.player
-	state.param.crafting_items_in_inventory = get_inventory_items(player)
-	local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
-	update_from_recipelist(state, craftable)
-	group_sel:setSelected(1)
-	if group_sel:getSelectedItem() then
-		state:get("inf_area"):getContainerState():get("groups_label"):setText(group_sel:getSelectedItem())
-	end
+	craftable_button:submit("not used fieldname", state.location.rootState.location.player)
 end
 
 -----------------------------------------------------
