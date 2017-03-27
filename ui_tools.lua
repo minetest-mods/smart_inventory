@@ -126,5 +126,34 @@ function ui_tools.search_in_list(list, search_string, playername)
 	return filtered_list
 end
 
+
+function ui_tools.get_tight_groups(cgroups)
+	local out_list = {}
+	for group1, groupdef1 in pairs(cgroups) do
+		if not string.find(group1, "ingredient:") then
+			out_list[group1] = groupdef1
+			for group2, groupdef2 in pairs(out_list) do
+				if string.len(group1) > string.len(group2) and
+						string.sub(group1,1,string.len(group2)) == group2 then
+						-- group2 is top-group of group1. Remove the group2
+					out_list[group2] = nil
+				elseif string.len(group1) < string.len(group2) and
+						string.sub(group2,1,string.len(group1)) == group1 then
+						-- group2 is top-group of group1. Remove the group2
+					out_list[group1] = nil
+				end
+			end
+		end
+	end
+	local out_list_sorted = {}
+	for group, groupdef in pairs(out_list) do
+		table.insert(out_list_sorted, groupdef)
+	end
+	table.sort(out_list_sorted, function(a,b)
+		return a.group_desc < b.group_desc
+	end)
+	return out_list_sorted
+end
+
 --------------------------------
 return ui_tools
