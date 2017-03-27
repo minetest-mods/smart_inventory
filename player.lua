@@ -220,9 +220,11 @@ local function player_callback(state)
 		local grid_armor = smart_inventory.smartfs_elements.buttons_grid(state, 0, 0, 8, 1, "armor_grid")
 
 		grid_armor:onClick(function(self, state, index, player)
-			update_selected_item(state, state.param.armor_armor_list[index])
-			move_item_to_inv(state, state.param.armor_armor_list[index])
-			update_page(state)
+			if state.param.armor_armor_list[index] then
+				update_selected_item(state, state.param.armor_armor_list[index])
+				move_item_to_inv(state, state.param.armor_armor_list[index])
+				update_page(state)
+			end
 		end)
 
 		local grid_main = smart_inventory.smartfs_elements.buttons_grid(state, 0, 8, 20, 2, "main_grid")
