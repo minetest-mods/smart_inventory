@@ -79,7 +79,7 @@ local function update_page(state)
 		a_list:clearItems()
 		for k, v in pairs(armor.def[name]) do
 			local grouptext
-			if k == "groups" then --armor groups support
+			if k == "groups" then
 				for gn, gv in pairs(v) do
 					if txt["armor:"..gn] then
 						grouptext = txt["armor:"..gn].label
@@ -91,15 +91,31 @@ local function update_page(state)
 					end
 				end
 			else
-				if txt["group:physics:"..k] then
-					grouptext = txt["group:physics:"..k].label
-				elseif txt["group:armor:"..k] then
-					grouptext = txt["group:armor:"..k].label
-				else
-					grouptext = "group:armor:"..k
+				local is_physics = false
+				for _, group in ipairs(armor.physics) do
+					if group == k then
+						is_physics = true
+						break
+					end
 				end
-				if grouptext and v ~= 0 then
-					a_list:addItem(grouptext..": "..v)
+				if is_physics then
+					if txt["group:physics:"..k] then
+						grouptext = txt["group:physics:"..k].label
+					else
+						grouptext = "group:physics:"..k
+					end
+					if grouptext and v ~= 1 then
+						a_list:addItem(grouptext..": "..v)
+					end
+				else
+					if txt["group:armor:"..k] then
+						grouptext = txt["group:armor:"..k].label
+					else
+						grouptext = "group:armor:"..k
+					end
+					if grouptext and v ~= 0 then
+						a_list:addItem(grouptext..": "..v)
+					end
 				end
 			end
 		end
