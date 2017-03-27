@@ -93,19 +93,29 @@ local function update_page(state)
 		local a_list = state:get("a_list")
 		a_list:clearItems()
 		for k, v in pairs(armor.def[name]) do
-			local skipval = 1
 			local grouptext
-			if txt["group:physics:"..k] then
-				grouptext = txt["group:physics:"..k].label
-			elseif txt["group:armor:"..k] then
-				grouptext = txt["group:armor:"..k].label
-				skipval = 0
+			if k == "groups" then --armor groups support
+				for gn, gv in pairs(v) do
+					if txt["armor:"..gn] then
+						grouptext = txt["armor:"..gn].label
+					else
+						grouptext = "armor:"..gn
+					end
+					if grouptext and gv ~= 0 then
+						a_list:addItem(grouptext..": "..gv)
+					end
+				end
 			else
-				grouptext = "group:armor:"..k
-				skipval = 0
-			end
-			if grouptext and skipval ~= v then
-				a_list:addItem(grouptext..": "..v)
+				if txt["group:physics:"..k] then
+					grouptext = txt["group:physics:"..k].label
+				elseif txt["group:armor:"..k] then
+					grouptext = txt["group:armor:"..k].label
+				else
+					grouptext = "group:armor:"..k
+				end
+				if grouptext and v ~= 0 then
+					a_list:addItem(grouptext..": "..v)
+				end
 			end
 		end
 		update_selected_item(state)
