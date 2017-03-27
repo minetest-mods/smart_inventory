@@ -1,5 +1,8 @@
 return {
 	-- armor group
+	["armor:fleshy"] = { label = "Körperschutz" },
+	["armor:radiation"] = { label = "Schutz gegen Radioaktivität" },
+
 	["group:armor"] = { label = "Rüstung" },
 	["group:armor:state"] = { label = "Rüstungsstatus" },
 	["group:armor:level"] = { label = "Level der Rüstung" },
@@ -10,8 +13,7 @@ return {
 	["group:armor:heal"] = { label = "Heilen" },
 	["group:armor:water"] = { label = "Wasserschutz" },
 	["group:armor:fire"] = { label = "Feuerschutz" },
-	["group:armor:radiation"] = { label = "Schutz gegen Radioaktivität" },
-	["group:armor:head"]  = { label = "Kopfbedeckung" },
+	["group:armor:head"]  = { label = "Kopfschutz" },
 	["group:armor:torso"] = { label = "Körperschutz" },
 	["group:armor:legs"] = { label = "Beinschutz" },
 	["group:armor:feet"] = { label = "Stiefel" },

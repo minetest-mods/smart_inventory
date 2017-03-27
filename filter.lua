@@ -215,6 +215,13 @@ filter.register_filter({
 		end
 	})
 
+filter.register_filter({
+		name = "armor",
+		filter_func = function(def)
+			return def.armor_groups
+		end
+	})
+
 -- dummy, used internal
 filter.register_filter({
 		name = "recipetype",

@@ -1,5 +1,8 @@
 return {
 	-- armor group
+	["armor:fleshy"] = { label = "Fleshy protection" },
+	["armor:radiation"] = { label = "Radiation protection" },
+
 	["group:armor"] = { label = "Armor" },
 	["group:armor:state"] = { label = "Armor state" },
 	["group:armor:level"] = { label = "Armor level" },
@@ -10,12 +13,11 @@ return {
 	["group:armor:heal"] = { label = "Heal" },
 	["group:armor:water"] = { label = "Water protection" },
 	["group:armor:fire"] = { label = "Fire protection" },
-	["group:armor:radiation"] = { label = "Radiation protection" },
-	["group:armor:head"]  = { label = "Head level" },
-	["group:armor:torso"] = { label = "Torso level" },
-	["group:armor:legs"] = { label = "Legs level" },
-	["group:armor:feet"] = { label = "Feet level" },
-	["group:armor:shield"]  = { label = "Shield level" },
+	["group:armor:head"]  = { label = "Head protection" },
+	["group:armor:torso"] = { label = "Torso protection" },
+	["group:armor:legs"] = { label = "Legs protection" },
+	["group:armor:feet"] = { label = "Feet protection" },
+	["group:armor:shield"]  = { label = "Shield" },
 	["group:armor:use"] = { label = "Max armor state" },
 
 	-- http://dev.minetest.net/Groups
