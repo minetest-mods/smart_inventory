@@ -1,5 +1,6 @@
 local filter = smart_inventory.filter
 local cache = smart_inventory.cache
+local ui_tools = smart_inventory.ui_tools
 local txt = smart_inventory.txt
 local creative = minetest.setting_getbool("creative_mode")
 
@@ -63,18 +64,9 @@ local function update_selected_item(state, listentry)
 
 	local i_list = state:get("i_list")
 	i_list:clearItems()
-	for groupname, groupinfo in pairs(cache.citems[listentry.itemdef.name].cgroups) do
-		if groupinfo.group_desc and cache.cgroups[groupname].parent then
-			local parent = cache.cgroups[groupname].parent
-			local parentvalue = cache.cgroups[groupname].parent.childs[groupname]
-			if parentvalue and parentvalue ~= "0" and
-					cache.cgroups[parent.name] and
-					cache.cgroups[parent.name].parent and
-					( cache.cgroups[parent.name].parent.name == "group:armor" or
-						cache.cgroups[parent.name].parent.name == "group:physics" ) then
-				i_list:addItem(parent.group_desc..": "..parentvalue)
-			end
-		end
+
+	for _, groupdef in ipairs(ui_tools.get_tight_groups(cache.citems[listentry.itemdef.name].cgroups)) do
+		i_list:addItem(groupdef.group_desc)
 	end
 
 	state:get("item_name"):setText(listentry.itemdef.description)
