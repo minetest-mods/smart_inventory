@@ -24,7 +24,7 @@ local function update_grid(state, listname)
 		local is_armor = false
 		if itemdef and cache.citems[itemdef.name] then
 			for groupname, groupinfo in pairs(cache.citems[itemdef.name].cgroups) do
-				if groupinfo.parent and armor_type[groupinfo.parent.name] then
+				if armor_type[groupname] then
 					local wear = stack:get_wear()
 					if wear == 0 then
 						wear = ""
@@ -52,23 +52,16 @@ end
 
 local function update_selected_item(state, listentry)
 	local name = state.location.rootState.location.player
-
-	if listentry then
-		state.param.armor_selected_item = listentry
-	else
-		listentry = state.param.armor_selected_item
-	end
+	state.param.armor_selected_item = listentry or state.param.armor_selected_item
+	listentry = state.param.armor_selected_item
 	if not listentry then
 		return
 	end
-
 	local i_list = state:get("i_list")
 	i_list:clearItems()
-
 	for _, groupdef in ipairs(ui_tools.get_tight_groups(cache.citems[listentry.itemdef.name].cgroups)) do
 		i_list:addItem(groupdef.group_desc)
 	end
-
 	state:get("item_name"):setText(listentry.itemdef.description)
 	state:get("item_image"):setImage(listentry.item)
 end
@@ -115,7 +108,6 @@ local function update_page(state)
 		state.location.parentState:get("player_button"):setImage(skins.skins[name].."_preview.png")
 		state:get("preview"):setImage(skins.skins[name].."_preview.png")
 	end
-
 	if smart_inventory.skins_mod then
 		local skin = skins.skins[name]
 		if skin and skins.meta[skin] then
@@ -144,7 +136,6 @@ local function move_item_to_armor(state, item)
 		itemname = itemstack:get_name()
 	end
 	itemdef = minetest.registered_items[itemname]
-
 	local new_groups = {}
 	for _, element in ipairs(armor.elements) do
 		if itemdef.groups["armor_"..element] then
@@ -288,7 +279,6 @@ local function player_callback(state)
 		update_page(state)
 		state.location.rootState:show()
 	end)
-
 	update_page(state)
 end
 
