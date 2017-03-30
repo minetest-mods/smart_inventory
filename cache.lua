@@ -74,9 +74,10 @@ function crecipes.new(recipe)
 	function self:analyze()
 		-- check recipe output
 		if self._recipe.output ~= "" then
-			self.out_item = minetest.registered_items[self._recipe.output]
+			local out_itemname = self._recipe.output:gsub('"','')
+			self.out_item = minetest.registered_items[out_itemname]
 			if not self.out_item then
-				recipe.output:gsub("[^%s]+", function(z)
+				out_itemname:gsub("[^%s]+", function(z)
 					if minetest.registered_items[z] then
 						self.out_item = minetest.registered_items[z]
 					end
