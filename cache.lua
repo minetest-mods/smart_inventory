@@ -88,22 +88,25 @@ function crecipes.new(recipe)
 			return false
 		end
 		-- check recipe items/groups
-		for idx, recipe_item in pairs(self._recipe.items) do
-			if self._items[recipe_item] then
-				self._items[recipe_item].count = self._items[recipe_item].count + 1
-			else
-				self._items[recipe_item]  = {count = 1}
-				if recipe_item:sub(1, 6) ~= "group:" then
+		for _, recipe_item in pairs(self._recipe.items) do
+			if recipe_item ~= "" then
+				if self._items[recipe_item] then
+					self._items[recipe_item].count = self._items[recipe_item].count + 1
+				else
 					self._items[recipe_item]  = {count = 1}
+				end
+			end
+			for recipe_item, iteminfo in pairs(self._items) do
+				if recipe_item:sub(1, 6) ~= "group:" then
 					if minetest.registered_items[recipe_item] then
-						self._items[recipe_item].items = {[recipe_item] = minetest.registered_items[recipe_item]}
+						iteminfo.items = {[recipe_item] = minetest.registered_items[recipe_item]}
 					else
 						minetest.log("[smartfs_inventory] unknown item in recipe: "..recipe_item)
 						return false
 					end
 				else
 					if cache.cgroups[recipe_item] then
-						self._items[recipe_item].items = cache.cgroups[recipe_item].items
+						iteminfo.items = cache.cgroups[recipe_item].items
 					else
 						local retitems
 						for groupname in string.gmatch(recipe_item:sub(7), '([^,]+)') do
@@ -139,7 +142,7 @@ function crecipes.new(recipe)
 							minetest.log("[smartfs_inventory] no items matches group: "..recipe_item)
 							return false
 						else
-							self._items[recipe_item].items = retitems
+							iteminfo.items = retitems
 						end
 					end
 				end
