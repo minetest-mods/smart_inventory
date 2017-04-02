@@ -17,7 +17,7 @@ local function get_inventory_items(player)
 			if not items_in_inventory[itemname] then
 				items_in_inventory[itemname] = stack:get_count()
 			else
-				items_in_inventory[itemname] = items_in_inventory[itemname] +  stack:get_count()
+				items_in_inventory[itemname] = items_in_inventory[itemname] + stack:get_count()
 			end
 		end
 	end
@@ -218,6 +218,8 @@ local function create_lookup_inv(state, name)
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
 				local lookup_item = stack:get_name()
+				state.param.crafting_items_in_inventory = get_inventory_items(player:get_player_name())
+				state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
 				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
 				-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 				local recipes = cache.crecipes.get_revealed_recipes_with_items(name, {[lookup_item] = true })

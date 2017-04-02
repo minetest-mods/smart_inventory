@@ -186,16 +186,38 @@ function crecipes.new(recipe)
 		recipe.items = table.copy(recipe.items)
 		for key, recipe_item in pairs(recipe.items) do
 			local item
-			for _, item_in_list in pairs(self._items[recipe_item].items) do
-				if inventory_tab and inventory_tab[item_in_list.name] then
-					item = item_in_list.name
-					break
-				elseif doc_addon.is_revealed_item(item_in_list.name, player) then
-					item = item_in_list.name
-				elseif item == nil then
-					item = item_in_list.name
+
+			-- Check for matching item in inventory
+			if inventory_tab then
+				local itemcount = 0
+				for _, item_in_list in pairs(self._items[recipe_item].items) do
+					local in_inventory = inventory_tab[item_in_list.name]
+					if in_inventory == true then
+						item = item_in_list.name
+						break
+					elseif in_inventory and in_inventory > itemcount then
+						item = item_in_list.name
+						itemcount = in_inventory
+					end
 				end
 			end
+
+			-- second try, get any revealed item
+			if not item then
+				for _, item_in_list in pairs(self._items[recipe_item].items) do
+					if doc_addon.is_revealed_item(item_in_list.name, player) then
+						item = item_in_list.name
+						break
+					end
+				end
+			end
+
+			-- third try, just get one item
+			if not item and self._items[recipe_item].items[1] then
+				item = self._items[recipe_item].items[1].name
+			end
+
+			-- set recipe item
 			if item then
 				recipe.items[key] = item
 			end
