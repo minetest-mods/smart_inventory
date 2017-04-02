@@ -18,7 +18,7 @@ return {
 	["group:armor:legs"] = { label = "Beinschutz" },
 	["group:armor:feet"] = { label = "Stiefel" },
 	["group:armor:shield"]  = { label = "Schild" },
-	["group:armor:use"] = { label = "Maximaler Status" },
+	["group:armor:use"] = { label = "Abnutzung bei Schaden" },
 
 	-- http://dev.minetest.net/Groups
 	-- http://dev.minetest.net/Groups/Custom_groups

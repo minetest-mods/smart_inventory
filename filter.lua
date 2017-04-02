@@ -61,9 +61,11 @@ filter.register_filter({
 				else
 					mk = k
 				end
-
+				-- stack wear related value
+				if k == "armor_use" then
+					mv = tostring(math.floor(v / 65535 * 10000 + 0.5)/100).." %"
 				-- value-expandable groups
-				if v ~= 1 or k == "oddly_breakable_by_hand" then
+				elseif v ~= 1 or k == "oddly_breakable_by_hand" then
 					mv = v
 				else
 					mv = true

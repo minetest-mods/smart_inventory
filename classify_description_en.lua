@@ -18,7 +18,7 @@ return {
 	["group:armor:legs"] = { label = "Legs protection" },
 	["group:armor:feet"] = { label = "Feet protection" },
 	["group:armor:shield"]  = { label = "Shield" },
-	["group:armor:use"] = { label = "Max armor state" },
+	["group:armor:use"] = { label = "Wear on damage" },
 
 	-- http://dev.minetest.net/Groups
 	-- http://dev.minetest.net/Groups/Custom_groups
