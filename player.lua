@@ -114,7 +114,11 @@ local function update_page(state)
 						grouptext = "group:armor:"..k
 					end
 					if grouptext and v ~= 0 then
-						a_list:addItem(grouptext..": "..v)
+						if k == "state" then
+							a_list:addItem(grouptext..": "..tostring(math.floor((1 - v / armor.def[name].count / 65535) * 100 + 0.5)).." %")
+						else
+							a_list:addItem(grouptext..": "..v)
+						end
 					end
 				end
 			end
