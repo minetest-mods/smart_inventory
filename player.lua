@@ -311,11 +311,19 @@ smart_inventory.register_page({
 
 -- register callback in 3d_armor for updates
 if smart_inventory.armor_mod and armor.register_on_update then
-	armor:register_on_update(function(player)
+
+	local function submit_update_hook(player)
 		local name = player:get_player_name()
 		local state = smart_inventory.get_page_state("player", name)
 		if state then
 			state:get("update_hook"):submit()
 		end
+	end
+
+	armor:register_on_update(submit_update_hook)
+
+	-- There is no callback in 3d_armor for wear change in on_hpchange implementation
+	minetest.register_on_player_hpchange(function(player, hp_change)
+		minetest.after(0, submit_update_hook, player)
 	end)
 end
