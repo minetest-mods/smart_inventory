@@ -26,18 +26,18 @@ local function update_grid(state, listname)
 			for groupname, groupinfo in pairs(cache.citems[itemdef.name].cgroups) do
 				if armor_type[groupname] then
 					local wear = stack:get_wear()
-					if wear == 0 then
-						wear = ""
-					else
-						wear = " "..wear
-					end
-					table.insert(list, {
+
+					local entry = {
 							itemdef = itemdef,
 							stack_index = stack_index,
 							-- buttons_grid related
-							item = itemdef.name..wear,
+							item = itemdef.name,
 							is_button = true
-						})
+						}
+					if wear > 0 then
+						entry.text = tostring(math.floor((1 - wear / 65535) * 100 + 0.5)).." %"
+					end
+					table.insert(list, entry)
 					break
 				end
 			end

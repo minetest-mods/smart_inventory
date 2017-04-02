@@ -192,12 +192,12 @@ function buttons_grid:update()
 				if entry.item and entry.is_button == true then
 					button:setVisible(true)
 					button:setItem(entry.item)
-					button:setText("")
+					button:setText(entry.text or "")
 					button:setTooltip(nil)
 				elseif entry.image and entry.is_button == true then
 					button:setVisible(true)
 					button:setImage(entry.image)
-					button:setText("")
+					button:setText(entry.text or "")
 					button:setTooltip(entry.tooltip)
 				-- TODO 1: entry.image to display *.png 
 				-- TODO 2: entry.text to display label on button
