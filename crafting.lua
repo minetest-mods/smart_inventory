@@ -252,7 +252,6 @@ local function create_lookup_inv(state, name)
 					state.param.survival_proposal_mode = "lookup"
 					state:get("groups_sel"):setSelected(1)
 					state:get("search"):setText("")
-					state.param.survival_search_string = ""
 				end
 				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				smartfs.inv[name]:show()
@@ -396,7 +395,6 @@ local function crafting_callback(state)
 			state.param.survival_proposal_mode = "craftable"
 			state:get("groups_sel"):setSelected(1)
 			state:get("search"):setText("")
-			state.param.survival_search_string = ""
 		end
 		state.param.crafting_items_in_inventory = get_inventory_items(player)
 		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
@@ -407,21 +405,17 @@ local function crafting_callback(state)
 	end)
 
 	-- search
-	state:field(13.3, 4.5, 3, 0.5, "search"):setCloseOnEnter(false)
-	-- filter on input
-	state:onInput(function(state, fields, player)
-		local search_string = state:get("search"):getText()
-		if search_string ~= "" and search_string ~= state.param.survival_search_string then
-			local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), search_string, player)
-			state.param.survival_search_string = search_string
-			state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
-			-- reset group selection if proposal mode is changed
-			if state.param.survival_proposal_mode ~= "search" then
-				state.param.survival_proposal_mode = "search"
-				state:get("groups_sel"):setSelected(1)
-			end
-			update_group_selection(state, true)
+	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")
+	searchfield:setCloseOnEnter(false)
+	searchfield:onKeyEnter(function(self, state, player)
+		local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), self:getText(), player)
+		state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
+		-- reset group selection if proposal mode is changed
+		if state.param.survival_proposal_mode ~= "search" then
+			state.param.survival_proposal_mode = "search"
+			state:get("groups_sel"):setSelected(1)
 		end
+		update_group_selection(state, true)
 	end)
 
 	-- groups toggle

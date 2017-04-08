@@ -455,38 +455,24 @@ function smartfs._makeState_(form, params, location, newplayer)
 			return res
 		end,
 		show = location._show_,
-		-- process /apply received field value
-		_sfs_process_value_ = function(self, field, value)
-			local cur_namespace = self:getNamespace()
-			if cur_namespace == "" or cur_namespace == string.sub(field, 1, string.len(cur_namespace)) then -- Check current namespace
-				local rel_fieldname = string.sub(field, string.len(cur_namespace)+1)  --cut the namespace
-				if self._ele[rel_fieldname] then -- direct top-level assignment
-					self._ele[rel_fieldname].data.value = value
-				else
-					for elename, eledef in pairs(self._ele) do
-						if eledef.getContainerState then -- element supports sub-states
-							eledef:getContainerState():_sfs_process_value_(field, value)
-						end
-					end
-				end
+		_get_element_recursive_ = function(self, field)
+			local topfield
+			for z in field:gmatch("[^#]+") do
+				topfield = z
+				break
 			end
-		end,
-		-- process action for received field if supported
-		_sfs_process_action_ = function(self, field, value, player)
-			local cur_namespace = self:getNamespace()
-			if cur_namespace == "" or cur_namespace == string.sub(field, 1, string.len(cur_namespace)) then -- Check current namespace
-				local rel_fieldname = string.sub(field, string.len(cur_namespace)+1) --cut the namespace
-				if self._ele[rel_fieldname] then -- direct top-level assignment
-					if self._ele[rel_fieldname].submit then
-						self._ele[rel_fieldname]:submit(value, player)
-					end
+			local element = self._ele[topfield]
+			if element and field == topfield then
+				return element
+			elseif element then
+				if element._getSubElement_ then
+					local rel_field = string.sub(field, string.len(topfield)+2)
+					return element:_getSubElement_(rel_field)
 				else
-					for elename, eledef in pairs(self._ele) do
-						if eledef.getContainerState then -- element supports sub-states
-						eledef:getContainerState():_sfs_process_action_(field, value, player)
-						end
-					end
+					return element
 				end
+			else
+				return nil
 			end
 		end,
 		-- process onInput hook for the state
@@ -503,16 +489,28 @@ function smartfs._makeState_(form, params, location, newplayer)
 		end,
 		-- Receive fields and actions from formspec
 		_sfs_on_receive_fields_ = function(self, player, fields)
-			--print("smartfs: fields received", dump(fields))
 			-- fields assignment
 			for field, value in pairs(fields) do
-				self:_sfs_process_value_(field, value)
+				local element = self:_get_element_recursive_(field)
+				if element then
+					element:setValue(value)
+				end
 			end
 			-- process onInput hooks
 			self:_sfs_process_oninput_(fields, player)
 			-- do actions
 			for field, value in pairs(fields) do
-				self:_sfs_process_action_(field, value, player)
+				local element = self:_get_element_recursive_(field)
+				if element and element.submit then
+					element:submit(value, player)
+				end
+			end
+			-- handle key_enter
+			if fields.key_enter and fields.key_enter_field then
+				local element = self:_get_element_recursive_(fields.key_enter_field)
+				if element and element.submit_key_enter then
+					element:submit_key_enter(fields[fields.key_enter_field], player)
+				end
 			end
 			-- handle quit/exit
 			if not fields.quit and not self.closed and not self.obsolete then
@@ -631,6 +629,9 @@ function smartfs._makeState_(form, params, location, newplayer)
 					else
 						return ""
 					end
+				end,
+				setValue = function(self, value)
+					self.data.value = value
 				end,
 			}
 
@@ -871,7 +872,7 @@ smartfs.element("button", {
 		self._click = func
 	end,
 	setText = function(self,text)
-		self.data.value = text
+		self:setValue(text)
 	end,
 	getText = function(self)
 		return self.data.value
@@ -964,7 +965,7 @@ smartfs.element("label", {
 			"]"
 	end,
 	setText = function(self,text)
-		self.data.value = text
+		self:setValue(text)
 	end,
 	getText = function(self)
 		return self.data.value
@@ -1019,7 +1020,7 @@ smartfs.element("field", {
 		end
 	end,
 	setText = function(self,text)
-		self.data.value = text
+		self:setValue(text)
 	end,
 	getText = function(self)
 		return self.data.value
@@ -1042,7 +1043,15 @@ smartfs.element("field", {
 	end,
 	getCloseOnEnter = function(self)
 		return self.close_on_enter
-	end
+	end,
+	submit_key_enter = function(self, field, player)
+		if self._key_enter then
+			self:_key_enter(self.root, player)
+		end
+	end,
+	onKeyEnter = function(self,func)
+		self._key_enter = func
+	end,
 })
 
 smartfs.element("image", {
@@ -1076,7 +1085,7 @@ smartfs.element("image", {
 		if self.data.imgtype == "background" then
 			self.data.background = text
 		else
-			self.data.value = text
+			self:setValue(text)
 		end
 	end,
 	getImage = function(self)
@@ -1105,8 +1114,6 @@ smartfs.element("checkbox", {
 			";" .. boolToStr(self.data.value) .."]"
 	end,
 	submit = function(self, field, player)
-		-- self.data.value already set by value transfer, but as string
-		self.data.value = minetest.is_yes(field)
 		-- call the toggle function if defined
 		if self._tog then
 			self:_tog(self.root, player)
@@ -1379,8 +1386,10 @@ smartfs.element("container", {
 	end,
 	getContainerState = function(self)
 		return self._state
-	end
-	-- submit is handled by framework for elements with getContainerState
+	end,
+	_getSubElement_ = function(self, field)
+		return self:getContainerState():_get_element_recursive_(field)
+	end,
 })
 
 return smartfs

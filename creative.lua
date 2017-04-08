@@ -114,17 +114,15 @@ local function creative_callback(state)
 	end)
 
 	-- functions
-	state:field(7.5, 4, 4, 0.5, "search"):setCloseOnEnter(false)
-	state:onInput(function(state, fields, player)
-		local search_string = state:get("search"):getText()
-		if search_string ~= (state.param.creative_search_string or "") then
-			local filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_all, search_string)
-			state.param.creative_grouped_items = cache.get_list_grouped(filtered_list)
-			filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_material_all, search_string)
-			state.param.creative_search_string = search_string
-			state.param.creative_grouped_material_items = filtered_list
-			update_group_selection(state, 0)
-		end
+	local searchfield = state:field(7.5, 4, 4, 0.5, "search")
+	searchfield:setCloseOnEnter(false)
+	searchfield:onKeyEnter(function(self, state, player)
+		local search_string = self:getText()
+		local filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_all, search_string)
+		state.param.creative_grouped_items = cache.get_list_grouped(filtered_list)
+		filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_material_all, search_string)
+		state.param.creative_grouped_material_items = filtered_list
+		update_group_selection(state, 0)
 	end)
 
 	-- craftable items grid
