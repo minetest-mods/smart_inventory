@@ -141,6 +141,17 @@ local function creative_callback(state)
 	state:element("code", {name = "trash_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
 	state:inventory(8,9,1,1, "trash"):useDetached(player.."_trash_inv")
 
+	local trash_all = state:button(7,9,1,1, "trash_all", "Trash all")
+	trash_all:setImage("creative_trash_icon.png")
+	trash_all:onClick(function(self, state, player)
+		local name = state.location.rootState.location.player
+		local inventory = minetest.get_player_by_name(name):get_inventory()
+		local invsize = inventory:get_size("main")
+		for idx = 1, invsize do
+			inventory:set_stack("main", idx, "")
+		end
+	end)
+
 	-- fill with data
 	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = cache.get_all_items()
 	state.param.creative_grouped_items = cache.get_list_grouped(state.param.creative_grouped_items_all)
