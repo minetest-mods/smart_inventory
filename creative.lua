@@ -114,7 +114,7 @@ local function creative_callback(state)
 	end)
 
 	-- functions
-	local searchfield = state:field(7.5, 4, 4, 0.5, "search")
+	local searchfield = state:field(3.5, 4.2, 4, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -126,20 +126,20 @@ local function creative_callback(state)
 	end)
 
 	-- craftable items grid
-	state:background(0.9, 4.5, 18, 3.5, "buttons_grid_bg", "minimap_overlay_square.png")
-	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 1.25, 4.75, 17.5 , 3.5, "buttons_grid", 0.75,0.75)
+	state:background(9.2, 3.5, 9.5, 6.5, "buttons_grid_bg", "minimap_overlay_square.png")
+	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 9.55, 3.75, 9.0 , 6.5, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.creative_outlist[index]
 		on_item_select(state, listentry)
 	end)
 
 	-- inventory
-	state:background(1.4, 8, 8, 1, "inventory_bg", "menu_bg.png")
-	state:inventory(1.4, 8, 16, 2,"main")
+--	state:background(1.4, 8, 8, 1, "inventory_bg", "menu_bg.png")
+	state:inventory(1, 5, 8, 4,"main")
 	ui_tools.create_trash_inv(state, player)
-	state:image(17.6,8,1,1,"trash_icon","creative_trash_icon.png")
+	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:element("code", {name = "trash_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
-	state:inventory(17.6, 8, 1, 1, "trash"):useDetached(player.."_trash_inv")
+	state:inventory(8,9,1,1, "trash"):useDetached(player.."_trash_inv")
 
 	-- fill with data
 	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = cache.get_all_items()
