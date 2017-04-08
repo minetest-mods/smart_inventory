@@ -22,13 +22,14 @@ A lookup button is available on already known items to jump to the documntation 
 
 
 ## Creative page
-![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170317_175339.png)
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170408_221250.png)
 The vision is to get items fast searchable and gettable
 - 3 dynamic filters + text search field for fast items search
-- cleanup of inventory trough "delete" field
+- Sort out "mass"-groups to a special "Shaped" group
 - just click to the item to get it in inventory
-- Sort out "mass"-groups to a special "Shaped" category
-
+- cleanup of inventory trough "Trash" field
+- clean whole inventory trough "Trash all" button
+- save and restore inventory content in 3x save slots
 
 ## Player page
 ![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170317_175415.png)
