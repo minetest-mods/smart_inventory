@@ -1,3 +1,7 @@
+if not minetest.setting_getbool("creative_mode") then
+	return
+end
+
 local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools
 

@@ -1,3 +1,7 @@
+if not smart_inventory.skins_mod and not smart_inventory.armor_mod then
+	return
+end
+
 local filter = smart_inventory.filter
 local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools

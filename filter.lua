@@ -1,4 +1,5 @@
 local txt = smart_inventory.txt
+local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or false
 
 local filter = {}
 filter.registered_filter = {}
@@ -33,7 +34,7 @@ function filter.register_filter(def)
 		else
 			ret_desc = group.name
 		end
-		if not smart_inventory.txt_usage or ret_desc == false then
+		if not txt_usage or ret_desc == false then
 			return ret_desc
 		else
 			return group.name
