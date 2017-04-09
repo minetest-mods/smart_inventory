@@ -2,28 +2,6 @@ local cache = smart_inventory.cache
 local doc_addon = smart_inventory.doc_addon
 local ui_tools = smart_inventory.ui_tools
 
-
------------------------------------------------------
--- Get inventory content as consolidated table
------------------------------------------------------
-local function get_inventory_items(player)
-	local inventory = minetest.get_player_by_name(player):get_inventory()
-	local invlist = inventory:get_list("main")
-	local items_in_inventory = {}
-
-	for _, stack in ipairs(invlist) do
-		local itemname = stack:get_name()
-		if itemname and itemname ~= "" then
-			if not items_in_inventory[itemname] then
-				items_in_inventory[itemname] = stack:get_count()
-			else
-				items_in_inventory[itemname] = items_in_inventory[itemname] + stack:get_count()
-			end
-		end
-	end
-	return items_in_inventory
-end
-
 -----------------------------------------------------
 -- Update recipe preview item informations about the selected item
 -----------------------------------------------------
@@ -218,7 +196,7 @@ local function create_lookup_inv(state, name)
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
 				local lookup_item = stack:get_name()
-				state.param.crafting_items_in_inventory = get_inventory_items(player:get_player_name())
+				state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 				state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
 				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
 				-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
@@ -295,38 +273,11 @@ local function crafting_callback(state)
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
 	state:button(1, 4.2, 2, 0.5, "compress", "Compress"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		local inventory = minetest.get_player_by_name(name):get_inventory()
-		local invsize = inventory:get_size("main")
-		for idx1 = invsize, 1, -1 do
-			local stack1 = inventory:get_stack("main", idx1)
-			if not stack1:is_empty() then
-				for idx2 = 1, idx1 do
-					local stack2 = inventory:get_stack("main", idx2)
-					if idx1 ~= idx2  and stack1:get_name() == stack2:get_name() then
-						stack1 = stack2:add_item(stack1)
-						inventory:set_stack("main", idx1, stack1)
-						inventory:set_stack("main", idx2, stack2)
-						if stack1:is_empty() then
-							break
-						end
-					end
-				end
-			end
-		end
+		state.param.invobj:compress()
 	end)
 
 	state:button(3, 4.2, 2, 0.5, "clear", "Sweep"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		local inventory = minetest.get_player_by_name(name):get_inventory()
-		local invsize = inventory:get_size("craft")
-		for idx = 1, invsize do
-			local stack = inventory:get_stack("craft", idx)
-			if not stack:is_empty() then
-				local left = inventory:add_item("main", stack)
-				inventory:set_stack("craft", idx, left)
-			end
-		end
+		state.param.invobj:sweep_crafting_inventory()
 	end)
 
 	-- recipe preview area
@@ -396,7 +347,7 @@ local function crafting_callback(state)
 			state:get("groups_sel"):setSelected(1)
 			state:get("search"):setText("")
 		end
-		state.param.crafting_items_in_inventory = get_inventory_items(player)
+		state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
 		if state:get("info_tog"):getId() == 2 then

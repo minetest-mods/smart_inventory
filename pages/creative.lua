@@ -6,63 +6,6 @@ local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools
 
 -----------------------------------------------------
--- Item selection action (add to inventory)
------------------------------------------------------
-local function on_item_select(state, entry)
-	local player = minetest.get_player_by_name(state.location.rootState.location.player)
-	local pinv = player:get_inventory()
-	pinv:add_item("main", entry.item)
-end
-
-local function clear_inventory(playername)
-	local inventory = minetest.get_player_by_name(playername):get_inventory()
-	local invsize = inventory:get_size("main")
-	for idx = 1, invsize do
-		inventory:set_stack("main", idx, "")
-	end
-end
-
-local function save_inventory(playername, slot)
-	local inventory = minetest.get_player_by_name(playername):get_inventory()
-	local list = inventory:get_list("main")
-	local savedata = {}
-	for idx, stack in ipairs(list) do
-		if not stack:is_empty() then
-			savedata[idx] = stack:to_string()
-		end
-	end
-
-	local path = minetest.get_worldpath().."/smart_inventory_creative_"..playername.."_slot_"..tostring(slot)
-	local fd = io.open( path, 'w' )
-	if( fd ) then
-		fd:write( minetest.serialize(savedata))
-		fd:close()
-	end
-end
-
-
-local function restore_inventory(playername, slot)
-	local inventory = minetest.get_player_by_name(playername):get_inventory()
-	local savedata
-	local path = minetest.get_worldpath().."/smart_inventory_creative_"..playername.."_slot_"..tostring(slot)
-	local fd = io.open( path, 'r' )
-	if( fd ) then
-		local data = fd:read("*all");
-		fd:close()
-		if data then
-			savedata = minetest.deserialize( data );
-		end
-	end
-
-	if savedata then
-		local inventory = minetest.get_player_by_name(playername):get_inventory()
-		local invsize = inventory:get_size("main")
-		for idx = 1, invsize do
-			inventory:set_stack("main", idx, savedata[idx])
-		end
-	end
-end
------------------------------------------------------
 -- Update on group selection change
 -----------------------------------------------------
 local function update_group_selection(state, changed_group)
@@ -181,8 +124,7 @@ local function creative_callback(state)
 	state:background(9.2, 3.5, 9.5, 6.5, "buttons_grid_bg", "minimap_overlay_square.png")
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 9.55, 3.75, 9.0 , 6.5, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
-		local listentry = state.param.creative_outlist[index]
-		on_item_select(state, listentry)
+		state.param.invobj:add_item(state.param.creative_outlist[index].item)
 	end)
 
 	-- inventory
@@ -197,34 +139,28 @@ local function creative_callback(state)
 	local trash_all = state:button(7,9,1,1, "trash_all", "Trash all")
 	trash_all:setImage("creative_trash_icon.png")
 	trash_all:onClick(function(self, state, player)
-		clear_inventory(state.location.rootState.location.player)
+		state.param.invobj:remove_all()
 	end)
 
 	-- save/restore buttons
 	state:button(1,9,1,1, "save1", "Save 1"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		save_inventory(state.location.rootState.location.player, 1)
+		state.param.invobj:save_to_slot(1)
 	end)
 	state:button(1.9,9,1,1, "save2", "Save 2"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		save_inventory(state.location.rootState.location.player, 2)
+		state.param.invobj:save_to_slot(2)
 	end)
 	state:button(2.8,9,1,1, "save3", "Save 3"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		save_inventory(state.location.rootState.location.player, 3)
+		state.param.invobj:save_to_slot(3)
 	end)
 	state:button(4,9,1,1, "restore1", "Get 1"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		restore_inventory(state.location.rootState.location.player, 1)
+		state.param.invobj:restore_from_slot(1)
 	end)
 	state:button(4.9,9,1,1, "restore2", "Get 2"):onClick(function(self, state, player)
-		local name = state.location.rootState.location.player
-		restore_inventory(state.location.rootState.location.player, 2)
+		state.param.invobj:restore_from_slot(2)
 	end)
 	state:button(5.8,9,1,1, "restore3", "Get 3"):onClick(function(self, state, player)
-		restore_inventory(state.location.rootState.location.player, 3)
+		state.param.invobj:restore_from_slot(3)
 	end)
-
 
 	-- fill with data
 	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = cache.get_all_items()

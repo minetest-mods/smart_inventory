@@ -1,7 +1,11 @@
 smartfs = smart_inventory.smartfs
+local maininv = smart_inventory.maininv
 
 -- smartfs callback
 local inventory_form = smartfs.create("smart_inventory:main", function(state)
+
+	-- enhanced object to the main inventory functions
+	state.param.invobj = maininv.get(state.location.player)
 	-- tabbed view controller
 	local tab_controller = {
 		_tabs = {},

@@ -17,6 +17,7 @@ smart_inventory.ui_tools = dofile(modpath.."/ui_tools.lua")
 
 smart_inventory.filter = dofile(modpath.."/libs/filter.lua")
 smart_inventory.cache = dofile(modpath.."/libs/cache.lua")
+smart_inventory.maininv = dofile(modpath.."/libs/maininv.lua")
 
 -- register pages
 dofile(modpath.."/inventory_framework.lua")
