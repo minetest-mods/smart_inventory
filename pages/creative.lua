@@ -109,7 +109,7 @@ local function creative_callback(state)
 	end)
 
 	-- functions
-	local searchfield = state:field(3.5, 4.2, 4, 0.5, "search")
+	local searchfield = state:field(5.3, 4.2, 4, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -128,7 +128,6 @@ local function creative_callback(state)
 	end)
 
 	-- inventory
---	state:background(1.4, 8, 8, 1, "inventory_bg", "menu_bg.png")
 	state:inventory(1, 5, 8, 4,"main")
 	ui_tools.create_trash_inv(state, player)
 	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
