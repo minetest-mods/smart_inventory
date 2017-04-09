@@ -225,10 +225,25 @@ filter.register_filter({
 		end
 	})
 
--- dummy, used internal
+-- Group assignment done in cache framework internally
 filter.register_filter({
 		name = "recipetype",
 		filter_func = function(def) end,
+})
+
+-- Group assignment done in cache framework internally
+filter.register_filter({
+		name = "ingredient",
+		filter_func = function(def) end,
+		shortdesc_func = function(self, group)
+			local itemname = group.name:sub(12)
+			if txt["ingredient"] and txt["ingredient"].label and
+					minetest.registered_items[itemname] and minetest.registered_items[itemname].description then
+				return txt["ingredient"].label .." "..minetest.registered_items[itemname].description
+			else
+				return group.name
+			end
+		end
 })
 
 ----------------

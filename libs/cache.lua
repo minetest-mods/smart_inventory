@@ -358,7 +358,7 @@ function cache.fill_recipe_cache()
 							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
 								table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 							end
---							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item)
+							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
 						end
 					end
 				end

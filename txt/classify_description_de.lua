@@ -83,6 +83,7 @@ return {
 	["eatable"] = { label = "Essbar" },
 	["shape"] = { label = "Geformt"},
 	["light"] = { label = "Lichtquelle"},
+	["ingredient"] = { label = "Erzeugt aus"},
 
 	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Verwendungsinterval" },

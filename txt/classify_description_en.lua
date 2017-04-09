@@ -83,6 +83,7 @@ return {
 	["eatable"] = { label = "Eatable" },
 	["shape"] = { label = "Shaped"},
 	["light"] = { label = "Light source"},
+	["ingredient"] = { label = "Crafted with"},
 
 	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Punch interval" },
