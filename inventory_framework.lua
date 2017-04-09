@@ -1,8 +1,6 @@
 smartfs = smart_inventory.smartfs
 
--- start with empty group items replacement table.
--- Will be filled at runtime with used items. partially independend on user
-
+-- smartfs callback
 local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	-- tabbed view controller
 	local tab_controller = {
@@ -76,14 +74,17 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	end
 	tab_controller:set_active(smart_inventory.registered_pages[1].name)
 end)
-
 smartfs.set_player_inventory(inventory_form)
 
+-- pages list
+smart_inventory.registered_pages = {}
 
+-- add new page
 function smart_inventory.register_page(def)
 	table.insert(smart_inventory.registered_pages, def)
 end
 
+-- get state of active page
 function smart_inventory.get_page_state(pagename, playername)
 	local rootstate = smart_inventory.smartfs.inv[playername]
 	if not rootstate then
@@ -96,6 +97,7 @@ function smart_inventory.get_page_state(pagename, playername)
 	return view:getContainerState()
 end
 
+-- get definition of registered page
 function smart_inventory.get_registered_page(pagename)
 	for _, registred_page in ipairs(smart_inventory.registered_pages) do
 		if registred_page.name == pagename then
