@@ -135,6 +135,17 @@ local function creative_callback(state)
 	state:element("code", {name = "trash_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
 	state:inventory(8,9,1,1, "trash"):useDetached(player.."_trash_inv")
 
+	-- swap slots buttons
+	state:button(0, 6, 1, 1, "swap1", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(2)
+	end)
+	state:button(0, 7, 1, 1, "swap2", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(3)
+	end)
+	state:button(0, 8, 1, 1, "swap3", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(4)
+	end)
+
 	-- trash button
 	local trash_all = state:button(7,9,1,1, "trash_all", "Trash all")
 	trash_all:setImage("creative_trash_icon.png")

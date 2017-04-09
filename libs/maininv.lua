@@ -97,6 +97,18 @@ function maininvClass:sweep_crafting_inventory()
 	end
 end
 
+-- Swap row to the top. Asumption the inventory is 8x4, the row number should be 2, 3 or 4
+function maininvClass:swap_row_to_top(row)
+	local width = 8
+	for idx1 = 1, width do
+		local idx2 = (row -1) * width + idx1
+		local stack1 = self.inventory:get_stack("main", idx1)
+		local stack2 = self.inventory:get_stack("main", idx2)
+		self.inventory:set_stack("main", idx2, stack1)
+		self.inventory:set_stack("main", idx1, stack2)
+	end
+end
+
 -- player inventory class
 local maininv = {}
 function maininv.get(playername)

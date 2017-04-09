@@ -268,6 +268,17 @@ local function crafting_callback(state)
 	state:inventory(4.2, 2.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
+	-- swap slots buttons
+	state:button(0, 6, 1, 1, "swap1", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(2)
+	end)
+	state:button(0, 7, 1, 1, "swap2", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(3)
+	end)
+	state:button(0, 8, 1, 1, "swap3", ">"):onClick(function(self, state, player)
+		state.param.invobj:swap_row_to_top(4)
+	end)
+
 	ui_tools.create_trash_inv(state, player)
 	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
