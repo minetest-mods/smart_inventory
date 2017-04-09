@@ -398,11 +398,15 @@ function cache.get_list_grouped(itemtable)
 	local sorttab = {}
 
 	for k,v in pairs(grouped) do
-		v.group_size = #v.items
-		v.unique_count = #v.items
-		v.best_group_size = best_group_size
-		v.diff = math.abs(v.group_size - v.best_group_size)
-		table.insert(sorttab, v)
+		if #v.items < 3 or #v.items >= itemcount - 3 then
+			grouped[k] = nil
+		else
+			v.group_size = #v.items
+			v.unique_count = #v.items
+			v.best_group_size = best_group_size
+			v.diff = math.abs(v.group_size - v.best_group_size)
+			table.insert(sorttab, v)
+		end
 	end
 
 	local outtab = {}
@@ -445,10 +449,11 @@ function cache.get_list_grouped(itemtable)
 			end
 
 			for idx = #sorttab, 1, -1 do
-				if sorttab[idx].unique_count <= 1 or
+				if sorttab[idx].unique_count < 3 or
 					( sel.cgroup.parent and sel.cgroup.parent.name == sorttab[idx].name ) or
 					( sel.cgroup.childs and sel.cgroup.childs[sorttab[idx].name] )
 				then
+					grouped[sorttab[idx].name] = nil
 					table.remove(sorttab, idx)
 				end
 			end
