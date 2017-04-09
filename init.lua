@@ -134,13 +134,13 @@ smart_inventory.cache = dofile(modpath.."/cache.lua")
 smart_inventory.ui_tools = dofile(modpath.."/ui_tools.lua")
 
 -- register pages
-dofile(modpath.."/crafting.lua")
+dofile(modpath.."/pages/crafting.lua")
 
 if minetest.setting_getbool("creative_mode") then
-	dofile(modpath.."/creative.lua")
+	dofile(modpath.."/pages/creative.lua")
 end
 
 if smart_inventory.skins_mod or smart_inventory.armor_mod then
-	dofile(modpath.."/player.lua")
+	dofile(modpath.."/pages/player.lua")
 end
 
