@@ -102,7 +102,7 @@ function crecipes.new(recipe)
 					if minetest.registered_items[recipe_item] then
 						iteminfo.items = {[recipe_item] = minetest.registered_items[recipe_item]}
 					else
-						minetest.log("[smartfs_inventory] unknown item in recipe: "..recipe_item)
+						minetest.log("[smartfs_inventory] unknown item in recipe: "..recipe_item.." for result "..self.out_item.name)
 						return false
 					end
 				else
@@ -119,7 +119,7 @@ function crecipes.new(recipe)
 									if cache.cgroups["group:"..groupname] then
 										retitems = table.copy(cache.cgroups["group:"..groupname].items)
 									else
-										minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname)
+										minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname.." for result "..self.out_item.name)
 									end
 								end
 							else
@@ -140,7 +140,7 @@ function crecipes.new(recipe)
 							end
 						end
 						if not retitems or not next(retitems) then
-							minetest.log("[smartfs_inventory] no items matches group: "..recipe_item)
+							minetest.log("[smartfs_inventory] no items matches group: "..recipe_item.." for result "..self.out_item.name)
 							return false
 						else
 							iteminfo.items = retitems
