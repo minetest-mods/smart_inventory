@@ -1,7 +1,5 @@
 local ui_tools = {}
 
-local cache = smart_inventory.cache
-
 -----------------------------------------------------
 -- Group item list and prepare for output
 -----------------------------------------------------
@@ -90,6 +88,7 @@ function ui_tools.create_trash_inv(state, name)
 end
 
 function ui_tools.search_in_list(list, search_string, playername)
+local cache = smart_inventory.cache
 	local filtered_list = {}
 	search_string = search_string:lower()
 	for _, entry in ipairs(list) do
