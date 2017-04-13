@@ -71,6 +71,8 @@ return {
 	["group:micro"] = {label = "Micro"},
 	["group:panel"] = {label = "Panel"},
 	["group:slope"] = {label = "Slope"},
+	["group:customnode"] = {label = "Decorative node"},
+	["group:customnode:default"] = {label = false},
 
 	["type:tool"] = { label = "Tools" },
 	["type:node"] = { label = "Nodes" },

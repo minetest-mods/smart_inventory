@@ -57,7 +57,8 @@ filter.register_filter({
 						k:sub(1, 7) == "excolor" or
 						k:sub(1, 5) == "color" or
 						k:sub(1, 8) == "unicolor" or
-						k:sub(1, 4) == "food" then
+						k:sub(1, 4) == "food" or
+						k:sub(1, 10) == "customnode" then
 					mk = string.gsub(k, "_", ":")
 				else
 					mk = k
