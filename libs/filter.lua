@@ -153,7 +153,7 @@ filter.register_filter({
 	})
 
 filter.register_filter({
-		name = "eatable",
+		name = "food",
 		filter_func = function(def)
 			if def.on_use then
 				local name,change=debug.getupvalue(def.on_use, 1)

@@ -60,7 +60,7 @@ return {
 	["group:coal"] = {label = "Coal" },
 	["group:water_bucket"] = {label = "Bucket"},
 	["group:dye"] = {label = "Dye"},
-	["group:food"] = {label = "Food"},
+	["group:food"] = {label = "Food group"},
 
 	["group:stair"] = {label = "Stair"},
 	["group:door"] = {label = "Door"},
@@ -82,7 +82,7 @@ return {
 	["mod"] = { label = "Mod" },
 	["transluc"] = { label = "Translucent" },
 	["vessel"] = { label = "Vessel" },
-	["eatable"] = { label = "Eatable" },
+	["food"] = { label = "Food" },
 	["shape"] = { label = "Shaped"},
 	["light"] = { label = "Light source"},
 	["ingredient"] = { label = "Crafted with"},
