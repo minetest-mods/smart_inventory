@@ -1,11 +1,12 @@
 local txt = smart_inventory.txt
-local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or false
+local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or true
 
 --------------------------------------------------------------
 -- Filter class
 --------------------------------------------------------------
 local filter_class = {}
 filter_class.__index = filter_class
+
 function filter_class:check_item_by_name(itemname)
 	if minetest.registered_items[itemname] then
 		return self:check_item_by_def(minetest.registered_items[itemname])
@@ -25,13 +26,32 @@ function filter_class:_get_description(group)
 	else
 		ret_desc = group.name
 	end
-	if not txt_usage or ret_desc == false then
+	if txt_usage then
 		return ret_desc
 	else
 		return group.name
 	end
 end
 filter_class.get_description = filter_class._get_description
+
+
+function filter_class:_get_keyword(group)
+	-- parent exists - return the top-level information only
+	if group.parent and group.parent.childs[group.name] and tonumber(group.parent.childs[group.name]) == nil then
+		return group.parent.childs[group.name]
+	end
+end
+
+function filter_class:_get_keyword_groupname(group) -- a variant for get_keyword, can be assigned in filter definition
+	if txt_usage then
+		return group.name.." "..group.group_desc
+	else
+		return group.name
+	end
+end
+
+filter_class.get_keyword = filter_class._get_keyword
+
 
 local filter = {}
 filter.registered_filter = {}
@@ -49,6 +69,9 @@ function filter.register_filter(def)
 	filter.registered_filter[def.name] = def
 end
 
+--------------------------------------------------------------
+-- Filter group
+--------------------------------------------------------------
 filter.register_filter({
 		name = "group",
 		check_item_by_def = function(self, def)
@@ -68,6 +91,7 @@ filter.register_filter({
 				else
 					mk = k
 				end
+
 				-- stack wear related value
 				if k == "armor_use" then
 					mv = tostring(math.floor(v / 65535 * 10000 + 0.5)/100).." %"
@@ -78,12 +102,29 @@ filter.register_filter({
 					mv = true
 				end
 
-				if v ~= 0 then
+				-- replacements
+				if mk == "group:customnode:default" then
+					mk = "group:customnode"
+				end
+
+				-- apply
+				if v ~= 0 and not (
+						mk == "group:armor:count" or --internally used only
+						mk == "group:leafdecay" ) -- represented by group:leaves
+						then
 					ret[mk] = mv
 				end
 			end
 			return ret
 		end,
+		get_keyword = function(self, group)
+			local keyword = self:_get_keyword(group)
+			if txt_usage and keyword then
+				return keyword.." "..group.group_desc
+			else
+				return keyword
+			end
+		end
 	})
 
 filter.register_filter({
@@ -104,7 +145,8 @@ filter.register_filter({
 		name = "transluc",
 		check_item_by_def = function(self, def)
 			return def.sunlight_propagates
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -113,7 +155,8 @@ filter.register_filter({
 			if def.light_source and def.light_source ~= 0 then
 				return def.light_source
 			end
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -124,7 +167,8 @@ filter.register_filter({
 					def.on_metadata_inventory_put then
 				return true
 			end
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 --[[ does it sense to filter them? I cannot define the human readable groups for them
@@ -154,7 +198,8 @@ filter.register_filter({
 					return true
 				end
 			end
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -166,7 +211,8 @@ filter.register_filter({
 					return tostring(change)
 				end
 			end
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -178,7 +224,8 @@ filter.register_filter({
 					return tostring(change)
 				end
 			end
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -211,11 +258,11 @@ filter.register_filter({
 ]]
 			return rettab
 		end,
-		get_description = function(self, group)
+		get_keyword = function(self, group)
 			if group.name == "max_drop_level" or group.name == "full_punch_interval" or group.name == "damage" then
-				return false
+				return nil
 			else
-				return self:_get_description(group)
+				return self:_get_keyword(group)
 			end
 		end
 	})
@@ -224,7 +271,8 @@ filter.register_filter({
 		name = "armor",
 		check_item_by_def = function(self, def)
 			return def.armor_groups
-		end
+		end,
+		get_keyword = filter_class._get_keyword_groupname
 	})
 
 -- Group assignment done in cache framework internally
@@ -245,7 +293,14 @@ filter.register_filter({
 			else
 				return group.name
 			end
+		end,
+		get_keyword = function(self, group)
+			local itemname = group.name:sub(12)
+			if minetest.registered_items[itemname] then
+				return minetest.registered_items[itemname].description
+			end
 		end
+
 })
 
 ----------------

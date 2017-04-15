@@ -6,7 +6,6 @@ return {
 	["group:armor"] = { label = "Rüstung" },
 	["group:armor:state"] = { label = "Rüstungsstatus" },
 	["group:armor:level"] = { label = "Level der Rüstung" },
-	["group:armor:count"] = { label = false },
 	["group:physics:jump"] = { label = "Sprunghöhe" },
 	["group:physics:speed"] = { label = "Geschwindigkeit" },
 	["group:physics:gravity"] = { label = "Erdanziehung" },
@@ -22,11 +21,9 @@ return {
 
 	-- http://dev.minetest.net/Groups
 	-- http://dev.minetest.net/Groups/Custom_groups
-	["group"] = { label = false },
 	["group:level"] = { label = "Wertvoll" },
 	["group:oddly_breakable_by_hand"] = { label = "Ohne Werkzeug abbaubar" },
-	["group:dig_immediate"] = { label = false },
-	["group:dig_immediate:2"] = { label = "Schnell abbaubar" },
+	["group:dig_immediate"] = { label = "Schnell abbaubar" },
 	["group:dig_immediate:3"] = { label = "Sofort abbaubar" },
 	["group:disable_jump"] = { label = "Klebrig" },
 	["group:bouncy"] = { label = "Federnd" },
@@ -40,10 +37,9 @@ return {
 	["group:choppy"] = { label = "Abgehackt" },
 	["group:explody"] = { label = "Explosiv" },
 	["group:flammable"] = { label = "Brennbar" },
-	["group:not_in_creative_inventory"] = { label = false },
+	["group:not_in_creative_inventory"] = { label = "Versteckt" },
 
 	["group:tree"] = { label = "Baum" },
-	["group:leafdecay"] = { label = false }, -- represented by group:leaves
 	["group:flora"] = { label = "Flora" },
 	["group:soil"] = { label = "Erde" },
 	["group:soil:1"] = { label = "Ackerboden" },
@@ -72,8 +68,6 @@ return {
 	["group:panel"] = {label = "Paneel"},
 	["group:slope"] = {label = "Neigung"},
 	["group:customnode"] = {label = "Dekorativer Block"},
-	["group:customnode:default"] = {label = false},
-
 
 	["type:tool"] = { label = "Werkzeuge" },
 	["type:node"] = { label = "Blöcke" },
@@ -83,12 +77,11 @@ return {
 	["mod"] = { label = "Mod" },
 	["transluc"] = { label = "Lichtdurchlässig" },
 	["vessel"] = { label = "Behälter" },
-	["eatable"] = { label = "Nahrung" },
+	["food"] = { label = "Nahrung" },
 	["shape"] = { label = "Geformt"},
 	["light"] = { label = "Lichtquelle"},
 	["ingredient"] = { label = "Erzeugt aus"},
 
-	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Verwendungsinterval" },
 	["tool:max_drop_level"] = { label = "Max drop Level" },
 --	["tool:groupcaps:fleshy"] = { label = "??" },

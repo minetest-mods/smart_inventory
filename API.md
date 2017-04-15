@@ -31,6 +31,7 @@ smart_inventory.filter.register_filter({
                 name             = string,
                 check_item_by_def      = function,
                 get_description   = function,
+                get_keyword       = function,
         })
 ```
   - name - unique filter name
@@ -40,8 +41,9 @@ smart_inventory.filter.register_filter({
     - string -> dimension, steps splitted by ":" (`a:b:c:d results in filtername, filtername:a, filtername:a:b, filtername:a:b:c, filtername:a:b:c:d`)
     - key/value table -> multiple groups assignment. Values could be dimensions as above (`{a,b} results in filtername, filtername:a, filtername:b`)
     - nil -> no group assingment by this filter
-  - shortdesc_func(fltobj, filterstring, textstring) - optional - get human readable description for the dimension string (`filtername:a:b:c`). "false" means the group should be ignored. Usefull so skip some dimension characteristics
-  - if no function is given the descriptions can be added to smart_inventory.txt[filterstring].label See classify_description.lua. If nothing defined the filterstring will be displayed
+  - get_description(fltobj, group) - optional - get human readable description for the dimension string (`filtername:a:b:c`)
+  - get_keyword(fltobj, group) - get string that should be used for searches or nil if the group should not be matched
+
  
 ### Filter Object methods
 
@@ -49,3 +51,4 @@ smart_inventory.filter.get(name)       get filter object by registered name. Ret
   - fltobj:check_item_by_name(itemname)   classify by itemname (wrapper for check_item_by_def)
   - fltobj:check_item_by_def(def)         classify by item definition
   - fltobj:get_description(group)         get group description
+  - fltobj:get_keyword(group)             get string that should be used for searches

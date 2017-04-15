@@ -6,7 +6,6 @@ return {
 	["group:armor"] = { label = "Armor" },
 	["group:armor:state"] = { label = "Armor state" },
 	["group:armor:level"] = { label = "Armor level" },
-	["group:armor:count"] = { label = false },
 	["group:physics:jump"] = { label = "Jump high" },
 	["group:physics:speed"] = { label = "Walking speed" },
 	["group:physics:gravity"] = { label = "Gravity" },
@@ -22,11 +21,9 @@ return {
 
 	-- http://dev.minetest.net/Groups
 	-- http://dev.minetest.net/Groups/Custom_groups
-	["group"] = { label = false },
 	["group:level"] = { label = "Valuable" },
 	["group:oddly_breakable_by_hand"] = { label = "Oddly breakable" },
-	["group:dig_immediate"] = { label = false },
-	["group:dig_immediate:2"] = { label = "Fast diggable" },
+	["group:dig_immediate"] = { label = "Fast diggable" },
 	["group:dig_immediate:3"] = { label = "Immediate diggable" },
 	["group:disable_jump"] = { label = "Sticky" },
 	["group:bouncy"] = { label = "Bouncy" },
@@ -40,10 +37,9 @@ return {
 	["group:choppy"] = { label = "Choppy" },
 	["group:explody"] = { label = "Explosive" },
 	["group:flammable"] = { label = "Flammable" },
-	["group:not_in_creative_inventory"] = { label = false },
+	["group:not_in_creative_inventory"] = { label = "Hidden" },
 
 	["group:tree"] = { label = "Tree" },
-	["group:leafdecay"] = { label = false }, -- represented by group:leaves
 	["group:flora"] = { label = "Flora" },
 	["group:soil"] = { label = "Soil" },
 	["group:soil:1"] = { label = "Basic soil" },
@@ -72,7 +68,6 @@ return {
 	["group:panel"] = {label = "Panel"},
 	["group:slope"] = {label = "Slope"},
 	["group:customnode"] = {label = "Decorative node"},
-	["group:customnode:default"] = {label = false},
 
 	["type:tool"] = { label = "Tools" },
 	["type:node"] = { label = "Nodes" },
@@ -87,7 +82,6 @@ return {
 	["light"] = { label = "Light source"},
 	["ingredient"] = { label = "Crafted with"},
 
-	["tool"] = {label = false},
 	["tool:full_punch_interval"] = { label = "Punch interval" },
 	["tool:max_drop_level"] = { label = "Max drop level" },
 --	["tool:groupcaps:fleshy"] = { label = "??" },

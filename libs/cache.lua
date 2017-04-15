@@ -250,17 +250,9 @@ function cache.add_to_cache_group(group_name, itemdef, flt, parent, parent_value
 			childs = {},
 			}
 
-		if flt then
-			group.group_desc = flt:get_description(group)
-		else
-			group.group_desc = group_name
-		end
-		if not group.group_desc then
-			if parent_ref then
-				parent_ref.childs[group_name] = nil
-			end
-			return
-		end
+		group.group_desc = flt:get_description(group)
+		group.keyword = flt:get_keyword(group)
+
 		cache.cgroups[group_name] = group
 	end
 	cache.cgroups[group_name].items[itemdef.name] = itemdef

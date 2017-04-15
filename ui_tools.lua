@@ -98,11 +98,7 @@ local cache = smart_inventory.cache
 			table.insert(filtered_list, entry)
 		else
 			for _, cgroup in pairs(entry.citem.cgroups) do
-				local prefix_end_pos = cgroup.name:find(":")
-				if string.find(cgroup.name:lower(), search_string, prefix_end_pos) then
-					table.insert(filtered_list, entry)
-					break
-				elseif string.find(cgroup.group_desc:lower(), search_string) then
+				if cgroup.keyword and string.find(cgroup.keyword:lower(), search_string) then
 					table.insert(filtered_list, entry)
 					break
 				end
@@ -129,7 +125,7 @@ end
 function ui_tools.get_tight_groups(cgroups)
 	local out_list = {}
 	for group1, groupdef1 in pairs(cgroups) do
-		if not string.find(group1, "ingredient:") then
+		if not string.find(group1, "ingredient:") and groupdef1.keyword then
 			out_list[group1] = groupdef1
 			for group2, groupdef2 in pairs(out_list) do
 				if string.len(group1) > string.len(group2) and
