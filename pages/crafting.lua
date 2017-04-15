@@ -376,7 +376,12 @@ local function crafting_callback(state)
 	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
-		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, self:getText())
+		local search_string = self:getText()
+		if string.len(search_string) < 3 then
+			return
+		end
+
+		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, search_string)
 		filtered_list = ui_tools.filter_by_revealed(filtered_list, player)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		-- reset group selection if proposal mode is changed
