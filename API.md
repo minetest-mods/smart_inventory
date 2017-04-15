@@ -29,12 +29,12 @@ Maybe the framework will be moved to own mod in the feature if needed. Please no
 ```
 smart_inventory.filter.register_filter({
                 name             = string,
-                filter_func      = function,
+                check_item_by_def      = function,
                 shortdesc_func   = function,
         })
 ```
   - name - unique filter name
-  - filter_func(itemdef) - function to check the item classify by item definition. Item definition is the reference to minetest.registered_items[item] entry
+  - check_item_by_def(fltobj, itemdef) - function to check the item classify by item definition. Item definition is the reference to minetest.registered_items[item] entry
     next return values allowed:
     - true -> direct (belongs to) assignment to the classify group named by filtername
     - string -> dimension, steps splitted by ":" (`a:b:c:d results in filtername, filtername:a, filtername:a:b, filtername:a:b:c, filtername:a:b:c:d`)
@@ -46,6 +46,6 @@ smart_inventory.filter.register_filter({
 ### Filter Object methods
 
 smart_inventory.filter.get(name)       get filter object by registered name. Returns filter object fltobj
-  - fltobj:check_item_by_name(itemname)   classify by itemname
+  - fltobj:check_item_by_name(itemname)   classify by itemname (wrapper for check_item_by_def)
   - fltobj:check_item_by_def(def)         classify by item definition
   - fltobj:get_description(group)         get group description

@@ -8,12 +8,12 @@ local filter_class = {}
 filter_class.__index = filter_class
 function filter_class:check_item_by_name(itemname)
 	if minetest.registered_items[itemname] then
-		return self.filter_func(minetest.registered_items[itemname])
+		return self:check_item_by_def(minetest.registered_items[itemname])
 	end
 end
 
 function filter_class:check_item_by_def(def)
-	return self.filter_func(def)
+	error("check_item_by_def needs redefinition:"..debug.traceback())
 end
 
 function filter_class:get_description(group)
@@ -34,7 +34,6 @@ function filter_class:get_description(group)
 	end
 end
 
-
 local filter = {}
 filter.registered_filter = {}
 
@@ -44,7 +43,7 @@ end
 
 function filter.register_filter(def)
 	assert(def.name, "filter needs a name")
-	assert(def.filter_func, "filter function required")
+	assert(def.check_item_by_def, "filter function check_item_by_def required")
 	assert(not filter.registered_filter[def.name], "filter already exists")
 	setmetatable(def, filter_class)
 	def.__index = filter_class
@@ -53,7 +52,7 @@ end
 
 filter.register_filter({
 		name = "group",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			local ret = {}
 			for k, v in pairs(def.groups) do
 				local mk, mv
@@ -90,28 +89,28 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "type",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			return def.type
 		end,
 	})
 
 filter.register_filter({
 		name = "mod",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			return def.mod_origin
 		end,
 	})
 
 filter.register_filter({
 		name = "transluc",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			return def.sunlight_propagates
 		end
 	})
 
 filter.register_filter({
 		name = "light",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if def.light_source and def.light_source ~= 0 then
 				return def.light_source
 			end
@@ -120,7 +119,7 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "vessel",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if def.allow_metadata_inventory_move or
 					def.allow_metadata_inventory_take or
 					def.on_metadata_inventory_put then
@@ -132,7 +131,7 @@ filter.register_filter({
 --[[ does it sense to filter them? I cannot define the human readable groups for them
 filter.register_filter({
 		name = "drawtype",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if def.drawtype ~= "normal" then
 				return def.drawtype
 			end
@@ -150,7 +149,7 @@ end
 
 filter.register_filter({
 		name = "shape",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			for k, v in pairs(def.groups) do
 				if shaped_groups[k] then
 					return true
@@ -161,7 +160,7 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "food",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if def.on_use then
 				local name,change=debug.getupvalue(def.on_use, 1)
 				if name~=nil and name=="hp_change" and change > 0 then
@@ -173,7 +172,7 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "toxic",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if def.on_use then
 				local name,change=debug.getupvalue(def.on_use, 1)
 				if name~=nil and name=="hp_change" and change < 0 then
@@ -185,7 +184,7 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "tool",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			if not def.tool_capabilities then
 				return
 			end
@@ -228,7 +227,7 @@ filter.register_filter({
 
 filter.register_filter({
 		name = "armor",
-		filter_func = function(def)
+		check_item_by_def = function(self, def)
 			return def.armor_groups
 		end
 	})
@@ -236,13 +235,13 @@ filter.register_filter({
 -- Group assignment done in cache framework internally
 filter.register_filter({
 		name = "recipetype",
-		filter_func = function(def) end,
+		check_item_by_def = function(self, def) end,
 })
 
 -- Group assignment done in cache framework internally
 filter.register_filter({
 		name = "ingredient",
-		filter_func = function(def) end,
+		check_item_by_def = function(self, def) end,
 		shortdesc_func = function(self, group)
 			local itemname = group.name:sub(12)
 			if txt["ingredient"] and txt["ingredient"].label and
