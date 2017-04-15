@@ -270,9 +270,25 @@ function cache.add_to_cache_group(group_name, itemdef, flt, parent, parent_value
 end
 
 -----------------------------------------------------
+-- Hook / Event for further initializations of the cache is filled
+-----------------------------------------------------
+cache.registered_on_cache_filled = {}
+function cache.register_on_cache_filled(func, ...)
+	assert(type(func) == "function", "register_on_cache_filled needs a function")
+	table.insert(cache.registered_on_cache_filled, { func = func, opt = {...}})
+end
+
+local function process_on_cache_filled()
+	for _, hook in ipairs(cache.registered_on_cache_filled) do
+		hook.func(unpack(hook.opt))
+	end
+end
+
+
+-----------------------------------------------------
 -- Fill the cache at init
 -----------------------------------------------------
-function cache.fill_cache()
+local function fill_cache()
 	local shape_filter = filter.get("shape")
 	for _name_, _def_ in pairs(minetest.registered_items) do
 		-- special handling for doors. In inventory the item should be displayed instead of the node_a/node_b
@@ -327,13 +343,17 @@ function cache.fill_cache()
 			end
 		end
 	end
-	minetest.after(0, cache.fill_recipe_cache) --fill in second step
+
+	-- call hooks
+	minetest.after(0, process_on_cache_filled)
 end
+minetest.after(0, fill_cache)
+
 
 -----------------------------------------------------
 -- Fill the recipes cache at init
 -----------------------------------------------------
-function cache.fill_recipe_cache()
+local function fill_recipe_cache()
 	for itemname, _ in pairs(cache.citems) do
 		local recipelist = minetest.get_all_craft_recipes(itemname)
 		if recipelist then
@@ -358,11 +378,9 @@ function cache.fill_recipe_cache()
 		end
 	end
 end
+-- register to process after cache is filled
+cache.register_on_cache_filled(fill_recipe_cache)
 
------------------------------------------------------
--- fill the cache after all mods loaded
------------------------------------------------------
-minetest.after(0, cache.fill_cache)
 
 -----------------------------------------------------
 -- return the reference to the mod

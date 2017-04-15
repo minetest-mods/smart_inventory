@@ -16,13 +16,13 @@ local function update_group_selection(state, changed_group)
 	local grid = state:get("buttons_grid")
 	local outlist
 
-	if state.param.creative_grouped_material_items and
-			next(state.param.creative_grouped_material_items) then
+	if state.param.creative_grouped_shape_items and
+			next(state.param.creative_grouped_shape_items) then
 		local group_info = {}
 		group_info.name = "shape"
 		group_info.cgroup = cache.cgroups["shape"]
 		group_info.group_desc = "#01DF74> "..group_info.cgroup.group_desc
-		group_info.items = state.param.creative_grouped_material_items
+		group_info.items = state.param.creative_grouped_shape_items
 		grouped["shape"] = group_info
 	end
 
@@ -113,10 +113,10 @@ local function creative_callback(state)
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
-		local filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_all, search_string)
+		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list, search_string)
 		state.param.creative_grouped_items = ui_tools.get_list_grouped(filtered_list)
-		filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_material_all, search_string)
-		state.param.creative_grouped_material_items = filtered_list
+		filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_shape, search_string)
+		state.param.creative_grouped_shape_items = filtered_list
 		update_group_selection(state, 0)
 	end)
 
@@ -173,9 +173,8 @@ local function creative_callback(state)
 	end)
 
 	-- fill with data
-	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = ui_tools.get_all_items()
-	state.param.creative_grouped_items = ui_tools.get_list_grouped(state.param.creative_grouped_items_all)
-	state.param.creative_grouped_material_items = state.param.creative_grouped_items_material_all
+	state.param.creative_grouped_items = ui_tools.get_list_grouped(ui_tools.root_list)
+	state.param.creative_grouped_shape_items = ui_tools.root_list_shape
 	update_group_selection(state, 0)
 end
 

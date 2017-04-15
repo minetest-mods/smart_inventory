@@ -12,6 +12,7 @@ local ui_tools = {}
 -- groups_tab: shadow table that with items per group that will be updated in this method
 -- Return: updated groups_tab
 
+
 function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 	-- save old selection
 	local sel_id = groups_sel:getSelected()
@@ -59,6 +60,10 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 	return groups_tab
 end
 
+
+-----------------------------------------------------
+-- Create trash inventory
+-----------------------------------------------------
 function ui_tools.create_trash_inv(state, name)
 	local player = minetest.get_player_by_name(name)
 	local invname = name.."_trash_inv"
@@ -90,7 +95,11 @@ function ui_tools.create_trash_inv(state, name)
 	inv:set_size(listname, 1)
 end
 
-function ui_tools.search_in_list(list, search_string, playername)
+
+-----------------------------------------------------
+-- Filter a list by search string
+-----------------------------------------------------
+function ui_tools.filter_by_searchstring(list, search_string)
 	local filtered_list = {}
 	search_string = search_string:lower()
 	for _, entry in ipairs(list) do
@@ -107,23 +116,41 @@ function ui_tools.search_in_list(list, search_string, playername)
 			end
 		end
 	end
-	if smart_inventory.doc_items_mod and playername then
-		for _, entry in ipairs(filtered_list) do
-			if entry.recipes then
-				local valid_recipes = {}
-				for _, recipe in ipairs(entry.recipes) do
-					if cache.crecipes[recipe]:is_revealed(playername) then
-						table.insert(valid_recipes, recipe)
-					end
+	return filtered_list
+end
+
+-----------------------------------------------------
+-- Get all revealed items available
+-----------------------------------------------------
+function ui_tools.filter_by_revealed(list, playername)
+	if not smart_inventory.doc_items_mod then
+		return list
+	end
+
+	local filtered_list = {}
+	for _, entry in ipairs(list) do
+		-- check recipes
+		local revealed_by_recipe = false
+		local valid_recipes = {}
+		if cache.citems[entry.item] and cache.citems[entry.item].in_output_recipe then
+			for _, recipe in ipairs(cache.citems[entry.item].in_output_recipe) do
+				if cache.crecipes[recipe]:is_revealed(playername) then
+					table.insert(valid_recipes, recipe)
+					revealed_by_recipe = true
+					break
 				end
-				entry.recipes = valid_recipes
 			end
+		end
+		if revealed_by_recipe or doc_addon.is_revealed_item(entry.item, playername) then
+			table.insert(filtered_list, entry)
 		end
 	end
 	return filtered_list
 end
 
-
+-----------------------------------------------------
+-- Select tight groups only to display info about item
+-----------------------------------------------------
 function ui_tools.get_tight_groups(cgroups)
 	local out_list = {}
 	for group1, groupdef1 in pairs(cgroups) do
@@ -150,50 +177,6 @@ function ui_tools.get_tight_groups(cgroups)
 		return a.group_desc < b.group_desc
 	end)
 	return out_list_sorted
-end
-
------------------------------------------------------
--- Get all items available
------------------------------------------------------
-function ui_tools.get_all_items()
-	local outtab = {}
-	local outtab_material = {}
-	for itemname, citem in pairs(cache.citems) do
-		local entry = {
-			citem = citem,
-			-- buttons_grid related
-			item = itemname,
-			is_button = true
-		}
-		if cache.citems[itemname].cgroups["shape"] then
-			table.insert(outtab_material, entry)
-		else
-			table.insert(outtab, entry)
-		end
-	end
-	return outtab, outtab_material
-end
-
-
------------------------------------------------------
--- Get all revealed items available
------------------------------------------------------
-function ui_tools.get_revealed_items(player)
-	local outtab = {}
-	for itemname, citem in pairs(cache.citems) do
-		if doc_addon.is_revealed_item(itemname, player) then
-			local entry = {
-				citem = citem,
-				itemdef = minetest.registered_items[itemname],
-				recipes = cache.citems[itemname].in_output_recipe,
-				-- buttons_grid related
-				item = itemname,
-				is_button = true
-			}
-			table.insert(outtab, entry)
-		end
-	end
-	return outtab
 end
 
 -----------------------------------------------------
@@ -310,6 +293,34 @@ function ui_tools.get_list_grouped(itemtable)
 
 	return outtab
 end
+
+
+-----------------------------------------------------
+-- Prepare root lists for all users
+-----------------------------------------------------
+local function prepare_root_lists()
+	ui_tools.root_list = {}
+	ui_tools.root_list_shape = {}
+	ui_tools.root_list_all = {}
+
+	for itemname, citem in pairs(cache.citems) do
+		local entry = {
+			citem = citem,
+			itemdef = minetest.registered_items[itemname],
+
+			-- buttons_grid related
+			item = itemname,
+			is_button = true
+		}
+		if cache.citems[itemname].cgroups["shape"] then
+			table.insert(ui_tools.root_list_shape, entry)
+		else
+			table.insert(ui_tools.root_list, entry)
+		end
+		table.insert(ui_tools.root_list_all, entry)
+	end
+end
+cache.register_on_cache_filled(prepare_root_lists)
 
 --------------------------------
 return ui_tools

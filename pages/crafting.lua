@@ -16,25 +16,42 @@ local function update_crafting_preview(state)
 	local group_list = inf_state:get("item_groups")
 
 	-- get recipe to display, check paging buttons needed
+	local all_recipes
+	local valid_recipes = {}
 	local recipe
-	if listentry.recipes then
-		if not listentry.recipes[selected] then
+
+	if listentry.recipes then -- preselected recipes (ie. craftable)
+		all_recipes = listentry.recipes
+	elseif cache.citems[listentry.item] then -- check all available recipes (ie. search)
+		all_recipes = cache.citems[listentry.item].in_output_recipe or {}
+	else -- no recipes
+		all_recipes = {}
+	end
+
+	for _, recipe in ipairs(all_recipes) do
+		if cache.crecipes[recipe]:is_revealed(player) then
+			table.insert(valid_recipes, recipe)
+		end
+	end
+
+	if valid_recipes[1] then
+		if not valid_recipes[selected] then
 			selected = 1
 		end
 		state.param.crafting_recipes_preivew_selected = selected
-		if listentry.recipes[selected-1] then
+		if selected > 1 and valid_recipes[selected-1] then
 			state:get("preview_prev"):setVisible(true)
 		else
 			state:get("preview_prev"):setVisible(false)
 		end
-		if listentry.recipes[selected+1] then
+		if valid_recipes[selected+1] then
 			state:get("preview_next"):setVisible(true)
 		else
 			state:get("preview_next"):setVisible(false)
 		end
 
-		if listentry.recipes[selected] then
-			recipe = listentry.recipes[selected]
+		if valid_recipes[selected] then
+			recipe = valid_recipes[selected]
 			local crecipe = cache.crecipes[recipe]
 			if crecipe then
 				recipe = crecipe:get_with_placeholder(player, state.param.crafting_items_in_inventory)
@@ -201,15 +218,6 @@ local function create_lookup_inv(state, name)
 				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
 				-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 				local recipes = cache.crecipes.get_revealed_recipes_with_items(name, {[lookup_item] = true })
-				local valid_lookup_recipes = {}
-				if cache.citems[lookup_item] and cache.citems[lookup_item].in_output_recipe then
-					for _, recipe in ipairs(cache.citems[lookup_item].in_output_recipe) do
-						if cache.crecipes[recipe]:is_revealed(player:get_player_name()) then
-							recipes[recipe] = true
-							table.insert(valid_lookup_recipes, recipe)
-						end
-					end
-				end
 				update_from_recipelist(state, recipes)
 
 				-- show lookup item in preview
@@ -218,10 +226,8 @@ local function create_lookup_inv(state, name)
 					itemdef = minetest.registered_items[lookup_item],
 					item = lookup_item
 				}
-				if cache.citems[lookup_item] then
-					state.param.crafting_recipes_preivew_listentry.recipes = valid_lookup_recipes
-				end
 				update_crafting_preview(state)
+
 				if state:get("info_tog"):getId() == 1 then
 					state:get("info_tog"):submit()
 				end
@@ -370,7 +376,8 @@ local function crafting_callback(state)
 	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
-		local filtered_list = ui_tools.search_in_list(ui_tools.get_revealed_items(player), self:getText(), player)
+		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, self:getText())
+		filtered_list = ui_tools.filter_by_revealed(filtered_list, player)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		-- reset group selection if proposal mode is changed
 		if state.param.survival_proposal_mode ~= "search" then

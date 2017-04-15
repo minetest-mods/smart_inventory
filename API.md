@@ -52,3 +52,6 @@ smart_inventory.filter.get(name)       get filter object by registered name. Ret
   - fltobj:check_item_by_def(def)         classify by item definition
   - fltobj:get_description(group)         get group description
   - fltobj:get_keyword(group)             get string that should be used for searches
+
+## Cache framework
+cache.register_on_cache_filled(function, parameter) - hook to call additional initializations after the cache is filled
