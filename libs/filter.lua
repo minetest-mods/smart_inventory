@@ -118,8 +118,13 @@ filter.register_filter({
 			return ret
 		end,
 		get_keyword = function(self, group)
+			-- hide groups
+			if group.name == "group:not_in_creative_inventory" then
+				return
+			end
+
 			local keyword = self:_get_keyword(group)
-			if txt_usage and keyword then
+			if txt_usage and keyword and txt[group.name] then
 				return keyword.." "..group.group_desc
 			else
 				return keyword

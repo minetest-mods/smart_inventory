@@ -56,7 +56,7 @@ return {
 	["group:coal"] = {label = "Kohle" },
 	["group:water_bucket"] = {label = "Eimer"},
 	["group:dye"] = {label = "Farbstoff"},
-	["group:food"] = {label = "Nahrung (Gruppe)"},
+	["group:food"] = {label = "Nahrung"},
 
 	["group:stair"] = {label = "Treppe"},
 	["group:door"] = {label = "Tür"},
