@@ -1,6 +1,40 @@
 local txt = smart_inventory.txt
 local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or false
 
+--------------------------------------------------------------
+-- Filter class
+--------------------------------------------------------------
+local filter_class = {}
+filter_class.__index = filter_class
+function filter_class:check_item_by_name(itemname)
+	if minetest.registered_items[itemname] then
+		return self.filter_func(minetest.registered_items[itemname])
+	end
+end
+
+function filter_class:check_item_by_def(def)
+	return self.filter_func(def)
+end
+
+function filter_class:get_description(group)
+	local ret_desc
+	if self.shortdesc_func then
+		ret_desc = self:shortdesc_func(group)
+	elseif txt[group.name] then
+		ret_desc = txt[group.name].label
+	elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
+		ret_desc = txt[group.parent.name].label.." "..group.parent.childs[group.name]
+	else
+		ret_desc = group.name
+	end
+	if not txt_usage or ret_desc == false then
+		return ret_desc
+	else
+		return group.name
+	end
+end
+
+
 local filter = {}
 filter.registered_filter = {}
 
@@ -12,36 +46,9 @@ function filter.register_filter(def)
 	assert(def.name, "filter needs a name")
 	assert(def.filter_func, "filter function required")
 	assert(not filter.registered_filter[def.name], "filter already exists")
-
-	local self = def
-
-	function self:check_item_by_name(itemname)
-		if minetest.registered_items[itemname] then
-			return self.filteget_group_descriptionr_func(minetest.registered_items[itemname])
-		end
-	end
-	function self:check_item_by_def(def)
-		return self.filter_func(def)
-	end
-	function self:get_description(group)
-		local ret_desc
-		if self.shortdesc_func then
-			ret_desc = self:shortdesc_func(group)
-		elseif txt[group.name] then
-			ret_desc = txt[group.name].label
-		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
-			ret_desc = txt[group.parent.name].label.." "..group.parent.childs[group.name]
-		else
-			ret_desc = group.name
-		end
-		if not txt_usage or ret_desc == false then
-			return ret_desc
-		else
-			return group.name
-		end
-	end
-
-	filter.registered_filter[self.name] = self
+	setmetatable(def, filter_class)
+	def.__index = filter_class
+	filter.registered_filter[def.name] = def
 end
 
 filter.register_filter({
