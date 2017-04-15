@@ -30,7 +30,7 @@ Maybe the framework will be moved to own mod in the feature if needed. Please no
 smart_inventory.filter.register_filter({
                 name             = string,
                 check_item_by_def      = function,
-                shortdesc_func   = function,
+                get_description   = function,
         })
 ```
   - name - unique filter name

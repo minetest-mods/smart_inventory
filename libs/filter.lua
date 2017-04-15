@@ -16,11 +16,9 @@ function filter_class:check_item_by_def(def)
 	error("check_item_by_def needs redefinition:"..debug.traceback())
 end
 
-function filter_class:get_description(group)
+function filter_class:_get_description(group)
 	local ret_desc
-	if self.shortdesc_func then
-		ret_desc = self:shortdesc_func(group)
-	elseif txt[group.name] then
+	if txt[group.name] then
 		ret_desc = txt[group.name].label
 	elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
 		ret_desc = txt[group.parent.name].label.." "..group.parent.childs[group.name]
@@ -33,6 +31,7 @@ function filter_class:get_description(group)
 		return group.name
 	end
 end
+filter_class.get_description = filter_class._get_description
 
 local filter = {}
 filter.registered_filter = {}
@@ -212,15 +211,11 @@ filter.register_filter({
 ]]
 			return rettab
 		end,
-		shortdesc_func = function(self, group)
+		get_description = function(self, group)
 			if group.name == "max_drop_level" or group.name == "full_punch_interval" or group.name == "damage" then
 				return false
-			elseif txt[group.name] then
-				return txt[group.name].label
-			elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
-				return txt[group.parent.name].label.." "..group.parent.childs[group.name]
 			else
-				return group.name
+				return self:_get_description(group)
 			end
 		end
 	})
@@ -242,7 +237,7 @@ filter.register_filter({
 filter.register_filter({
 		name = "ingredient",
 		check_item_by_def = function(self, def) end,
-		shortdesc_func = function(self, group)
+		get_description = function(self, group)
 			local itemname = group.name:sub(12)
 			if txt["ingredient"] and txt["ingredient"].label and
 					minetest.registered_items[itemname] and minetest.registered_items[itemname].description then
