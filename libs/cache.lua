@@ -368,7 +368,7 @@ function cache.get_list_grouped(itemtable)
 	for _, entry in ipairs(itemtable) do
 		if cache.citems[entry.item] then
 			for _, group in pairs(cache.citems[entry.item].cgroups) do
-				if group ~= "shape" then -- this group is handeled in other way
+				if cache.cgroups[group.name].keyword then
 					if not grouped[group.name] then
 						local group_info = {}
 						group_info.name = group.name
