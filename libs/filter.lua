@@ -103,8 +103,8 @@ filter.register_filter({
 				end
 
 				-- replacements
-				if mk == "group:customnode:default" then
-					mk = "group:customnode"
+				if mk == "customnode:default" then
+					mk = "customnode"
 				end
 
 				-- apply
