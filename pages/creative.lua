@@ -40,7 +40,7 @@ local function update_group_selection(state, changed_group)
 		groups_sel3:clearItems()
 	else
 		-- update group 2
-		grouped = cache.get_list_grouped(grouped[state.param.creative_group_list1[sel_id]].items)
+		grouped = ui_tools.get_list_grouped(grouped[state.param.creative_group_list1[sel_id]].items)
 		if changed_group < 2 or not state.param.creative_group_list2 then
 			state.param.creative_group_list2 = ui_tools.update_group_selection(grouped, groups_sel2, state.param.creative_group_list2)
 		end
@@ -53,7 +53,7 @@ local function update_group_selection(state, changed_group)
 			groups_sel3:clearItems()
 		else
 			-- update group 3
-			grouped = cache.get_list_grouped(grouped[state.param.creative_group_list2[sel_id]].items)
+			grouped = ui_tools.get_list_grouped(grouped[state.param.creative_group_list2[sel_id]].items)
 			if changed_group < 3 or not state.param.creative_group_list3 then
 				state.param.creative_group_list3 = ui_tools.update_group_selection(grouped, groups_sel3, state.param.creative_group_list3)
 			end
@@ -114,7 +114,7 @@ local function creative_callback(state)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
 		local filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_all, search_string)
-		state.param.creative_grouped_items = cache.get_list_grouped(filtered_list)
+		state.param.creative_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		filtered_list = ui_tools.search_in_list(state.param.creative_grouped_items_material_all, search_string)
 		state.param.creative_grouped_material_items = filtered_list
 		update_group_selection(state, 0)
@@ -173,8 +173,8 @@ local function creative_callback(state)
 	end)
 
 	-- fill with data
-	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = cache.get_all_items()
-	state.param.creative_grouped_items = cache.get_list_grouped(state.param.creative_grouped_items_all)
+	state.param.creative_grouped_items_all, state.param.creative_grouped_items_material_all  = ui_tools.get_all_items()
+	state.param.creative_grouped_items = ui_tools.get_list_grouped(state.param.creative_grouped_items_all)
 	state.param.creative_grouped_material_items = state.param.creative_grouped_items_material_all
 	update_group_selection(state, 0)
 end

@@ -162,7 +162,7 @@ local function update_from_recipelist(state, recipelist)
 			table.insert(craftable_itemlist, entry)
 		end
 	end
-	state.param.crafting_grouped_items = cache.get_list_grouped(craftable_itemlist)
+	state.param.crafting_grouped_items = ui_tools.get_list_grouped(craftable_itemlist)
 	update_group_selection(state, true)
 end
 
@@ -370,8 +370,8 @@ local function crafting_callback(state)
 	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
-		local filtered_list = ui_tools.search_in_list(cache.get_revealed_items(player), self:getText(), player)
-		state.param.crafting_grouped_items = cache.get_list_grouped(filtered_list)
+		local filtered_list = ui_tools.search_in_list(ui_tools.get_revealed_items(player), self:getText(), player)
+		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		-- reset group selection if proposal mode is changed
 		if state.param.survival_proposal_mode ~= "search" then
 			state.param.survival_proposal_mode = "search"
