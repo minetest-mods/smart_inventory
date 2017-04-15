@@ -69,9 +69,9 @@ return {
 	["group:slope"] = {label = "Neigung"},
 	["group:customnode"] = {label = "Dekorativer Block"},
 
-	["type:tool"] = { label = "Werkzeuge" },
-	["type:node"] = { label = "Blöcke" },
-	["type:craft"] = { label = "Gegenstände" },
+	["type:tool"] = { label = "Werkzeug" },
+	["type:node"] = { label = "Block" },
+	["type:craft"] = { label = "Gegenstand" },
 
 	["recipetype:cooking"] = { label = "Kochbar" },
 	["mod"] = { label = "Mod" },
