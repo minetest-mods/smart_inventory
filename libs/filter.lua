@@ -69,6 +69,43 @@ function filter.register_filter(def)
 	filter.registered_filter[def.name] = def
 end
 
+
+-- rename groups for beter consistency
+filter.group_rename = {
+	customnode_default = "customnode",
+}
+
+-- group configurations per basename
+--   true means is dimension
+--   false means hide all groups with this base
+filter.base_group_config = {
+	armor = true,
+	physics = true,
+	basecolor = true,
+	excolor = true,
+	color = true,
+	unicolor = true,
+	food = true,
+	customnode = true,
+	leafdecay = false,
+}
+
+-- hide this groups
+filter.group_hide_config = {
+	armor_count = true,
+	not_in_creative_inventory = false,
+}
+
+-- value of this group will be recalculated to %
+filter.group_wear_config = {
+	armor_use = true,
+}
+
+-- Ususally 1 means true for group values. This is an exceptions table for this rule
+filter.group_with_value_1_config = {
+	oddly_breakable_by_hand = true,
+}
+
 --------------------------------------------------------------
 -- Filter group
 --------------------------------------------------------------
@@ -76,53 +113,42 @@ filter.register_filter({
 		name = "group",
 		check_item_by_def = function(self, def)
 			local ret = {}
-			for k, v in pairs(def.groups) do
+			for k_orig, v in pairs(def.groups) do
+				local k = filter.group_rename[k_orig] or k_orig
 				local mk, mv
-				-- dimension groups. replace _ by :
-				if k:sub(1,5) == "armor" or
-						k:sub(1, 7) == "physics" or
-						k:sub(1, 9) == "basecolor" or
-						k:sub(1, 7) == "excolor" or
-						k:sub(1, 5) == "color" or
-						k:sub(1, 8) == "unicolor" or
-						k:sub(1, 4) == "food" or
-						k:sub(1, 10) == "customnode" then
+
+				-- Check group base
+				local basename
+				for z in k:gmatch("[^_]+") do
+					basename = z
+					break
+				end
+				local basegroup_config = filter.base_group_config[basename]
+				if basegroup_config == true then
 					mk = string.gsub(k, "_", ":")
+				elseif basegroup_config == false then
+					mk = nil
 				else
 					mk = k
 				end
 
 				-- stack wear related value
-				if k == "armor_use" then
+				if filter.group_wear_config[k] then
 					mv = tostring(math.floor(v / 65535 * 10000 + 0.5)/100).." %"
 				-- value-expandable groups
-				elseif v ~= 1 or k == "oddly_breakable_by_hand" then
+				elseif v ~= 1 or k == filter.group_with_value_1_config[k] then
 					mv = v
 				else
 					mv = true
 				end
 
-				-- replacements
-				if mk == "customnode:default" then
-					mk = "customnode"
-				end
-
-				-- apply
-				if v ~= 0 and not (
-						mk == "group:armor:count" or --internally used only
-						mk == "group:leafdecay" ) -- represented by group:leaves
-						then
+				if v ~= 0 and mk and not filter.group_hide_config[k] then
 					ret[mk] = mv
 				end
 			end
 			return ret
 		end,
 		get_keyword = function(self, group)
-			-- hide groups
-			if group.name == "group:not_in_creative_inventory" then
-				return
-			end
-
 			local keyword = self:_get_keyword(group)
 			if txt_usage and keyword and txt[group.name] then
 				return keyword.." "..group.group_desc
