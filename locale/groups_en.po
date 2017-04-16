@@ -1,0 +1,237 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"X-Generator: Poedit 1.8.5\n"
+
+msgid "slab"
+msgstr "Slab"
+
+msgid "armor:shield"
+msgstr "Shield"
+
+msgid "physics:jump"
+msgstr "Jump high"
+
+msgid "dig_immediate"
+msgstr "Fast diggable"
+
+msgid "coal"
+msgstr "Coal"
+
+msgid "flammable"
+msgstr "Flammable"
+
+msgid "disable_jump"
+msgstr "Sticky"
+
+msgid "physics:gravity"
+msgstr "Gravity"
+
+msgid "cracky"
+msgstr "Cracky"
+
+msgid "level"
+msgstr "Valuable"
+
+msgid "dig_immediate:3"
+msgstr "Immediate diggable"
+
+msgid "door"
+msgstr "Door"
+
+msgid "armor:state"
+msgstr "Armor state"
+
+msgid "tool:full_punch_interval"
+msgstr "Punch interval"
+
+msgid "soil"
+msgstr "Soil"
+
+msgid "choppy"
+msgstr "Choppy"
+
+msgid "armor:heal"
+msgstr "Heal"
+
+msgid "snappy"
+msgstr "Snappy"
+
+msgid "shape"
+msgstr "Shape"
+
+msgid "oddly_breakable_by_hand"
+msgstr "Oddly breakable"
+
+msgid "wood"
+msgstr "Wood"
+
+msgid "attached_node"
+msgstr "Attachable"
+
+msgid "armor:use"
+msgstr "Wear on damage"
+
+msgid "tool:max_drop_level"
+msgstr "Max drop level"
+
+msgid "physics:speed"
+msgstr "Walking speed"
+
+msgid "armor:legs"
+msgstr "Legs protection"
+
+msgid "food"
+msgstr "Food"
+
+msgid "damage:choppy"
+msgstr "Choppy damage"
+
+msgid "slope"
+msgstr "Slope"
+
+msgid "soil:2"
+msgstr "Dry farming soil"
+
+msgid "soil:1"
+msgstr "Basic soil"
+
+msgid "all"
+msgstr "All items"
+
+msgid "armor:fire"
+msgstr "Fire protection"
+
+msgid "translucent"
+msgstr "Translucent"
+
+msgid "leavedecay"
+msgstr "Decayable"
+
+msgid "armor:feet"
+msgstr "Feet protection"
+
+msgid "sand"
+msgstr "Sand"
+
+msgid "damage:snappy"
+msgstr "Snappy damage"
+
+msgid "damage:fleshy"
+msgstr "Fleshy damage"
+
+msgid "armor"
+msgstr "Armor"
+
+msgid "stair"
+msgstr "Stair"
+
+msgid "customnode"
+msgstr "Decorative node"
+
+msgid "water_bucket"
+msgstr "Bucket"
+
+msgid "connect_to_raillike"
+msgstr "Rail-like"
+
+msgid "falling_node"
+msgstr "Falling"
+
+msgid "mod"
+msgstr "Mod"
+
+msgid "type:node"
+msgstr "Node"
+
+msgid "soil:3"
+msgstr "Wet farming"
+
+msgid "bouncy"
+msgstr "Bouncy"
+
+msgid "stone"
+msgstr "Stone"
+
+msgid "dye"
+msgstr "Dye"
+
+msgid "micro"
+msgstr "Micro"
+
+msgid "other"
+msgstr "Other items"
+
+msgid "armor:torso"
+msgstr "Torso protection"
+
+msgid "wool"
+msgstr "Wool"
+
+msgid "type:tool"
+msgstr "Tool"
+
+msgid "vessel"
+msgstr "Vessel"
+
+msgid "fleshy"
+msgstr "Fleshy"
+
+msgid "light"
+msgstr "Light source"
+
+msgid "panel"
+msgstr "Panel"
+
+msgid "leaves"
+msgstr "Leaves"
+
+msgid "armor:level"
+msgstr "Armor level"
+
+msgid "recipetype:cooking"
+msgstr "Cooking result"
+
+msgid "type:craft"
+msgstr "Item"
+
+msgid "ingredient"
+msgstr "Crafted with"
+
+msgid "carpet"
+msgstr "Carpet"
+
+msgid "wall"
+msgstr "Wall"
+
+msgid "fence"
+msgstr "Fence"
+
+msgid "stick"
+msgstr "Stick"
+
+msgid "armor:head"
+msgstr "Head protection"
+
+msgid "flora"
+msgstr "Flora"
+
+msgid "tree"
+msgstr "Tree"
+
+msgid "explody"
+msgstr "Explosive"
+
+msgid "armor:water"
+msgstr "Water protection"
+
+msgid "crumbly"
+msgstr "Crumbly"

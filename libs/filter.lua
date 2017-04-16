@@ -1,6 +1,5 @@
 local txt = smart_inventory.txt
 local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or true
-
 --------------------------------------------------------------
 -- Filter class
 --------------------------------------------------------------
@@ -18,32 +17,22 @@ function filter_class:check_item_by_def(def)
 end
 
 function filter_class:_get_description(group)
-	local ret_desc
-	if txt[group.name] then
-		ret_desc = txt[group.name].label
-	elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
-		ret_desc = txt[group.parent.name].label.." "..group.parent.childs[group.name]
-	else
-		ret_desc = group.name
-	end
-	if txt_usage then
-		return ret_desc
+	if txt_usage == true then
+		if txt[group.name] then
+			return txt[group.name]
+		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
+			return txt[group.parent.name].." "..group.parent.childs[group.name]
+		else
+			return group.name
+		end
 	else
 		return group.name
 	end
 end
 filter_class.get_description = filter_class._get_description
 
-
 function filter_class:_get_keyword(group)
-	-- parent exists - return the top-level information only
-	if group.parent and group.parent.childs[group.name] and tonumber(group.parent.childs[group.name]) == nil then
-		return group.parent.childs[group.name]
-	end
-end
-
-function filter_class:_get_keyword_groupname(group) -- a variant for get_keyword, can be assigned in filter definition
-	if txt_usage then
+	if txt_usage == true then
 		return group.name.." "..group.group_desc
 	else
 		return group.name
@@ -148,46 +137,48 @@ filter.register_filter({
 			end
 			return ret
 		end,
-		get_keyword = function(self, group)
-			local keyword = self:_get_keyword(group)
-			if txt_usage and keyword and txt[group.name] then
-				return keyword.." "..group.group_desc
-			else
-				return keyword
-			end
-		end
 	})
 
 filter.register_filter({
 		name = "type",
 		check_item_by_def = function(self, def)
-			return def.type
+			return self.name..":"..def.type
 		end,
+		get_keyword = function(self, group)
+			if group.name ~= self.name then
+				return group.parent.childs[group.name]
+			end
+		end
 	})
 
 filter.register_filter({
 		name = "mod",
 		check_item_by_def = function(self, def)
-			return def.mod_origin
+			return self.name..":"..def.mod_origin
 		end,
+		get_keyword = function(self, group)
+			if group.name ~= self.name then
+				return group.parent.childs[group.name]
+			end
+		end
 	})
 
 filter.register_filter({
-		name = "transluc",
+		name = "translucent",
 		check_item_by_def = function(self, def)
-			return def.sunlight_propagates
+			if def.sunlight_propagates ~= 0 then
+				return def.sunlight_propagates
+			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
 		name = "light",
 		check_item_by_def = function(self, def)
-			if def.light_source and def.light_source ~= 0 then
+			if def.light_source ~= 0 then
 				return def.light_source
 			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -199,7 +190,6 @@ filter.register_filter({
 				return true
 			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 --[[ does it sense to filter them? I cannot define the human readable groups for them
@@ -230,7 +220,6 @@ filter.register_filter({
 				end
 			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -243,7 +232,6 @@ filter.register_filter({
 				end
 			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -256,7 +244,6 @@ filter.register_filter({
 				end
 			end
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 filter.register_filter({
@@ -267,13 +254,15 @@ filter.register_filter({
 			end
 			local rettab = {}
 			for k, v in pairs(def.tool_capabilities) do
-				if type(v) ~= "table" then
-					rettab[k] = v
+				if type(v) ~= "table" and v ~= 0 then
+					rettab["tool:"..k] = v
 				end
 			end
 			if def.tool_capabilities.damage_groups then
 				for k, v in pairs(def.tool_capabilities.damage_groups) do
-					rettab["damage:"..k] = v
+					if v ~= 0 then
+						rettab["damage:"..k] = v
+					end
 				end
 			end
 --[[ disabled, I cannot find right human readable interpretation for this
@@ -290,7 +279,7 @@ filter.register_filter({
 			return rettab
 		end,
 		get_keyword = function(self, group)
-			if group.name == "max_drop_level" or group.name == "full_punch_interval" or group.name == "damage" then
+			if group.name == "tool" or group.name == "damage" then
 				return nil
 			else
 				return self:_get_keyword(group)
@@ -303,13 +292,17 @@ filter.register_filter({
 		check_item_by_def = function(self, def)
 			return def.armor_groups
 		end,
-		get_keyword = filter_class._get_keyword_groupname
 	})
 
 -- Group assignment done in cache framework internally
 filter.register_filter({
 		name = "recipetype",
 		check_item_by_def = function(self, def) end,
+		get_keyword = function(self, group)
+			if group.name ~= self.name then
+				return group.parent.childs[group.name]
+			end
+		end
 })
 
 -- Group assignment done in cache framework internally
@@ -318,20 +311,21 @@ filter.register_filter({
 		check_item_by_def = function(self, def) end,
 		get_description = function(self, group)
 			local itemname = group.name:sub(12)
-			if txt["ingredient"] and txt["ingredient"].label and
+			if txt["ingredient"] and
 					minetest.registered_items[itemname] and minetest.registered_items[itemname].description then
-				return txt["ingredient"].label .." "..minetest.registered_items[itemname].description
+				return txt["ingredient"] .." "..minetest.registered_items[itemname].description
 			else
 				return group.name
 			end
 		end,
 		get_keyword = function(self, group)
-			local itemname = group.name:sub(12)
-			if minetest.registered_items[itemname] then
-				return minetest.registered_items[itemname].description
+			if group.name ~= self.name then
+				local itemname = group.name:sub(12)
+				if minetest.registered_items[itemname] then
+					return minetest.registered_items[itemname].description
+				end
 			end
 		end
-
 })
 
 ----------------

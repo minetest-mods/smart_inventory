@@ -283,12 +283,12 @@ function ui_tools.get_list_grouped(itemtable)
 	-- default groups
 	outtab.all = {}
 	outtab.all.name = "all"
-	outtab.all.group_desc = txt[outtab.all.name].label
+	outtab.all.group_desc = txt[outtab.all.name] or "all"
 	outtab.all.items = itemtable
 
 	outtab.other = {}
 	outtab.other.name = "other"
-	outtab.other.group_desc = txt[outtab.other.name].label
+	outtab.other.group_desc = txt[outtab.other.name] or "other"
 	outtab.other.items = other
 
 	return outtab

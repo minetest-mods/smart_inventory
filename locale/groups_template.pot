@@ -1,0 +1,225 @@
+msgid "slab"
+msgstr ""
+
+msgid "armor:shield"
+msgstr ""
+
+msgid "physics:jump"
+msgstr ""
+
+msgid "dig_immediate"
+msgstr ""
+
+msgid "coal"
+msgstr ""
+
+msgid "flammable"
+msgstr ""
+
+msgid "disable_jump"
+msgstr ""
+
+msgid "physics:gravity"
+msgstr ""
+
+msgid "cracky"
+msgstr ""
+
+msgid "level"
+msgstr ""
+
+msgid "dig_immediate:3"
+msgstr ""
+
+msgid "door"
+msgstr ""
+
+msgid "armor:state"
+msgstr ""
+
+msgid "tool:full_punch_interval"
+msgstr ""
+
+msgid "soil"
+msgstr ""
+
+msgid "choppy"
+msgstr ""
+
+msgid "armor:heal"
+msgstr ""
+
+msgid "snappy"
+msgstr ""
+
+msgid "shape"
+msgstr ""
+
+msgid "oddly_breakable_by_hand"
+msgstr ""
+
+msgid "wood"
+msgstr ""
+
+msgid "attached_node"
+msgstr ""
+
+msgid "armor:use"
+msgstr ""
+
+msgid "tool:max_drop_level"
+msgstr ""
+
+msgid "physics:speed"
+msgstr ""
+
+msgid "armor:legs"
+msgstr ""
+
+msgid "food"
+msgstr ""
+
+msgid "damage:choppy"
+msgstr ""
+
+msgid "slope"
+msgstr ""
+
+msgid "soil:2"
+msgstr ""
+
+msgid "soil:1"
+msgstr ""
+
+msgid "all"
+msgstr ""
+
+msgid "armor:fire"
+msgstr ""
+
+msgid "translucent"
+msgstr ""
+
+msgid "leavedecay"
+msgstr ""
+
+msgid "armor:feet"
+msgstr ""
+
+msgid "sand"
+msgstr ""
+
+msgid "damage:snappy"
+msgstr ""
+
+msgid "damage:fleshy"
+msgstr ""
+
+msgid "armor"
+msgstr ""
+
+msgid "stair"
+msgstr ""
+
+msgid "customnode"
+msgstr ""
+
+msgid "water_bucket"
+msgstr ""
+
+msgid "connect_to_raillike"
+msgstr ""
+
+msgid "falling_node"
+msgstr ""
+
+msgid "mod"
+msgstr ""
+
+msgid "type:node"
+msgstr ""
+
+msgid "soil:3"
+msgstr ""
+
+msgid "bouncy"
+msgstr ""
+
+msgid "stone"
+msgstr ""
+
+msgid "dye"
+msgstr ""
+
+msgid "micro"
+msgstr ""
+
+msgid "other"
+msgstr ""
+
+msgid "armor:torso"
+msgstr ""
+
+msgid "wool"
+msgstr ""
+
+msgid "type:tool"
+msgstr ""
+
+msgid "vessel"
+msgstr ""
+
+msgid "fleshy"
+msgstr ""
+
+msgid "light"
+msgstr ""
+
+msgid "panel"
+msgstr ""
+
+msgid "leaves"
+msgstr ""
+
+msgid "armor:level"
+msgstr ""
+
+msgid "recipetype:cooking"
+msgstr ""
+
+msgid "type:craft"
+msgstr ""
+
+msgid "ingredient"
+msgstr ""
+
+msgid "carpet"
+msgstr ""
+
+msgid "wall"
+msgstr ""
+
+msgid "fence"
+msgstr ""
+
+msgid "stick"
+msgstr ""
+
+msgid "armor:head"
+msgstr ""
+
+msgid "flora"
+msgstr ""
+
+msgid "tree"
+msgstr ""
+
+msgid "explody"
+msgstr ""
+
+msgid "armor:water"
+msgstr ""
+
+msgid "crumbly"
+msgstr ""
+

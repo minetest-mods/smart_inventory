@@ -1,0 +1,252 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.5\n"
+
+msgid "slab"
+msgstr "Platte"
+
+msgid "armor:shield"
+msgstr "Schild"
+
+msgid "physics:jump"
+msgstr "Sprunghöhe"
+
+msgid "dig_immediate"
+msgstr "Schnell abbaubar"
+
+msgid "coal"
+msgstr "Kohle"
+
+msgid "flammable"
+msgstr "Brennbar"
+
+msgid "disable_jump"
+msgstr "Klebrig"
+
+msgid "physics:gravity"
+msgstr "Erdanziehung"
+
+msgid "cracky"
+msgstr "Knackig"
+
+msgid "level"
+msgstr "Wertvoll"
+
+msgid "dig_immediate:3"
+msgstr "Sofort abbaubar"
+
+msgid "door"
+msgstr "Tür"
+
+msgid "armor:state"
+msgstr "Rüstungsstatus"
+
+msgid "tool:full_punch_interval"
+msgstr "Verwendungsinterval"
+
+msgid "soil"
+msgstr "Erde"
+
+msgid "choppy"
+msgstr "Abgehackt"
+
+msgid "armor:heal"
+msgstr "Heilen"
+
+msgid "snappy"
+msgstr "Schnittig"
+
+msgid "shape"
+msgstr "Geformt"
+
+msgid "oddly_breakable_by_hand"
+msgstr "Ohne Werkzeug abbaubar"
+
+msgid "wood"
+msgstr "Holz"
+
+msgid "attached_node"
+msgstr "Verbundbar"
+
+msgid "armor:use"
+msgstr "Abnutzung bei Schaden"
+
+msgid "tool:max_drop_level"
+msgstr "Max drop Level"
+
+msgid "physics:speed"
+msgstr "Geschwindigkeit"
+
+msgid "armor:legs"
+msgstr "Beinschutz"
+
+msgid "food"
+msgstr "Nahrung"
+
+msgid "damage:choppy"
+msgstr "Abgehackt"
+
+msgid "slope"
+msgstr "Neigung"
+
+msgid "soil:2"
+msgstr "Trockener Ackerboden"
+
+msgid "soil:1"
+msgstr "Ackerboden"
+
+msgid "all"
+msgstr "Alles"
+
+msgid "armor:fire"
+msgstr "Feuerschutz"
+
+msgid "translucent"
+msgstr "Lichtdurchläßig"
+
+msgid "leavedecay"
+msgstr "Verwelkbar"
+
+msgid "armor:feet"
+msgstr "Stiefel"
+
+msgid "sand"
+msgstr "Sand"
+
+msgid "damage:snappy"
+msgstr "Schnittverletzung"
+
+msgid "damage:fleshy"
+msgstr "Fleischverletzung"
+
+msgid "armor"
+msgstr "Rüstung"
+
+msgid "stair"
+msgstr "Treppe"
+
+msgid "customnode"
+msgstr "Dekorativer Block"
+
+msgid "water_bucket"
+msgstr "Eimer"
+
+msgid "connect_to_raillike"
+msgstr "Schienenartig"
+
+msgid "falling_node"
+msgstr "Fallend"
+
+msgid "mod"
+msgstr "Mod"
+
+msgid "type:node"
+msgstr "Block"
+
+msgid "soil:3"
+msgstr "Nasser Ackerboden"
+
+msgid "bouncy"
+msgstr "Federnd"
+
+msgid "stone"
+msgstr "Stein"
+
+msgid "dye"
+msgstr "Farbstoff"
+
+msgid "micro"
+msgstr "Mikro"
+
+msgid "other"
+msgstr "Weitere"
+
+msgid "armor:torso"
+msgstr "Körperschutz"
+
+msgid "wool"
+msgstr "Wolle"
+
+msgid "type:tool"
+msgstr "Werkzeug"
+
+msgid "vessel"
+msgstr "Behälter"
+
+msgid "fleshy"
+msgstr "Fleischig"
+
+msgid "light"
+msgstr "Lichtquelle"
+
+msgid "panel"
+msgstr "Paneel"
+
+msgid "leaves"
+msgstr "Laub"
+
+msgid "armor:level"
+msgstr "Level der Rüstung"
+
+msgid "recipetype:cooking"
+msgstr "Gekocht"
+
+msgid "type:craft"
+msgstr "Gegenstand"
+
+msgid "ingredient"
+msgstr "Erzeugt aus"
+
+msgid "carpet"
+msgstr "Teppich"
+
+msgid "wall"
+msgstr "Mauer"
+
+msgid "fence"
+msgstr "Zaun"
+
+msgid "stick"
+msgstr "Stock"
+
+msgid "armor:head"
+msgstr "Kopfschutz"
+
+msgid "flora"
+msgstr "Flora"
+
+msgid "tree"
+msgstr "Baum"
+
+msgid "explody"
+msgstr "Explosiv"
+
+msgid "armor:water"
+msgstr "Wasserschutz"
+
+msgid "crumbly"
+msgstr "Brüchig"
+
+#~ msgid "radiation"
+#~ msgstr "Schutz gegen RadioaktivitÃ¤t"
+
+#~ msgid "tool:damage:choppy"
+#~ msgstr "Hack-Schaden"
+
+#~ msgid "transluc"
+#~ msgstr "LichtdurchlÃ¤ssig"
+
+#~ msgid "tool:damage:snappy"
+#~ msgstr "Schnitt-Schaden"
+
+#~ msgid "tool:damage:fleshy"
+#~ msgstr "Wund-Schaden"

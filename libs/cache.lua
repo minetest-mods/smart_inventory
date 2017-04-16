@@ -112,12 +112,12 @@ function crecipes.new(recipe)
 						local retitems
 						for groupname in string.gmatch(recipe_item:sub(7), '([^,]+)') do
 							if not retitems then --first entry
-								if cache.cgroups["group:"..groupname] then
-									retitems = table.copy(cache.cgroups["group:"..groupname].items)
+								if cache.cgroups[groupname] then
+									retitems = table.copy(cache.cgroups[groupname].items)
 								else
 									groupname = groupname:gsub("_", ":")
-									if cache.cgroups["group:"..groupname] then
-										retitems = table.copy(cache.cgroups["group:"..groupname].items)
+									if cache.cgroups[groupname] then
+										retitems = table.copy(cache.cgroups[groupname].items)
 									else
 										minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname.." for result "..self.out_item.name)
 									end
@@ -126,8 +126,8 @@ function crecipes.new(recipe)
 								for itemname, itemdef in pairs(retitems) do
 									local item_in_group = false
 									for _, item_group in pairs(cache.citems[itemname].cgroups) do
-										if item_group.name == "group:"..groupname or
-												item_group.name == "group:"..groupname:gsub("_", ":")
+										if item_group.name == groupname or
+												item_group.name == groupname:gsub("_", ":")
 										then
 											item_in_group = true
 											break
@@ -230,43 +230,61 @@ function crecipes.new(recipe)
 	return self
 end
 
+
+-----------------------------------------------------
+-- Add an Item to the cache
+-----------------------------------------------------
+function cache.add_item(itemdef)
+	local entry = {
+		name = itemdef.name,
+		in_output_recipe = {},
+		in_craft_recipe = {},
+		cgroups = {}
+	}
+	cache.citems[itemdef.name] = entry
+end
+
+
 -----------------------------------------------------
 -- Add a item to cache group
 -----------------------------------------------------
-function cache.add_to_cache_group(group_name, itemdef, flt, parent, parent_value)
+function cache.assign_to_group(group_name, itemdef, flt)
+
+-- check and build filter chain
+	local abs_group
 	local parent_ref
-	if parent then
-		parent_ref = cache.cgroups[parent]
-		if parent_ref then
-			parent_ref.childs[group_name] = parent_value
+	local parent_stringpos
+
+	for rel_group in group_name:gmatch("[^:]+") do
+		-- get parent relation and absolute path
+		if abs_group then
+			parent_ref = cache.cgroups[abs_group]
+			parent_stringpos = string.len(abs_group)+2
+			abs_group = abs_group..":"..rel_group
+		else
+			abs_group = rel_group
 		end
+
+		-- check if group is new, create it
+		if not cache.cgroups[abs_group] then
+			if parent_ref then
+				parent_ref.childs[abs_group] = string.sub(group_name, parent_stringpos)
+			end
+			local group = {
+					name = abs_group,
+					items = {},
+					parent = parent_ref,
+					childs = {},
+				}
+			group.group_desc = flt:get_description(group)
+			group.keyword = flt:get_keyword(group)
+			cache.cgroups[abs_group] = group
+		end
+
+		-- set relation
+		cache.cgroups[abs_group].items[itemdef.name] = itemdef
+		cache.citems[itemdef.name].cgroups[abs_group] = cache.cgroups[abs_group]
 	end
-
-	if not cache.cgroups[group_name] then
-		local group = {
-			name = group_name,
-			items = {},
-			parent = parent_ref,
-			childs = {},
-			}
-
-		group.group_desc = flt:get_description(group)
-		group.keyword = flt:get_keyword(group)
-
-		cache.cgroups[group_name] = group
-	end
-	cache.cgroups[group_name].items[itemdef.name] = itemdef
-
-	if not cache.citems[itemdef.name] then
-		local entry = {
-			name = itemdef.name,
-			in_output_recipe = {},
-			in_craft_recipe = {},
-			cgroups = {}
-		}
-		cache.citems[itemdef.name] = entry
-	end
-	cache.citems[itemdef.name].cgroups[group_name] = cache.cgroups[group_name]
 end
 
 -----------------------------------------------------
@@ -312,31 +330,26 @@ local function fill_cache()
 		-- build groups and items cache
 		if def.description and def.description ~= "" and
 				(not def.groups.not_in_creative_inventory or shape_filter:check_item_by_def(_def_)) then
-
-			-- extended registred filters
+			cache.add_item(def)
 			for _, flt in pairs(filter.registered_filter) do
 				local filter_result = flt:check_item_by_def(_def_)
 				if filter_result then
 					if filter_result == true then
-						cache.add_to_cache_group(flt.name, def, flt)
+						cache.assign_to_group(flt.name, def, flt)
 					else
 						if type(filter_result) ~= "table" then
-							filter_result = {[filter_result] = true}
+							if tonumber(filter_result) ~= nil then
+								filter_result = {[flt.name..":"..filter_result] = true}
+							else
+								filter_result = {[filter_result] = true}
+							end
 						end
 						for key, val in pairs(filter_result) do
 							local filter_entry = tostring(key)
 							if val ~= true then
 								filter_entry = filter_entry..":"..tostring(val)
 							end
-							local filtername = flt.name
-							cache.add_to_cache_group(filtername, def, flt)
-							local parent = filtername
-							filter_entry:gsub("[^:]+", function(z)
-								local parentvalue = string.sub(flt.name..":"..filter_entry, string.len(filtername)+2)
-								filtername = filtername..":"..z
-								cache.add_to_cache_group(filtername, def, flt, parent, parentvalue)
-								parent = filtername
-							end)
+							cache.assign_to_group(filter_entry, def, flt)
 						end
 					end
 				end
@@ -363,14 +376,14 @@ local function fill_recipe_cache()
 					table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
 					cache.crecipes[recipe] = recipe_obj
 					if recipe_obj.recipe_type ~= "normal" then
-						cache.add_to_cache_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item, filter.get("recipetype"))
+						cache.assign_to_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item, filter.get("recipetype"))
 					end
 					for _, entry in pairs(recipe_obj._items) do
 						for itemname, itemdef in pairs(entry.items) do
 							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
 								table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 							end
-							cache.add_to_cache_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
+							cache.assign_to_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
 						end
 					end
 				end

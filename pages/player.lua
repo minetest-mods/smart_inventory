@@ -11,7 +11,7 @@ local creative = minetest.setting_getbool("creative_mode")
 local armor_type = {}
 if smart_inventory.armor_mod then
 	for _,v in ipairs(armor.elements) do
-		armor_type["group:armor:"..v] = true
+		armor_type["armor:"..v] = true
 	end
 end
 
@@ -86,7 +86,7 @@ local function update_page(state)
 			if k == "groups" then
 				for gn, gv in pairs(v) do
 					if txt["armor:"..gn] then
-						grouptext = txt["armor:"..gn].label
+						grouptext = txt["armor:"..gn]
 					else
 						grouptext = "armor:"..gn
 					end
@@ -103,19 +103,19 @@ local function update_page(state)
 					end
 				end
 				if is_physics then
-					if txt["group:physics:"..k] then
-						grouptext = txt["group:physics:"..k].label
+					if txt["physics:"..k] then
+						grouptext = txt["physics:"..k]
 					else
-						grouptext = "group:physics:"..k
+						grouptext = "physics:"..k
 					end
 					if grouptext and v ~= 1 then
 						a_list:addItem(grouptext..": "..v)
 					end
 				else
-					if txt["group:armor:"..k] then
-						grouptext = txt["group:armor:"..k].label
+					if txt["armor:"..k] then
+						grouptext = txt["armor:"..k]
 					else
-						grouptext = "group:armor:"..k
+						grouptext = "armor:"..k
 					end
 					if grouptext and v ~= 0 then
 						if k == "state" then

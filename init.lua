@@ -8,7 +8,7 @@ smart_inventory.armor_mod = minetest.get_modpath("3d_armor")
 smart_inventory.doc_items_mod = minetest.get_modpath("doc_items")
 
 -- load libs
-smart_inventory.txt = dofile(modpath.."/txt/classify_txt.lua")
+smart_inventory.txt = dofile(modpath.."/libs/simple_po_reader.lua")
 smart_inventory.smartfs = dofile(modpath.."/libs/smartfs.lua")
 smart_inventory.smartfs_elements = dofile(modpath.."/libs/smartfs-elements.lua")
 
