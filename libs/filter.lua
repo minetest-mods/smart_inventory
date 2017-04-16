@@ -1,5 +1,6 @@
 local txt = smart_inventory.txt
-local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or true
+local txt_usage = minetest.setting_getbool("smart_inventory_friendly_group_names") --or true
+
 --------------------------------------------------------------
 -- Filter class
 --------------------------------------------------------------
@@ -17,7 +18,7 @@ function filter_class:check_item_by_def(def)
 end
 
 function filter_class:_get_description(group)
-	if txt_usage == true then
+	if txt_usage ~= false then
 		if txt[group.name] then
 			return txt[group.name]
 		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
@@ -32,7 +33,7 @@ end
 filter_class.get_description = filter_class._get_description
 
 function filter_class:_get_keyword(group)
-	if txt_usage == true then
+	if txt_usage ~= false then
 		return group.name.." "..group.group_desc
 	else
 		return group.name

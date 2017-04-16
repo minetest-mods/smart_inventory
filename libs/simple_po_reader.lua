@@ -1,5 +1,5 @@
-local txt_usage = minetest.setting_get("smart_inventory_friendly_group_names") or true
-if txt_usage ~= true then
+local txt_usage = minetest.setting_getbool("smart_inventory_friendly_group_names") --or true
+if txt_usage == false then
 	return {}
 end
 
