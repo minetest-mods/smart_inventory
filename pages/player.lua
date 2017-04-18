@@ -241,7 +241,6 @@ local function player_callback(state)
 			move_item_to_armor(state, state.param.armor_main_list[index])
 			update_page(state)
 		end)
-		armor:set_player_armor(minetest.get_player_by_name(name))
 
 		if creative == true then
 			-- fill creative list once, not each page update
@@ -305,7 +304,11 @@ local function player_callback(state)
 		update_page(state)
 		state.location.rootState:show()
 	end)
-	update_page(state)
+
+	-- in case of armor mod the page is updated trough the hook call
+	if not smart_inventory.armor_mod then
+		update_page(state)
+	end
 end
 
 smart_inventory.register_page({
