@@ -120,6 +120,10 @@ local function update_crafting_preview(state)
 				group_list:addItem(groupdef.group_desc)
 			end
 		end
+	elseif listentry.item then
+		inf_state:get("info1"):setText("")
+		inf_state:get("info2"):setText("("..listentry.item..")")
+		inf_state:get("info3"):setText("")
 	else
 		inf_state:get("info1"):setText("")
 		inf_state:get("info2"):setText("")
