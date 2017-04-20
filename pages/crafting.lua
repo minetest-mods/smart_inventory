@@ -7,8 +7,8 @@ local ui_tools = smart_inventory.ui_tools
 -----------------------------------------------------
 local function update_crafting_preview(state)
 	local player = state.location.rootState.location.player
-	local listentry = state.param.crafting_recipes_preivew_listentry
-	local selected = state.param.crafting_recipes_preivew_selected
+	local listentry = state.param.crafting_recipes_preview_listentry
+	local selected = state.param.crafting_recipes_preview_selected
 	local itemdef = listentry.itemdef
 	local inf_state = state:get("inf_area"):getContainerState()
 	local cr_type_img = state:get("cr_type_img")
@@ -38,7 +38,7 @@ local function update_crafting_preview(state)
 		if not valid_recipes[selected] then
 			selected = 1
 		end
-		state.param.crafting_recipes_preivew_selected = selected
+		state.param.crafting_recipes_preview_selected = selected
 		if selected > 1 and valid_recipes[selected-1] then
 			state:get("preview_prev"):setVisible(true)
 		else
@@ -221,8 +221,8 @@ local function create_lookup_inv(state, name)
 				update_from_recipelist(state, recipes)
 
 				-- show lookup item in preview
-				state.param.crafting_recipes_preivew_selected = 1
-				state.param.crafting_recipes_preivew_listentry = {
+				state.param.crafting_recipes_preview_selected = 1
+				state.param.crafting_recipes_preview_listentry = {
 					itemdef = minetest.registered_items[lookup_item],
 					item = lookup_item
 				}
@@ -303,13 +303,13 @@ local function crafting_callback(state)
 	state:label(7,3,"cr_type", "")
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
 	pr_prev_btn:onClick(function(self, state, player)
-		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected -1
+		state.param.crafting_recipes_preview_selected = state.param.crafting_recipes_preview_selected -1
 		update_crafting_preview(state)
 	end)
 	pr_prev_btn:setVisible(false)
 	local pr_next_btn = state:button(8, 3, 1, 0.5, "preview_next", ">>")
 	pr_next_btn:onClick(function(self, state, player)
-		state.param.crafting_recipes_preivew_selected = state.param.crafting_recipes_preivew_selected +1
+		state.param.crafting_recipes_preview_selected = state.param.crafting_recipes_preview_selected +1
 		update_crafting_preview(state)
 	end)
 	pr_next_btn:setVisible(false)
@@ -409,8 +409,8 @@ local function crafting_callback(state)
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10.25, 5.15, 8 , 4, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
-		state.param.crafting_recipes_preivew_selected = 1
-		state.param.crafting_recipes_preivew_listentry = listentry
+		state.param.crafting_recipes_preview_selected = 1
+		state.param.crafting_recipes_preview_listentry = listentry
 		update_crafting_preview(state)
 		if state:get("info_tog"):getId() == 1 then
 			state:get("info_tog"):submit()
