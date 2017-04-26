@@ -155,7 +155,9 @@ filter.register_filter({
 filter.register_filter({
 		name = "mod",
 		check_item_by_def = function(self, def)
-			return self.name..":"..def.mod_origin
+			if def.mod_origin then
+				return self.name..":"..def.mod_origin
+			end
 		end,
 		get_keyword = function(self, group)
 			if group.name ~= self.name then
