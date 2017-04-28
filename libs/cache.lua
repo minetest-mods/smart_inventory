@@ -84,10 +84,14 @@ function crecipes.new(recipe)
 				end)
 			end
 		end
-		if not self.out_item or not self.out_item.name or not cache.citems[self.out_item.name] then
+		if not self.out_item or not self.out_item.name then
 			minetest.log("[smartfs_inventory] unknown recipe result "..recipe.output)
 			return false
 		end
+
+		-- probably hidden therefore not indexed previous. But Items with recipe should be allways visible
+		cache.add_item(minetest.registered_items[self.out_item.name])
+
 		-- check recipe items/groups
 		for _, recipe_item in pairs(self._recipe.items) do
 			if recipe_item ~= "" then
@@ -234,14 +238,62 @@ end
 -----------------------------------------------------
 -- Add an Item to the cache
 -----------------------------------------------------
-function cache.add_item(itemdef)
+function cache.add_item(def)
+
+	-- special handling for doors. In inventory the item should be displayed instead of the node_a/node_b
+	local item_def
+	if def.groups.door then
+		if def.door then
+			item_def = minetest.registered_items[def.door.name]
+		elseif def.drop and type(def.drop) == "string" then
+			item_def = minetest.registered_items[def.drop]
+		else
+			item_def = def
+		end
+		if not item_def then
+			minetest.log("[smart_inventory] Buggy door found: "..def.name)
+			item_def = def
+		end
+	else
+		item_def = def
+	end
+
+	-- already in cache. Skip duplicate processing
+	if cache.citems[item_def.name] then
+		return
+	end
+
 	local entry = {
-		name = itemdef.name,
+		name = item_def.name,
 		in_output_recipe = {},
 		in_craft_recipe = {},
 		cgroups = {}
 	}
-	cache.citems[itemdef.name] = entry
+	cache.citems[item_def.name] = entry
+	-- classify the item
+	for _, flt in pairs(filter.registered_filter) do
+		local filter_result = flt:check_item_by_def(def)
+		if filter_result then
+			if filter_result == true then
+				cache.assign_to_group(flt.name, item_def, flt)
+			else
+				if type(filter_result) ~= "table" then
+					if tonumber(filter_result) ~= nil then
+						filter_result = {[flt.name..":"..filter_result] = true}
+					else
+						filter_result = {[filter_result] = true}
+					end
+				end
+				for key, val in pairs(filter_result) do
+					local filter_entry = tostring(key)
+					if val ~= true then
+						filter_entry = filter_entry..":"..tostring(val)
+					end
+					cache.assign_to_group(filter_entry, item_def, flt)
+				end
+			end
+		end
+	end
 end
 
 
@@ -308,52 +360,12 @@ end
 -----------------------------------------------------
 local function fill_cache()
 	local shape_filter = filter.get("shape")
-	for _name_, _def_ in pairs(minetest.registered_items) do
-		-- special handling for doors. In inventory the item should be displayed instead of the node_a/node_b
-		local def
-		if _def_.groups.door then
-			if _def_.door then
-				def = minetest.registered_items[_def_.door.name]
-			elseif _def_.drop and type(_def_.drop) == "string" then
-				def = minetest.registered_items[_def_.drop]
-			else
-				def = _def_
-			end
-			if not def then
-				minetest.log("[smart_inventory] Buggy door found: ".._def_.name)
-				def = _def_
-			end
-		else
-			def = _def_
-		end
+	for _, def in pairs(minetest.registered_items) do
 
 		-- build groups and items cache
 		if def.description and def.description ~= "" and
-				(not def.groups.not_in_creative_inventory or shape_filter:check_item_by_def(_def_)) then
+				(not def.groups.not_in_creative_inventory or shape_filter:check_item_by_def(def)) then
 			cache.add_item(def)
-			for _, flt in pairs(filter.registered_filter) do
-				local filter_result = flt:check_item_by_def(_def_)
-				if filter_result then
-					if filter_result == true then
-						cache.assign_to_group(flt.name, def, flt)
-					else
-						if type(filter_result) ~= "table" then
-							if tonumber(filter_result) ~= nil then
-								filter_result = {[flt.name..":"..filter_result] = true}
-							else
-								filter_result = {[filter_result] = true}
-							end
-						end
-						for key, val in pairs(filter_result) do
-							local filter_entry = tostring(key)
-							if val ~= true then
-								filter_entry = filter_entry..":"..tostring(val)
-							end
-							cache.assign_to_group(filter_entry, def, flt)
-						end
-					end
-				end
-			end
 		end
 	end
 
@@ -367,7 +379,7 @@ minetest.after(0, fill_cache)
 -- Fill the recipes cache at init
 -----------------------------------------------------
 local function fill_recipe_cache()
-	for itemname, _ in pairs(cache.citems) do
+	for itemname, _ in pairs(minetest.registered_items) do
 		local recipelist = minetest.get_all_craft_recipes(itemname)
 		if recipelist then
 			for _, recipe in ipairs(recipelist) do
