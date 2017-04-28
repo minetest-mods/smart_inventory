@@ -188,6 +188,36 @@ local function update_from_recipelist(state, recipelist)
 end
 
 -----------------------------------------------------
+-- Lookup for item lookup_item
+-----------------------------------------------------
+local function do_lookup_item(state, playername, lookup_item)
+	state.param.crafting_items_in_inventory = state.param.invobj:get_items()
+	state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
+	local state = smart_inventory.get_page_state("crafting", playername)
+	-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
+	local recipes = cache.crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
+	update_from_recipelist(state, recipes)
+
+	-- show lookup item in preview
+	state.param.crafting_recipes_preview_selected = 1
+	state.param.crafting_recipes_preview_listentry = {
+		itemdef = minetest.registered_items[lookup_item],
+		item = lookup_item
+	}
+	update_crafting_preview(state)
+
+	if state:get("info_tog"):getId() == 1 then
+		state:get("info_tog"):submit()
+	end
+	-- reset group selection and search field on proposal mode change
+	if state.param.survival_proposal_mode ~= "lookup" then
+		state.param.survival_proposal_mode = "lookup"
+		state:get("groups_sel"):setSelected(1)
+		state:get("search"):setText("")
+	end
+end
+
+-----------------------------------------------------
 -- Lookup inventory
 -----------------------------------------------------
 local function create_lookup_inv(state, name)
@@ -216,31 +246,8 @@ local function create_lookup_inv(state, name)
 			end,
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
-				local lookup_item = stack:get_name()
-				state.param.crafting_items_in_inventory = state.param.invobj:get_items()
-				state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
-				local state = smart_inventory.get_page_state("crafting", player:get_player_name())
-				-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
-				local recipes = cache.crecipes.get_revealed_recipes_with_items(name, {[lookup_item] = true })
-				update_from_recipelist(state, recipes)
+				do_lookup_item(state, name, stack:get_name())
 
-				-- show lookup item in preview
-				state.param.crafting_recipes_preview_selected = 1
-				state.param.crafting_recipes_preview_listentry = {
-					itemdef = minetest.registered_items[lookup_item],
-					item = lookup_item
-				}
-				update_crafting_preview(state)
-
-				if state:get("info_tog"):getId() == 1 then
-					state:get("info_tog"):submit()
-				end
-				-- reset group selection and search field on proposal mode change
-				if state.param.survival_proposal_mode ~= "lookup" then
-					state.param.survival_proposal_mode = "lookup"
-					state:get("groups_sel"):setSelected(1)
-					state:get("search"):setText("")
-				end
 				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
 				smartfs.inv[name]:show()
 
@@ -435,3 +442,26 @@ smart_inventory.register_page({
 	smartfs_callback = crafting_callback,
 	sequence = 10
 })
+
+-----------------------------------------------------
+-- Use lookup for predict item
+-----------------------------------------------------
+minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_inv)
+	local name = player:get_player_name()
+	local state = smart_inventory.get_page_state("crafting", name)
+	if not state then
+		return
+	end
+
+	local item = stack:get_name()
+	if state.param.crafting_predict_item ~= item then
+		state.param.crafting_predict_item = item
+
+		if stack:is_empty() then
+			state:get("craftable"):submit("not used fieldname", name)
+		else
+			do_lookup_item(state, name, item)
+		end
+		smartfs.inv[name]:show()
+	end
+end)

@@ -63,6 +63,19 @@ function maininvClass:get_items()
 			end
 		end
 	end
+
+-- add items in crafting field to the available items in inventory
+	for _, stack in ipairs(self.inventory:get_list("craft")) do
+		local itemname = stack:get_name()
+		if itemname and itemname ~= "" then
+			if not items_in_inventory[itemname] then
+				items_in_inventory[itemname] = stack:get_count()
+			else
+				items_in_inventory[itemname] = items_in_inventory[itemname] + stack:get_count()
+			end
+		end
+	end
+
 	return items_in_inventory
 end
 
