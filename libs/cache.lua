@@ -173,6 +173,74 @@ function crecipe_class:get_with_placeholder(player, inventory_tab)
 end
 
 -----------------------------------------------------
+-- crecipes: Check if recipe contains only items provided in reference_items
+-----------------------------------------------------
+function crecipe_class:is_craftable_by_items(reference_items)
+	local item_ok = false
+	for _, entry in pairs(self._items) do
+		item_ok = false
+		for _, itemdef in pairs(entry.items) do
+			if reference_items[itemdef.name] then
+				item_ok = true
+			end
+		end
+		if item_ok == false then
+			break
+		end
+	end
+	return item_ok
+end
+
+-----------------------------------------------------
+-- crecipes: Check if the items placed in grid matches the recipe
+-----------------------------------------------------
+function crecipe_class:check_craftable_by_grid(grid)
+	-- only "normal" recipes supported
+	if self.recipe_type ~= "normal" then
+		return false
+	end
+
+	for i = 1, 9 do
+		local grid_item = grid[i]:get_name()
+		-- check only fields filled in crafting grid
+		if grid_item and grid_item ~= "" then
+			-- check if item defined in recipe at this place
+			local item_ok = false
+			local recipe_item
+			-- default case - 3x3 crafting grid
+			local width = self._recipe.width
+			if not width or width == 0 or width == 3 then
+				recipe_item = self._recipe.items[i]
+			else
+				-- complex case - recalculate to the 3x3 crafting grid
+				local x = math.fmod(i,3)
+				if x <= width then
+					local y = math.floor((i-1)/3+1)
+					local coord = (y-1)*width+x
+					recipe_item = self._recipe.items[coord]
+				end
+			end
+
+			if not recipe_item or recipe_item == "" then
+				return false
+			end
+
+			-- check if it is a compatible item
+			for _, itemdef in pairs(self._items[recipe_item].items) do
+				if itemdef.name == grid_item then
+					item_ok = true
+					break
+				end
+			end
+			if not item_ok then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+-----------------------------------------------------
 -- Recipe class functions
 -----------------------------------------------------
 local crecipes = {}
@@ -190,7 +258,6 @@ function crecipes.new(recipe)
 	def._items = {}
 	setmetatable(def, crecipe_class)
 	def.__index = crecipe_class
-	print(dump(def))
 	return def
 end
 
@@ -219,25 +286,26 @@ function crecipes.get_recipes_craftable(playername, reference_items)
 	local all = crecipes.get_revealed_recipes_with_items(playername, reference_items)
 	local craftable = {}
 	for recipe, crecipe in pairs(all) do
-		local item_ok = false
-		for _, entry in pairs(crecipe._items) do
-			item_ok = false
-			for _, itemdef in pairs(entry.items) do
-				if reference_items[itemdef.name] then
-					item_ok = true
-				end
-			end
-			if item_ok == false then
-				break
-			end
-		end
-		if item_ok == true then
-			craftable[recipe] = true
+		if crecipe:is_craftable_by_items(reference_items) then
+			craftable[recipe] = crecipe
 		end
 	end
 	return craftable
 end
 
+-----------------------------------------------------
+-- Get all recipes that match to already placed items on crafting grid
+-----------------------------------------------------
+function crecipes.get_recipes_started_craft(playername, grid, reference_items)
+	local all = crecipes.get_revealed_recipes_with_items(playername, reference_items)
+	local craftable = {}
+	for recipe, crecipe in pairs(all) do
+		if crecipe:check_craftable_by_grid(grid) then
+			craftable[recipe] = crecipe
+		end
+	end
+	return craftable
+end
 
 -----------------------------------------------------
 -- Add an Item to the cache

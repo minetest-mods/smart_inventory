@@ -165,6 +165,7 @@ end
 local function update_from_recipelist(state, recipelist)
 	local duplicate_index_tmp = {}
 	local craftable_itemlist = {}
+	local clear_recipe_preview = true
 
 	for recipe, _ in pairs(recipelist) do
 		local def = cache.crecipes[recipe].out_item
@@ -181,8 +182,21 @@ local function update_from_recipelist(state, recipelist)
 			duplicate_index_tmp[def.name] = entry
 			table.insert(entry.recipes, recipe)
 			table.insert(craftable_itemlist, entry)
+			if not state.param.crafting_recipes_preview_listentry then
+				clear_recipe_preview = true
+			elseif def.name == state.param.crafting_recipes_preview_listentry.item then
+				clear_recipe_preview = false
+			end
 		end
 	end
+
+	-- reset crafting preview if not in list
+	if clear_recipe_preview then
+		state.param.crafting_recipes_preview_listentry = {}
+		update_crafting_preview(state)
+	end
+
+	-- update the groups selection
 	state.param.crafting_grouped_items = ui_tools.get_list_grouped(craftable_itemlist)
 	update_group_selection(state, true)
 end
@@ -193,7 +207,6 @@ end
 local function do_lookup_item(state, playername, lookup_item)
 	state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 	state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
-	local state = smart_inventory.get_page_state("crafting", playername)
 	-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 	local recipes = cache.crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
 	update_from_recipelist(state, recipes)
@@ -246,6 +259,8 @@ local function create_lookup_inv(state, name)
 			end,
 			on_put = function(inv, listname, index, stack, player)
 				pinv:set_stack(plistname, index, stack)
+				local name = player:get_player_name()
+				local state = smart_inventory.get_page_state("crafting", name)
 				do_lookup_item(state, name, stack:get_name())
 
 				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
@@ -453,14 +468,43 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 		return
 	end
 
-	local item = stack:get_name()
-	if state.param.crafting_predict_item ~= item then
-		state.param.crafting_predict_item = item
+	-- get all grid items for reference
+	local reference_items = {}
+	local items_hash = ""
+	for _, stack in ipairs(old_craft_grid) do
+		local name = stack:get_name()
+		if name and name ~= "" then
+			reference_items[name] = true
+			items_hash=items_hash.."|"..name
+		else
+			items_hash=items_hash.."|empty"
+		end
+	end
 
-		if stack:is_empty() then
+	if items_hash ~= state.param.survival_grid_items_hash then
+		state.param.survival_grid_items_hash = items_hash
+		if not next(reference_items) then
 			state:get("craftable"):submit("not used fieldname", name)
 		else
-			do_lookup_item(state, name, item)
+			-- update the grid with matched recipe items
+			state.param.survival_proposal_mode = "grid"
+			state:get("search"):setText("") -- reset search field because of mode change
+			local recipes = cache.crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
+			update_from_recipelist(state, recipes)
+
+			-- update crafting preview if something craftable selected
+			if not stack:is_empty() then
+				local item = stack:get_name()
+				state.param.crafting_recipes_preview_selected = 1
+				state.param.crafting_recipes_preview_listentry = {
+					itemdef = minetest.registered_items[item],
+					item = item
+				}
+				update_crafting_preview(state)
+				if state:get("info_tog"):getId() == 1 then
+					state:get("info_tog"):submit()
+				end
+			end
 		end
 		smartfs.inv[name]:show()
 	end
