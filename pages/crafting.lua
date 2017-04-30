@@ -162,10 +162,19 @@ end
 -----------------------------------------------------
 -- Update the items list
 -----------------------------------------------------
-local function update_from_recipelist(state, recipelist)
+local function update_from_recipelist(state, recipelist, preview_item, replace_not_in_list)
+	local old_preview_entry, old_preview_item, new_preview_entry, new_preview_item
+	if state.param.crafting_recipes_preview_listentry then
+		old_preview_item = state.param.crafting_recipes_preview_listentry.item
+	end
+	if preview_item == "" then
+		new_preview_item = nil
+	else
+		new_preview_item = preview_item
+	end
+
 	local duplicate_index_tmp = {}
 	local craftable_itemlist = {}
-	local clear_recipe_preview = true
 
 	for recipe, _ in pairs(recipelist) do
 		local def = cache.crecipes[recipe].out_item
@@ -182,16 +191,33 @@ local function update_from_recipelist(state, recipelist)
 			duplicate_index_tmp[def.name] = entry
 			table.insert(entry.recipes, recipe)
 			table.insert(craftable_itemlist, entry)
-			if not state.param.crafting_recipes_preview_listentry then
-				clear_recipe_preview = true
-			elseif def.name == state.param.crafting_recipes_preview_listentry.item then
-				clear_recipe_preview = false
+			if new_preview_item and def.name == new_preview_item then
+				new_preview_entry = entry
+			end
+			if old_preview_item and def.name == old_preview_item then
+				old_preview_entry = entry
 			end
 		end
 	end
 
-	-- reset crafting preview if not in list
-	if clear_recipe_preview then
+	-- update crafting preview if the old is not in list anymore
+	if new_preview_item then
+		if not replace_not_in_list or not old_preview_entry then
+			if not new_preview_entry then
+				new_preview_entry = {
+						itemdef = minetest.registered_items[new_preview_item],
+						item = new_preview_item
+					}
+			end
+			state.param.crafting_recipes_preview_selected = 1
+			state.param.crafting_recipes_preview_listentry = new_preview_entry
+			update_crafting_preview(state)
+			if state:get("info_tog"):getId() == 1 then
+				state:get("info_tog"):submit()
+			end
+		end
+	elseif replace_not_in_list and not old_preview_entry then
+		state.param.crafting_recipes_preview_selected = 1
 		state.param.crafting_recipes_preview_listentry = {}
 		update_crafting_preview(state)
 	end
@@ -209,19 +235,8 @@ local function do_lookup_item(state, playername, lookup_item)
 	state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
 	-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 	local recipes = cache.crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
-	update_from_recipelist(state, recipes)
+	update_from_recipelist(state, recipes, lookup_item)
 
-	-- show lookup item in preview
-	state.param.crafting_recipes_preview_selected = 1
-	state.param.crafting_recipes_preview_listentry = {
-		itemdef = minetest.registered_items[lookup_item],
-		item = lookup_item
-	}
-	update_crafting_preview(state)
-
-	if state:get("info_tog"):getId() == 1 then
-		state:get("info_tog"):submit()
-	end
 	-- reset group selection and search field on proposal mode change
 	if state.param.survival_proposal_mode ~= "lookup" then
 		state.param.survival_proposal_mode = "lookup"
@@ -490,21 +505,7 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 			state.param.survival_proposal_mode = "grid"
 			state:get("search"):setText("") -- reset search field because of mode change
 			local recipes = cache.crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
-			update_from_recipelist(state, recipes)
-
-			-- update crafting preview if something craftable selected
-			if not stack:is_empty() then
-				local item = stack:get_name()
-				state.param.crafting_recipes_preview_selected = 1
-				state.param.crafting_recipes_preview_listentry = {
-					itemdef = minetest.registered_items[item],
-					item = item
-				}
-				update_crafting_preview(state)
-				if state:get("info_tog"):getId() == 1 then
-					state:get("info_tog"):submit()
-				end
-			end
+			update_from_recipelist(state, recipes, stack:get_name(), true)  -- replace_not_in_list=true
 		end
 		smartfs.inv[name]:show()
 	end
