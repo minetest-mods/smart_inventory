@@ -1,4 +1,5 @@
 local cache = smart_inventory.cache
+local crecipes = smart_inventory.crecipes
 local doc_addon = smart_inventory.doc_addon
 local ui_tools = smart_inventory.ui_tools
 
@@ -29,7 +30,7 @@ local function update_crafting_preview(state)
 	end
 
 	for _, recipe in ipairs(all_recipes) do
-		if cache.crecipes[recipe]:is_revealed(player) then
+		if crecipes.crecipes[recipe]:is_revealed(player) then
 			table.insert(valid_recipes, recipe)
 		end
 	end
@@ -52,7 +53,7 @@ local function update_crafting_preview(state)
 
 		if valid_recipes[selected] then
 			recipe = valid_recipes[selected]
-			local crecipe = cache.crecipes[recipe]
+			local crecipe = crecipes.crecipes[recipe]
 			if crecipe then
 				recipe = crecipe:get_with_placeholder(player, state.param.crafting_items_in_inventory)
 			end
@@ -177,7 +178,7 @@ local function update_from_recipelist(state, recipelist, preview_item, replace_n
 	local craftable_itemlist = {}
 
 	for recipe, _ in pairs(recipelist) do
-		local def = cache.crecipes[recipe].out_item
+		local def = crecipes.crecipes[recipe].out_item
 		if duplicate_index_tmp[def.name] then
 			table.insert(duplicate_index_tmp[def.name].recipes, recipe)
 		else
@@ -234,7 +235,7 @@ local function do_lookup_item(state, playername, lookup_item)
 	state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 	state.param.crafting_items_in_inventory[lookup_item] = true -- prefer in recipe preview
 	-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
-	local recipes = cache.crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
+	local recipes = crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
 	update_from_recipelist(state, recipes, lookup_item)
 
 	-- reset group selection and search field on proposal mode change
@@ -406,7 +407,7 @@ local function crafting_callback(state)
 			state:get("search"):setText("")
 		end
 		state.param.crafting_items_in_inventory = state.param.invobj:get_items()
-		local craftable = cache.crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
+		local craftable = crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
 		if state:get("info_tog"):getId() == 2 then
 			state:get("info_tog"):submit()
@@ -504,7 +505,7 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 			-- update the grid with matched recipe items
 			state.param.survival_proposal_mode = "grid"
 			state:get("search"):setText("") -- reset search field because of mode change
-			local recipes = cache.crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
+			local recipes = crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
 			update_from_recipelist(state, recipes, stack:get_name(), true)  -- replace_not_in_list=true
 		end
 		smartfs.inv[name]:show()

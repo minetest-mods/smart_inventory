@@ -1,4 +1,5 @@
 local cache = smart_inventory.cache
+local crecipes = smart_inventory.crecipes
 local txt = smart_inventory.txt
 local doc_addon = smart_inventory.doc_addon
 
@@ -134,7 +135,7 @@ function ui_tools.filter_by_revealed(list, playername)
 		local valid_recipes = {}
 		if cache.citems[entry.item] and cache.citems[entry.item].in_output_recipe then
 			for _, recipe in ipairs(cache.citems[entry.item].in_output_recipe) do
-				if cache.crecipes[recipe]:is_revealed(playername) then
+				if crecipes.crecipes[recipe]:is_revealed(playername) then
 					table.insert(valid_recipes, recipe)
 					revealed_by_recipe = true
 					break

@@ -16,6 +16,7 @@ smart_inventory.doc_addon = dofile(modpath.."/doc_addon.lua")
 
 smart_inventory.filter = dofile(modpath.."/libs/filter.lua")
 smart_inventory.cache = dofile(modpath.."/libs/cache.lua")
+smart_inventory.crecipes = dofile(modpath.."/libs/crecipes.lua")
 smart_inventory.maininv = dofile(modpath.."/libs/maininv.lua")
 
 smart_inventory.ui_tools = dofile(modpath.."/ui_tools.lua")
