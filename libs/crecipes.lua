@@ -19,14 +19,18 @@ function crecipe_class:analyze()
 	-- check recipe output
 	if self._recipe.output ~= "" then
 		local out_itemname = self._recipe.output:gsub('"','')
+		out_itemname = minetest.registered_aliases[out_itemname] or out_itemname
 		self.out_item = minetest.registered_items[out_itemname]
 		if not self.out_item then
 			out_itemname:gsub("[^%s]+", function(z)
-				if minetest.registered_items[z] then
-					self.out_item = minetest.registered_items[z]
+				local item = minetest.registered_aliases[z] or z
+				if minetest.registered_items[item] then
+					self.out_item = minetest.registered_items[item]
 				end
 			end)
 		end
+	else
+		return false
 	end
 	if not self.out_item or not self.out_item.name then
 		minetest.log("[smartfs_inventory] unknown recipe result "..self._recipe.output)
@@ -47,10 +51,11 @@ function crecipe_class:analyze()
 		end
 		for recipe_item, iteminfo in pairs(self._items) do
 			if recipe_item:sub(1, 6) ~= "group:" then
-				if minetest.registered_items[recipe_item] then
-					iteminfo.items = {[recipe_item] = minetest.registered_items[recipe_item]}
+				local itemname = minetest.registered_aliases[recipe_item] or recipe_item
+				if minetest.registered_items[itemname] then
+					iteminfo.items = {[itemname] = minetest.registered_items[itemname]}
 				else
-					minetest.log("[smartfs_inventory] unknown item in recipe: "..recipe_item.." for result "..self.out_item.name)
+					minetest.log("[smartfs_inventory] unknown item in recipe: "..itemname.." for result "..self.out_item.name)
 					return false
 				end
 			else
@@ -303,32 +308,39 @@ function crecipes.get_recipes_started_craft(playername, grid, reference_items)
 	return craftable
 end
 
+local function add_recipes_from_item(itemname)
+	local recipelist = minetest.get_all_craft_recipes(itemname)
+	if recipelist then
+		for _, recipe in ipairs(recipelist) do
+			local recipe_obj = crecipes.new(recipe)
+			if recipe_obj:analyze() then
+				table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
+				crecipes.crecipes[recipe] = recipe_obj
+				if recipe_obj.recipe_type ~= "normal" then
+					cache.assign_to_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item, filter.get("recipetype"))
+				end
+				for _, entry in pairs(recipe_obj._items) do
+					for itemname, itemdef in pairs(entry.items) do
+						if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
+							table.insert(cache.citems[itemname].in_craft_recipe, recipe)
+						end
+						cache.assign_to_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
+					end
+				end
+			end
+		end
+	end
+end
+
 -----------------------------------------------------
 -- Fill the recipes cache at init
 -----------------------------------------------------
 local function fill_recipe_cache()
 	for itemname, _ in pairs(minetest.registered_items) do
-		local recipelist = minetest.get_all_craft_recipes(itemname)
-		if recipelist then
-			for _, recipe in ipairs(recipelist) do
-				local recipe_obj = crecipes.new(recipe)
-				if recipe_obj:analyze() then
-					table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
-					crecipes.crecipes[recipe] = recipe_obj
-					if recipe_obj.recipe_type ~= "normal" then
-						cache.assign_to_group("recipetype:"..recipe_obj.recipe_type, recipe_obj.out_item, filter.get("recipetype"))
-					end
-					for _, entry in pairs(recipe_obj._items) do
-						for itemname, itemdef in pairs(entry.items) do
-							if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
-								table.insert(cache.citems[itemname].in_craft_recipe, recipe)
-							end
-							cache.assign_to_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
-						end
-					end
-				end
-			end
-		end
+		add_recipes_from_item(itemname)
+	end
+	for itemname, _ in pairs(minetest.registered_aliases) do
+		add_recipes_from_item(itemname)
 	end
 end
 -- register to process after cache is filled
