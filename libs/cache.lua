@@ -213,11 +213,13 @@ function crecipe_class:check_craftable_by_grid(grid)
 				recipe_item = self._recipe.items[i]
 			else
 				-- complex case - recalculate to the 3x3 crafting grid
-				local x = math.fmod(i,3)
+				local x = math.fmod((i-1),3)+1
 				if x <= width then
 					local y = math.floor((i-1)/3+1)
 					local coord = (y-1)*width+x
 					recipe_item = self._recipe.items[coord]
+				else
+					recipe_item = ""
 				end
 			end
 
