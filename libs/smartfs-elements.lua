@@ -5,7 +5,9 @@ local elements = {}
 --- Crafting Preview applet
 -----------------------------------------------------
 -- enhanced / prepared container
--- Additional method craft_preview:setCraft(craft)
+-- Additional methods
+--    craft_preview:setCraft(craft)
+--    craft_preview:onButtonClicked(function(self, itemname, player))
 -- if craft=nil, the view will be initialized
 
 local craft_preview = table.copy(smartfs._edef.container)
@@ -21,8 +23,9 @@ function craft_preview:onCreate()
 					"craft:"..x..":"..y,"")
 			button:setVisible(false)
 			button:onClick(function(self, state, player)
-				if state._click then
-					state._click(state, self.data.item, player)
+				local parent_element = state.location.containerElement
+				if parent_element._button_click then
+					parent_element._button_click(parent_element, self.data.item, player)
 				end
 			end)
 		end
@@ -32,8 +35,8 @@ function craft_preview:onCreate()
 	end
 end
 
-function craft_preview:onButtonClick(func)
-	self._click = func
+function craft_preview:onButtonClicked(func)
+	self._button_click = func
 end
 
 -- Update fields

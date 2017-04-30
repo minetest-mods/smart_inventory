@@ -340,7 +340,9 @@ local function crafting_callback(state)
 	end)
 
 	-- recipe preview area
-	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview")
+	smart_inventory.smartfs_elements.craft_preview(state, 6, 0, "craft_preview"):onButtonClicked(function(self, item, player)
+		do_lookup_item(state, player, item)
+	end)
 	state:image(7,2.8,1,1,"cr_type_img",""):setVisible(false)
 	state:label(7,3,"cr_type", "")
 	local pr_prev_btn = state:button(6, 3, 1, 0.5, "preview_prev", "<<")
