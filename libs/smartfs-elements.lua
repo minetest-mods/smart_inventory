@@ -14,16 +14,26 @@ function craft_preview:onCreate()
 	smartfs._edef.container.onCreate(self)
 	for x = 1, 3 do
 		for y = 1, 3 do
-			self._state:item_image(
+			local button = self._state:image_button(
 					(x-1)*self.data.zoom+self.data.pos.x,
 					(y-1)*self.data.zoom+self.data.pos.y,
 					self.data.zoom, self.data.zoom,
-					"craft:"..x..":"..y,nil):setVisible(false)
+					"craft:"..x..":"..y,"")
+			button:setVisible(false)
+			button:onClick(function(self, state, player)
+				if state._click then
+					state._click(state, self.data.item, player)
+				end
+			end)
 		end
 	end
 	if self.data.recipe then
 		self:setCraft(self.data.recipe)
 	end
+end
+
+function craft_preview:onButtonClick(func)
+	self._click = func
 end
 
 -- Update fields
@@ -42,12 +52,12 @@ function craft_preview:setCraft(craft)
 					item = craft.items[(y-1)*craft.width+x]
 				end
 			end
-			local img = self._state:get("craft:"..x..":"..y)
+			local btn = self._state:get("craft:"..x..":"..y)
 			if item then
-				img:setImage(item)
-				img:setVisible(true)
+				btn:setItem(item)
+				btn:setVisible(true)
 			else
-				img:setVisible(false)
+				btn:setVisible(false)
 			end
 		end
 	end
