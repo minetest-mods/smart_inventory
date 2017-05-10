@@ -41,18 +41,23 @@ end
 
 -- Update fields
 function craft_preview:setCraft(craft)
+	local width = craft.width
+	if #craft.items == 1 then
+		width = 1
+	end
+
 	for x = 1, 3 do
 		for y = 1, 3 do
 			local item = nil
 			if craft then
-				if not craft.width or craft.width == 0 then
+				if not width or width == 0 then
 					item = craft.items[(y-1)*3+x]
-				elseif craft.width == 1 then
+				elseif width == 1 then
 					if x == 2 then
 						item = craft.items[y]
 					end
-				elseif x <= craft.width then
-					item = craft.items[(y-1)*craft.width+x]
+				elseif x <= width then
+					item = craft.items[(y-1)*width+x]
 				end
 			end
 			local btn = self._state:get("craft:"..x..":"..y)
