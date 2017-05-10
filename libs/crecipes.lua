@@ -308,8 +308,7 @@ function crecipes.get_recipes_started_craft(playername, grid, reference_items)
 	return craftable
 end
 
-local function add_recipes_from_item(itemname)
-	local recipelist = minetest.get_all_craft_recipes(itemname)
+function crecipes.add_recipes_from_list(recipelist)
 	if recipelist then
 		for _, recipe in ipairs(recipelist) do
 			local recipe_obj = crecipes.new(recipe)
@@ -337,10 +336,10 @@ end
 -----------------------------------------------------
 local function fill_recipe_cache()
 	for itemname, _ in pairs(minetest.registered_items) do
-		add_recipes_from_item(itemname)
+		crecipes.add_recipes_from_list(minetest.get_all_craft_recipes(itemname))
 	end
 	for itemname, _ in pairs(minetest.registered_aliases) do
-		add_recipes_from_item(itemname)
+		crecipes.add_recipes_from_list(minetest.get_all_craft_recipes(itemname))
 	end
 end
 -- register to process after cache is filled

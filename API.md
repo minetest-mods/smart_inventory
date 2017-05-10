@@ -55,3 +55,30 @@ smart_inventory.filter.get(name)       get filter object by registered name. Ret
 
 ## Cache framework
 cache.register_on_cache_filled(function, parameter) - hook to call additional initializations after the cache is filled
+
+
+## Crecipes framework
+The should be used trough cache.register_on_cache_filled to be sure all items are already known
+crecipes.add_recipes_from_list(recipeslist) - Add Custom-Type Recipes to the smart inventory database
+
+## Example usage for cache and crecipe
+```
+if minetest.global_exists("smart_inventory") then
+	-- add grinder recipes to smart inventory database
+	local crecipes = smart_inventory.crecipes
+	local cache = smart_inventory.cache
+	local function fill_citem_recipes()
+		local recipelist = {}
+		for _, e in ipairs(crushingfurnace_receipes) do
+			table.insert(recipelist, {
+					output = e[2],
+					items = {e[1]},
+					width = 1,
+					type = "grinding"
+				})
+		end
+		crecipes.add_recipes_from_list(recipelist)
+	end
+	 cache.register_on_cache_filled(fill_citem_recipes)
+end
+```
