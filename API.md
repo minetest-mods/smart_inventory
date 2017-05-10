@@ -73,7 +73,6 @@ if minetest.global_exists("smart_inventory") then
 			table.insert(recipelist, {
 					output = e[2],
 					items = {e[1]},
-					width = 1,
 					type = "grinding"
 				})
 		end
