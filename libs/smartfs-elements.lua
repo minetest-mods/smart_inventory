@@ -41,15 +41,15 @@ end
 
 -- Update fields
 function craft_preview:setCraft(craft)
-	local width = craft.width
-	if #craft.items == 1 then
-		width = 1
-	end
 
 	for x = 1, 3 do
 		for y = 1, 3 do
 			local item = nil
 			if craft then
+				local width = craft.width
+				if #craft.items == 1 then
+					width = 1
+				end
 				if not width or width == 0 then
 					item = craft.items[(y-1)*3+x]
 				elseif width == 1 then
