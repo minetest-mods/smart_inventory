@@ -172,9 +172,17 @@ function crecipe_class:get_with_placeholder(player, inventory_tab)
 
 		-- set recipe item
 		if item then
-			recipe.items[key] = item
+			print(dump(recipe.items), key, item)
+			if recipe_item ~= item then
+				recipe.items[key] = {
+						item = item,
+						tooltip = recipe_item,
+						text = 'G',
+					}
+			end
 		end
 	end
+	print(dump(recipe))
 	return recipe
 end
 

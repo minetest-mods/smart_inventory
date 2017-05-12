@@ -41,18 +41,18 @@ end
 
 -- Update fields
 function craft_preview:setCraft(craft)
-
+	local width
+	if craft then -- adjust width to 1 if the recipe contains just 1 item
+		width = craft.width or 3
+		if craft.items[1] and next(craft.items, 1) == nil then
+			width = 1
+		end
+	end
 	for x = 1, 3 do
 		for y = 1, 3 do
 			local item = nil
 			if craft then
-				local width = craft.width
-				if #craft.items == 1 then
-					width = 1
-				end
-				if not width or width == 0 then
-					item = craft.items[(y-1)*3+x]
-				elseif width == 1 then
+				if width <= 1 then
 					if x == 2 then
 						item = craft.items[y]
 					end
@@ -62,7 +62,15 @@ function craft_preview:setCraft(craft)
 			end
 			local btn = self._state:get("craft:"..x..":"..y)
 			if item then
-				btn:setItem(item)
+				if type(item) == "string" then
+					btn:setItem(item)
+					btn:setTooltip()
+					btn:setText("")
+				else
+					btn:setItem(item.item)
+					btn:setTooltip(item.tooltip)
+					btn:setText(item.text)
+				end
 				btn:setVisible(true)
 			else
 				btn:setVisible(false)
