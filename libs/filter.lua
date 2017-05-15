@@ -185,10 +185,13 @@ filter.register_filter({
 	})
 
 filter.register_filter({
-		name = "vessel",
+		name = "metainv",
 		check_item_by_def = function(self, def)
 			if def.allow_metadata_inventory_move or
 					def.allow_metadata_inventory_take or
+					def.allow_metadata_inventory_put or
+					def.on_metadata_inventory_move or
+					def.on_metadata_inventory_take or
 					def.on_metadata_inventory_put then
 				return true
 			end

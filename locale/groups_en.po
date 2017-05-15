@@ -235,3 +235,6 @@ msgstr "Water protection"
 
 msgid "crumbly"
 msgstr "Crumbly"
+
+msgid "metainv"
+msgstr "With inventory"

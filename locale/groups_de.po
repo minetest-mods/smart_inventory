@@ -236,6 +236,9 @@ msgstr "Wasserschutz"
 msgid "crumbly"
 msgstr "Brüchig"
 
+msgid "metainv"
+msgstr "Mit Inventar"
+
 #~ msgid "radiation"
 #~ msgstr "Schutz gegen RadioaktivitÃ¤t"
 
