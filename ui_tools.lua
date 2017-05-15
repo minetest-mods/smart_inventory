@@ -110,7 +110,7 @@ function ui_tools.filter_by_searchstring(list, search_string)
 			table.insert(filtered_list, entry)
 		else
 			for _, cgroup in pairs(entry.citem.cgroups) do
-				if cgroup.keyword and string.find(cgroup.keyword:lower(), search_string) then
+				if cgroup.keyword and string.find(cgroup.keyword:lower():gsub("_", ":"), search_string:gsub("_", ":")) then
 					table.insert(filtered_list, entry)
 					break
 				end
