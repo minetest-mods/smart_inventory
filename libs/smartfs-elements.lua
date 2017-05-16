@@ -44,6 +44,9 @@ function craft_preview:setCraft(craft)
 	local width
 	if craft then -- adjust width to 1 if the recipe contains just 1 item
 		width = craft.width or 3
+		if width == 0 then
+			width = 3
+		end
 		if craft.items[1] and next(craft.items, 1) == nil then
 			width = 1
 		end
