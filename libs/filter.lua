@@ -228,6 +228,7 @@ filter.register_filter({
 		end,
 	})
 
+--[[ disabled since debug.getupvalue is not usable to secure environment
 filter.register_filter({
 		name = "food",
 		check_item_by_def = function(self, def)
@@ -251,6 +252,7 @@ filter.register_filter({
 			end
 		end,
 	})
+]]
 
 filter.register_filter({
 		name = "tool",
