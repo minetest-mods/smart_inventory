@@ -226,3 +226,5 @@ msgstr ""
 msgid "metainv"
 msgstr ""
 
+msgid "fuel"
+msgstr ""

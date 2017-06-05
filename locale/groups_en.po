@@ -238,3 +238,6 @@ msgstr "Crumbly"
 
 msgid "metainv"
 msgstr "With inventory"
+
+msgid "fuel"
+msgstr "Fuel"

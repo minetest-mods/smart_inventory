@@ -302,6 +302,18 @@ filter.register_filter({
 		end,
 	})
 
+-- Burn times
+filter.register_filter({
+		name = "fuel",
+		check_item_by_def = function(self, def)
+			local burntime = minetest.get_craft_result({method="fuel",width=1,items={def.name}}).time
+			if burntime > 0 then
+				return "fuel:"..burntime
+			end
+		end
+})
+
+
 -- Group assignment done in cache framework internally
 filter.register_filter({
 		name = "recipetype",

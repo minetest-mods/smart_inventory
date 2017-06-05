@@ -239,6 +239,9 @@ msgstr "Brüchig"
 msgid "metainv"
 msgstr "Mit Inventar"
 
+msgid "fuel"
+msgstr "Brennstoff"
+
 #~ msgid "radiation"
 #~ msgstr "Schutz gegen RadioaktivitÃ¤t"
 
