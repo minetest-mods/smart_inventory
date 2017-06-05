@@ -150,6 +150,48 @@ function ui_tools.filter_by_revealed(list, playername)
 end
 
 -----------------------------------------------------
+-- Get all revealed items available
+-----------------------------------------------------
+function ui_tools.filter_by_top_reveal(list, playername)
+	-- rate the items
+	local rating = {}
+	local top_rating = 0
+
+	for _, entry in ipairs(list) do
+		-- only not revealed could be in tipp
+		if not doc_addon.is_revealed_item(entry.item, playername) then
+			-- check item is in recipes
+			if cache.citems[entry.item] and cache.citems[entry.item].in_craft_recipe then
+				for _, recipe in ipairs(cache.citems[entry.item].in_craft_recipe) do
+					if crecipes.crecipes[recipe] then
+						-- result is not revealed
+						if not doc_addon.is_revealed_item(crecipes.crecipes[recipe].out_item.name, playername) then
+						-- count them
+							if not rating[entry.item] then
+								rating[entry.item] = 1
+							else
+								rating[entry.item] = rating[entry.item] + 1
+							end
+							if rating[entry.item] > top_rating then
+								top_rating = rating[entry.item]
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	-- return top rated
+	local filtered_list = {}
+	for _, entry in ipairs(list) do
+		if rating[entry.item] == top_rating then
+			table.insert(filtered_list, entry)
+		end
+	end
+	return filtered_list
+end
+
+-----------------------------------------------------
 -- Select tight groups only to display info about item
 -----------------------------------------------------
 function ui_tools.get_tight_groups(cgroups)
