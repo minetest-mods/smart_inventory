@@ -153,39 +153,62 @@ end
 -- Get all revealed items available
 -----------------------------------------------------
 function ui_tools.filter_by_top_reveal(list, playername)
+	-- check the list for not revealed only. Create search index
+	local craftable_only = {}
+	for _, entry in ipairs(list) do
+		-- only not revealed could be in tipp
+		if not doc_addon.is_revealed_item(entry.item, playername) then
+			craftable_only[entry.item] = entry
+		end
+	end
+
 	-- rate the items
 	local rating = {}
 	local top_rating = 0
 
-	for _, entry in ipairs(list) do
-		-- only not revealed could be in tipp
-		if not doc_addon.is_revealed_item(entry.item, playername) then
-			-- check item is in recipes
-			if cache.citems[entry.item] and cache.citems[entry.item].in_craft_recipe then
-				for _, recipe in ipairs(cache.citems[entry.item].in_craft_recipe) do
-					if crecipes.crecipes[recipe] then
-						-- result is not revealed
-						if not doc_addon.is_revealed_item(crecipes.crecipes[recipe].out_item.name, playername) then
-						-- count them
-							if not rating[entry.item] then
-								rating[entry.item] = 1
-							else
-								rating[entry.item] = rating[entry.item] + 1
-							end
-							if rating[entry.item] > top_rating then
-								top_rating = rating[entry.item]
-							end
+	for itemname, entry in pairs(craftable_only) do
+		-- check the item is in recipe of other not revealed craftable only items. Other-items count is the rating
+		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
+			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
+				if crecipes.crecipes[recipe] then
+					-- result is not revealed (checked before in filter_by_revealed) but not craftable at the time
+					-- crafting of itemname will maybe open it
+					if not craftable_only[crecipes.crecipes[recipe].out_item.name] then
+						if not rating[itemname] then
+							rating[itemname] = 1
+						else
+							rating[itemname] = rating[itemname] + 1
+						end
+						if rating[itemname] > top_rating then
+							top_rating = rating[itemname]
 						end
 					end
 				end
 			end
 		end
+		if not rating[itemname] then
+			rating[itemname] = 0
+		end
 	end
-	-- return top rated
+
+	-- sort
+	local sorted_rating = {}
+	for itemname, rating in pairs(rating) do
+		table.insert(sorted_rating, {itemname = itemname, rating = rating})
+	end
+	table.sort(sorted_rating, function(a,b) return a.rating > b.rating end)
+
+	-- prepare output list
+	local out_count = 0
 	local filtered_list = {}
-	for _, entry in ipairs(list) do
-		if rating[entry.item] == top_rating then
-			table.insert(filtered_list, entry)
+	for _, v in ipairs(sorted_rating) do
+		-- top 10 but show all with the same rating
+		if out_count < 10 or v.rating == top_rating then
+			top_rating = v.rating
+			table.insert(filtered_list, craftable_only[v.itemname])
+			out_count = out_count + 1
+		else
+			break
 		end
 	end
 	return filtered_list

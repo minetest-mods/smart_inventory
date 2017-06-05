@@ -401,7 +401,7 @@ local function crafting_callback(state)
 			local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player)
 			local top_revealed = ui_tools.filter_by_top_reveal(all_revealed, player)
 			state.param.crafting_recipes_preview_selected = 1
-			state.param.crafting_recipes_preview_listentry = top_revealed[1]
+			state.param.crafting_recipes_preview_listentry = top_revealed[1] or {}
 			update_crafting_preview(state)
 			state.param.crafting_grouped_items = ui_tools.get_list_grouped(top_revealed)
 			-- reset group selection if proposal mode is changed
