@@ -173,7 +173,9 @@ function ui_tools.filter_by_top_reveal(list, playername)
 				if crecipes.crecipes[recipe] then
 					-- result is not revealed (checked before in filter_by_revealed) but not craftable at the time
 					-- crafting of itemname will maybe open it
-					if not craftable_only[crecipes.crecipes[recipe].out_item.name] then
+					if not craftable_only[crecipes.crecipes[recipe].out_item.name]
+							-- skip shaped stuff from calculation because of all nodes should support all shapes in theory
+							and not cache.citems[crecipes.crecipes[recipe].out_item.name].cgroups["shape"] then
 						if not rating[itemname] then
 							rating[itemname] = 1
 						else
