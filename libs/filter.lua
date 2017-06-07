@@ -1,5 +1,4 @@
 local txt = smart_inventory.txt
-local txt_usage = minetest.setting_getbool("smart_inventory_friendly_group_names") --or true
 
 --------------------------------------------------------------
 -- Filter class
@@ -18,11 +17,11 @@ function filter_class:check_item_by_def(def)
 end
 
 function filter_class:_get_description(group)
-	if txt_usage ~= false then
+	if txt then
 		if txt[group.name] then
-			return txt[group.name]
+			return txt[group.name].." ("..group.name..")"
 		elseif group.parent and group.parent.childs[group.name] and txt[group.parent.name] then
-			return txt[group.parent.name].." "..group.parent.childs[group.name]
+			return txt[group.parent.name].." "..group.parent.childs[group.name].." ("..group.name..")"
 		else
 			return group.name
 		end
@@ -33,11 +32,7 @@ end
 filter_class.get_description = filter_class._get_description
 
 function filter_class:_get_keyword(group)
-	if txt_usage ~= false then
-		return group.name.." "..group.group_desc
-	else
-		return group.name
-	end
+	return group.group_desc
 end
 
 filter_class.get_keyword = filter_class._get_keyword
@@ -331,9 +326,9 @@ filter.register_filter({
 		check_item_by_def = function(self, def) end,
 		get_description = function(self, group)
 			local itemname = group.name:sub(12)
-			if txt["ingredient"] and
+			if txt and txt["ingredient"] and
 					minetest.registered_items[itemname] and minetest.registered_items[itemname].description then
-				return txt["ingredient"] .." "..minetest.registered_items[itemname].description
+				return txt["ingredient"] .." "..minetest.registered_items[itemname].description.." ("..group.name..")"
 			else
 				return group.name
 			end
@@ -342,7 +337,7 @@ filter.register_filter({
 			if group.name ~= self.name then
 				local itemname = group.name:sub(12)
 				if minetest.registered_items[itemname] then
-					return minetest.registered_items[itemname].description
+					return itemname.." "..minetest.registered_items[itemname].description
 				end
 			end
 		end

@@ -1,5 +1,4 @@
 local filter = smart_inventory.filter
-local txt = smart_inventory.txt
 
 local cache = {}
 cache.cgroups = {}

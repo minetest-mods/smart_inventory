@@ -85,7 +85,7 @@ local function update_page(state)
 			local grouptext
 			if k == "groups" then
 				for gn, gv in pairs(v) do
-					if txt["armor:"..gn] then
+					if txt and txt["armor:"..gn] then
 						grouptext = txt["armor:"..gn]
 					else
 						grouptext = "armor:"..gn
@@ -103,7 +103,7 @@ local function update_page(state)
 					end
 				end
 				if is_physics then
-					if txt["physics:"..k] then
+					if txt and txt["physics:"..k] then
 						grouptext = txt["physics:"..k]
 					else
 						grouptext = "physics:"..k
@@ -112,7 +112,7 @@ local function update_page(state)
 						a_list:addItem(grouptext..": "..v)
 					end
 				else
-					if txt["armor:"..k] then
+					if txt and txt["armor:"..k] then
 						grouptext = txt["armor:"..k]
 					else
 						grouptext = "armor:"..k

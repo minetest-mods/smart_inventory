@@ -1,6 +1,6 @@
 local txt_usage = minetest.setting_getbool("smart_inventory_friendly_group_names") --or true
 if txt_usage == false then
-	return {}
+	return false
 end
 
 local modpath = minetest.get_modpath(minetest.get_current_modname()).."/locale"

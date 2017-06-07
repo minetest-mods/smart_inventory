@@ -30,13 +30,17 @@ function ui_tools.update_group_selection(grouped, groups_sel, groups_tab)
 
 	table.sort(group_sorted, function(a,b)
 		local sort_fixed_order = {
-			["all"] = "  ",    -- at the begin
-			["other"] = "ZZ1", -- at the end
-			["shape"] = "ZZ2", --at the end
+			["all"] = 5,    -- at the begin
+			["other"] = 80, -- at the end
+			["shape"] = 90, --at the end
 		}
-		local aval = sort_fixed_order[a.name] or a.name
-		local bval = sort_fixed_order[b.name] or b.name
-		return aval < bval
+		local aval = sort_fixed_order[a.name] or 10
+		local bval = sort_fixed_order[b.name] or 10
+		if aval ~= bval then
+			return aval < bval
+		else
+			return a.name < b.name
+		end
 	end)
 
 	-- apply groups to the groups_sel table and to the new groups_tab
@@ -351,13 +355,19 @@ function ui_tools.get_list_grouped(itemtable)
 	-- default groups
 	outtab.all = {}
 	outtab.all.name = "all"
-	outtab.all.group_desc = txt[outtab.all.name] or "all"
 	outtab.all.items = itemtable
 
 	outtab.other = {}
 	outtab.other.name = "other"
-	outtab.other.group_desc = txt[outtab.other.name] or "other"
 	outtab.other.items = other
+
+	if txt then
+		outtab.all.group_desc = txt[outtab.all.name] or "all"
+		outtab.other.group_desc = txt[outtab.other.name] or "other"
+	else
+		outtab.all.group_desc = "all"
+		outtab.other.group_desc = "other"
+	end
 
 	return outtab
 end
