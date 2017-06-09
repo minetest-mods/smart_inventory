@@ -63,6 +63,7 @@ filter.group_rename = {
 -- group configurations per basename
 --   true means is dimension
 --   false means hide all groups with this base
+--   1 means replace the base only ("food_choco_powder" => food:choco_powder")
 filter.base_group_config = {
 	armor = true,
 	physics = true,
@@ -70,7 +71,7 @@ filter.base_group_config = {
 	excolor = true,
 	color = true,
 	unicolor = true,
-	food = true,
+	food = 1,
 	customnode = true,
 	leafdecay = false,
 }
@@ -113,6 +114,8 @@ filter.register_filter({
 					mk = string.gsub(k, "_", ":")
 				elseif basegroup_config == false then
 					mk = nil
+				elseif basegroup_config == 1 then
+					mk = string.gsub(k, "^"..basename.."_", basename..":")
 				else
 					mk = k
 				end
