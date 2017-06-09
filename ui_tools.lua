@@ -170,30 +170,55 @@ function ui_tools.filter_by_top_reveal(list, playername)
 	local rating = {}
 	local top_rating = 0
 
-	for itemname, entry in pairs(craftable_only) do
-		-- check the item is in recipe of other not revealed craftable only items. Other-items count is the rating
-		if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
-			for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
-				if crecipes.crecipes[recipe] then
-					-- result is not revealed (checked before in filter_by_revealed) but not craftable at the time
-					-- crafting of itemname will maybe open it
-					if not craftable_only[crecipes.crecipes[recipe].out_item.name]
-							-- skip shaped stuff from calculation because of all nodes should support all shapes in theory
-							and not cache.citems[crecipes.crecipes[recipe].out_item.name].cgroups["shape"] then
-						if not rating[itemname] then
-							rating[itemname] = 1
-						else
-							rating[itemname] = rating[itemname] + 1
-						end
-						if rating[itemname] > top_rating then
-							top_rating = rating[itemname]
+	for itemname_check, entry in pairs(craftable_only) do
+		-- add the check item to the pipe as analysis entry point
+		local items_pipe = {{ key = itemname_check, value = 1 }}
+
+		local checked_items = {} -- to avoid circulations
+		local step_limit = 10
+		-- process the pipe recursive / till pipe is empty
+		while items_pipe[1] do
+			-- limited recusion
+			step_limit = step_limit -1
+			if step_limit == 0 then
+				break
+			end
+
+			local itemname, rating_value = items_pipe[1].key, items_pipe[1].value
+			-- skip already checked
+			if not checked_items[itemname] then
+				--apply rating value
+				checked_items[itemname] = true
+				if not cache.citems[itemname].cgroups["shape"] then -- Shapes have no values
+					if not rating[itemname_check] then
+						rating[itemname_check] = rating_value
+					else
+						rating[itemname_check] = rating[itemname_check] + rating_value
+					end
+				end
+				rating_value = rating_value * 0.7
+				-- Add recursive sub-entries to the pipe with lower value
+				if cache.citems[itemname] and cache.citems[itemname].in_craft_recipe then
+					for _, recipe in ipairs(cache.citems[itemname].in_craft_recipe) do
+							-- result is not revealed (checked before in filter_by_revealed) but not craftable at the time
+							-- crafting of itemname will maybe open it
+						if crecipes.crecipes[recipe] then
+							local child_itemname = crecipes.crecipes[recipe].out_item.name
+							if not checked_items[child_itemname] and not craftable_only[child_itemname] then
+								table.insert(items_pipe, {key = child_itemname, value = rating_value})
+							end
 						end
 					end
 				end
 			end
+			-- remove from pipe
+			table.remove(items_pipe,1)
 		end
-		if not rating[itemname] then
-			rating[itemname] = 0
+		if not rating[itemname_check] then
+			rating[itemname_check] = 0
+		end
+		if rating[itemname_check] > top_rating then
+			top_rating = rating[itemname_check]
 		end
 	end
 
