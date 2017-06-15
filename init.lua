@@ -3,7 +3,7 @@ smart_inventory.modpath = minetest.get_modpath(minetest.get_current_modname())
 local modpath = smart_inventory.modpath
 
 -- get settings and optional mods support
-smart_inventory.skins_mod = minetest.get_modpath("skins")
+smart_inventory.skins_mod = minetest.get_modpath("skinsdb")
 smart_inventory.armor_mod = minetest.get_modpath("3d_armor")
 smart_inventory.doc_items_mod = minetest.get_modpath("doc_items")
 
