@@ -72,6 +72,7 @@ end
 
 local function update_page(state)
 	local name = state.location.rootState.location.player
+	local player_obj = minetest.get_player_by_name(name)
 	if smart_inventory.armor_mod then
 		if creative == false then
 			update_grid(state, "main")
@@ -129,12 +130,13 @@ local function update_page(state)
 		end
 		update_selected_item(state)
 	elseif smart_inventory.skins_mod then
-		state.location.parentState:get("player_button"):setImage(skins.skins[name].."_preview.png")
-		state:get("preview"):setImage(skins.skins[name].."_preview.png")
+		local skin = skins.get_player_skin(player_obj)
+		state.location.parentState:get("player_button"):setImage(skins.preview[skin])
+		state:get("preview"):setImage(skins.preview[skin])
 	end
 	if smart_inventory.skins_mod then
-		local skin = skins.skins[name]
-		if skin and skins.meta[skin] then
+		local skin = skins.get_player_skin(player_obj)
+		if skins.meta[skin] then
 			state:get("skinname"):setText("Skin name: "..(skins.meta[skin].name or ""))
 			state:get("skinauthor"):setText("Author: "..(skins.meta[skin].author or ""))
 			state:get("skinlicense"):setText("License: "..(skins.meta[skin].license or ""))
@@ -268,31 +270,30 @@ local function player_callback(state)
 	end
 
 	if smart_inventory.skins_mod then
+		local player_obj = minetest.get_player_by_name(name)
 		-- Skins Grid
 		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", 0.87, 1.30)
 		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
 		grid_skins:onClick(function(self, state, index, player)
-			local skin = skins.list[index]
-			local player_obj = minetest.get_player_by_name(name)
-			skins.skins[player] = skin
-			skins.file_save = true
-			skins.update_player_skin(player_obj)
+			local cur_skin = skins.list[index]
+			skins.set_player_skin(player_obj, cur_skin)
 			if smart_inventory.armor_mod then
-				armor.textures[name].skin = skin..".png"
+				armor.textures[name].skin = skins.textures[cur_skin]
 				armor:set_player_armor(player_obj)
 			end
 			update_page(state)
 		end)
 
+		local cur_skin = skins.get_player_skin(player_obj)
 		local skins_grid_data = {}
-		for idx, skin in pairs(skins.list) do
+		for idx, skin in ipairs(skins.list) do
 			table.insert(skins_grid_data, {
-					image = skin.."_preview.png",
+					image = skins.preview[skin],
 					tooltip = skins.meta[skin].name,
 					is_button = true,
 					size = { w = 0.87, h = 1.30 }
 			})
-			if skin == skins.skins[name] then
+			if skin == cur_skin then
 				grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
 			end
 		end
