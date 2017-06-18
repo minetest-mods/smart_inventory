@@ -158,6 +158,22 @@ local function update_page(state)
 			state:get("skinlicense"):setText("")
 		end
 	end
+	state.param.skins_list = skins.get_skinlist("player:"..name, true)
+	local cur_skin = skins.get_player_skin(player_obj)
+	local skins_grid_data = {}
+	local grid_skins = state:get("skins_grid")
+	for idx, skin in ipairs(state.param.skins_list) do
+		table.insert(skins_grid_data, {
+				image = skin:get_preview(),
+				tooltip = skin:get_meta_string("name"),
+				is_button = true,
+				size = { w = 0.87, h = 1.30 }
+		})
+		if skin:get_meta("_key") == cur_skin:get_meta("_key") then
+			grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
+		end
+	end
+	grid_skins:setList(skins_grid_data)
 end
 
 local function move_item_to_armor(state, item)
@@ -283,7 +299,6 @@ local function player_callback(state)
 
 	if smart_inventory.skins_mod then
 		local player_obj = minetest.get_player_by_name(name)
-		state.param.skins_list = skins.get_skinlist("player:"..name, true)
 		-- Skins Grid
 		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", 0.87, 1.30)
 		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
@@ -296,21 +311,6 @@ local function player_callback(state)
 			end
 			update_page(state)
 		end)
-
-		local cur_skin = skins.get_player_skin(player_obj)
-		local skins_grid_data = {}
-		for idx, skin in ipairs(state.param.skins_list) do
-			table.insert(skins_grid_data, {
-					image = skin:get_preview(),
-					tooltip = skin:get_meta_string("name"),
-					is_button = true,
-					size = { w = 0.87, h = 1.30 }
-			})
-			if skin:get_meta("_key") == cur_skin:get_meta("_key") then
-				grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
-			end
-		end
-		grid_skins:setList(skins_grid_data)
 	end
 
 	-- not visible update plugin for updates from outsite (API)
