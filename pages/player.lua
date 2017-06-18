@@ -283,7 +283,7 @@ local function player_callback(state)
 
 	if smart_inventory.skins_mod then
 		local player_obj = minetest.get_player_by_name(name)
-		state.param.skins_list = skins.get_skinlist()
+		state.param.skins_list = skins.get_skinlist("player:"..name, true)
 		-- Skins Grid
 		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", 0.87, 1.30)
 		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
@@ -291,7 +291,7 @@ local function player_callback(state)
 			local cur_skin = state.param.skins_list[index]
 			skins.set_player_skin(player_obj, cur_skin)
 			if smart_inventory.armor_mod then
-				armor.textures[name].skin = skin:get_meta("_key") --3d_armor adds a ".png" but it should be compatible in most cases / --cur_skin:get_texture() should be used
+				armor.textures[name].skin = cur_skin:get_texture()
 				armor:set_player_armor(player_obj)
 			end
 			update_page(state)
