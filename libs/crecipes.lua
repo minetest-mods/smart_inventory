@@ -37,9 +37,6 @@ function crecipe_class:analyze()
 		return false
 	end
 
-	-- probably hidden therefore not indexed previous. But Items with recipe should be allways visible
-	cache.add_item(minetest.registered_items[self.out_item.name])
-
 	-- check recipe items/groups
 	for _, recipe_item in pairs(self._recipe.items) do
 		if recipe_item ~= "" then
@@ -319,6 +316,8 @@ function crecipes.add_recipes_from_list(recipelist)
 		for _, recipe in ipairs(recipelist) do
 			local recipe_obj = crecipes.new(recipe)
 			if recipe_obj:analyze() then
+				-- probably hidden therefore not indexed previous. But Items with recipe should be allways visible
+				cache.add_item(minetest.registered_items[recipe_obj.out_item.name])
 				table.insert(cache.citems[recipe_obj.out_item.name].in_output_recipe, recipe)
 				crecipes.crecipes[recipe] = recipe_obj
 				if recipe_obj.recipe_type ~= "normal" then
@@ -326,9 +325,8 @@ function crecipes.add_recipes_from_list(recipelist)
 				end
 				for _, entry in pairs(recipe_obj._items) do
 					for itemname, itemdef in pairs(entry.items) do
-						if cache.citems[itemname] then -- in case of"not_in_inventory" the item is not in citems
-							table.insert(cache.citems[itemname].in_craft_recipe, recipe)
-						end
+						cache.add_item(itemdef) -- probably hidden therefore not indexed previous. But Items with recipe should be allways visible
+						table.insert(cache.citems[itemname].in_craft_recipe, recipe)
 						cache.assign_to_group("ingredient:"..itemname, recipe_obj.out_item, filter.get("ingredient"))
 					end
 				end

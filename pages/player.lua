@@ -169,8 +169,9 @@ local function update_page(state)
 				is_button = true,
 				size = { w = 0.87, h = 1.30 }
 		})
-		if skin:get_meta("_key") == cur_skin:get_meta("_key") then
+		if not state.param.skins_initial_page_adjusted and skin:get_meta("_key") == cur_skin:get_meta("_key") then
 			grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
+			state.param.skins_initial_page_adjusted = true
 		end
 	end
 	grid_skins:setList(skins_grid_data)
