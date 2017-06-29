@@ -157,24 +157,26 @@ local function update_page(state)
 		else
 			state:get("skinlicense"):setText("")
 		end
-	end
-	state.param.skins_list = skins.get_skinlist("player:"..name, true)
-	local cur_skin = skins.get_player_skin(player_obj)
-	local skins_grid_data = {}
-	local grid_skins = state:get("skins_grid")
-	for idx, skin in ipairs(state.param.skins_list) do
-		table.insert(skins_grid_data, {
-				image = skin:get_preview(),
-				tooltip = skin:get_meta_string("name"),
-				is_button = true,
-				size = { w = 0.87, h = 1.30 }
-		})
-		if not state.param.skins_initial_page_adjusted and skin:get_key() == cur_skin:get_key() then
-			grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
-			state.param.skins_initial_page_adjusted = true
+
+		-- set the skins list
+		state.param.skins_list = skins.get_skinlist("player:"..name, true)
+		local cur_skin = skins.get_player_skin(player_obj)
+		local skins_grid_data = {}
+		local grid_skins = state:get("skins_grid")
+		for idx, skin in ipairs(state.param.skins_list) do
+			table.insert(skins_grid_data, {
+					image = skin:get_preview(),
+					tooltip = skin:get_meta_string("name"),
+					is_button = true,
+					size = { w = 0.87, h = 1.30 }
+			})
+			if not state.param.skins_initial_page_adjusted and skin:get_key() == cur_skin:get_key() then
+				grid_skins:setFirstVisible(idx - 19) --8x5 (grid size) / 2 -1
+				state.param.skins_initial_page_adjusted = true
+			end
 		end
+		grid_skins:setList(skins_grid_data)
 	end
-	grid_skins:setList(skins_grid_data)
 end
 
 local function move_item_to_armor(state, item)
