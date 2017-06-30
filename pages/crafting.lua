@@ -280,7 +280,7 @@ local function create_lookup_inv(state, name)
 				do_lookup_item(state, name, stack:get_name())
 
 				-- we are outsite of usual smartfs processing. So trigger the formspec update byself
-				smartfs.inv[name]:show()
+				state.location.rootState:show()
 
 				-- put back
 				minetest.after(1, function(stack)
@@ -529,6 +529,6 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 			local recipes = crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
 			update_from_recipelist(state, recipes, stack:get_name(), true)  -- replace_not_in_list=true
 		end
-		smartfs.inv[name]:show()
+		state.location.rootState:show()
 	end
 end)

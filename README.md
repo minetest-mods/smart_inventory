@@ -59,3 +59,4 @@ smart_inventory_shaped_groups (List of groups to be handled as separate) string 
 ```
 
 License: [LGPL-3](https://github.com/bell07/minetest-smart_inventory/blob/master/LICENSE)
+Textures: Workbench: WTFPL (credits: to xdecor project)

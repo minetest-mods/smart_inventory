@@ -1,5 +1,6 @@
-smartfs = smart_inventory.smartfs
+local smartfs = smart_inventory.smartfs
 local maininv = smart_inventory.maininv
+local modpath = smart_inventory.modpath
 
 -- smartfs callback
 local inventory_form = smartfs.create("smart_inventory:main", function(state)
@@ -78,7 +79,24 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	end
 	tab_controller:set_active(smart_inventory.registered_pages[1].name)
 end)
-smartfs.set_player_inventory(inventory_form)
+
+if minetest.settings:get_bool("smart_inventory_workbench_mode") then
+	dofile(modpath.."/workbench.lua")
+	smart_inventory.get_player_state = function(playername)
+		-- check the inventory is shown
+		local state = smartfs.opened[playername]
+		if state and (not state.obsolete) and
+				state.location.type == "player" and
+				state.def.name == "smart_inventory:main" then
+			return state
+		end
+	end
+else
+	smartfs.set_player_inventory(inventory_form)
+	smart_inventory.get_player_state = function(playername)
+		return smartfs.inv[playername]
+	end
+end
 
 -- pages list
 smart_inventory.registered_pages = {}
@@ -88,9 +106,11 @@ function smart_inventory.register_page(def)
 	table.insert(smart_inventory.registered_pages, def)
 end
 
+-- smart_inventory.get_player_state(playername) defined above
+
 -- get state of active page
 function smart_inventory.get_page_state(pagename, playername)
-	local rootstate = smart_inventory.smartfs.inv[playername]
+	local rootstate = smart_inventory.get_player_state(playername)
 	if not rootstate then
 		return
 	end

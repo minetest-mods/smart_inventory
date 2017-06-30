@@ -1,6 +1,8 @@
 # API definition to working together with smart_inventory
 
-## Register new page
+## Pages framework
+
+### Register page
 To get own page in smart_inventory the next register method should be used
 ```
 smart_inventory.register_page({
@@ -20,6 +22,16 @@ smart_inventory.register_page({
 - smartfs_callback(state) - smartfs callback function See [smartfs documentation](https://github.com/minetest-mods/smartfs/blob/master/docs) and existing pages implementations for reference.
 - sequence - The buttons are sorted by this number (crafting=10, creative=15, player=20)
 - on_button_click(state) - function called each page button click
+
+### Get the definition for registered smart_inventory page
+```smart_inventory.get_registered_page(pagename)```
+
+### Get smartfs state for players inventory
+```smart_inventory.get_player_state(playername)```
+Get the root smartfs state for players inventory. Note: In workbench mode the function return nil if the player does not have the form open
+
+### Get smartfs state for a registered page in players inventory
+```smart_inventory.get_page_state(pagename, playername)```
 
 ## Filter framework
 Smart_inventory uses a filter-framework for dynamic grouping in creative and crafting page. The filter framework allow to register additional classify filters for beter dynamic grouping results.
