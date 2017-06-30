@@ -182,6 +182,7 @@ end
 local function move_item_to_armor(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
+	local armor_inv = minetest.get_inventory({type="detached", name=name.."_armor"})
 
 	-- get item to be moved to armor inventory
 	local itemstack, itemname, itemdef
@@ -208,21 +209,24 @@ local function move_item_to_armor(state, item)
 			for groupname, groupdef in pairs(old_def.groups) do
 				if new_groups[groupname] then
 					table.insert(removed_items, stack)
-					stack = inventory:set_stack("armor", stack_index, {})
+					inventory:set_stack("armor", stack_index, {})
+					armor_inv:set_stack("armor", stack_index, {})
 				end
 			end
 		end
 	end
 
 	-- move the new item to the armor inventory
-	itemstack = inventory:add_item("armor", itemstack)
+	armor_inv:add_item("armor", itemstack)
+	itemstack = inventory:add_item("armor", itemstack) -- and return if does not match
 
 	-- handle put backs in non-creative to not lost items
 	if creative == false then
 		inventory:set_stack("main", item.stack_index, itemstack)
 		for _, stack in ipairs(removed_items) do
 			stack = inventory:add_item("main", stack)
-			stack = inventory:add_item("armor", stack)
+			inventory:add_item("armor", stack)
+			armor_inv:add_item("armor", stack)
 		end
 	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
@@ -231,12 +235,15 @@ end
 local function move_item_to_inv(state, item)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
+	local armor_inv = minetest.get_inventory({type="detached", name=name.."_armor"})
 	if creative == true then
 		inventory:set_stack("armor", item.stack_index, {})
+		armor_inv:set_stack("armor", item.stack_index, {})
 	else
 		local itemstack = inventory:get_stack("armor", item.stack_index)
 		itemstack = inventory:add_item("main", itemstack)
 		inventory:set_stack("armor", item.stack_index, itemstack)
+		armor_inv:set_stack("armor", item.stack_index, itemstack)
 	end
 	armor:set_player_armor(minetest.get_player_by_name(name))
 end
@@ -322,10 +329,7 @@ local function player_callback(state)
 		state.location.rootState:show()
 	end)
 
-	-- in case of armor mod the page is updated trough the hook call
-	if not smart_inventory.armor_mod then
-		update_page(state)
-	end
+	update_page(state)
 end
 
 smart_inventory.register_page({
