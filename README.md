@@ -55,7 +55,11 @@ smart_inventory_friendly_group_names (Show “friendly” filter grouping names)
 
 #List of groups defined for special handling of "Shaped nodes" (Comma separated).
 #Items in this groups ignores the "not_in_inventory" group and are moved to separate "Shaped" category
-smart_inventory_shaped_groups (List of groups to be handled as separate) string carpet,door,fence,stair,slab,wall,micro,panel,slope
+smart_inventory_shaped_groups (List of groups to be handled as separate) string carpet,door,fence,stair,slab,wall,micro,panel,slope,dye
+
+#If enabled, the the mod does not replace other inventory mods.
+#The functionality is provided in a workbench.
+smart_inventory_workbench_mode (Use workbench instead of players inventory) bool false
 ```
 
 License: [LGPL-3](https://github.com/bell07/minetest-smart_inventory/blob/master/LICENSE)
