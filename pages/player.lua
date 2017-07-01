@@ -22,6 +22,9 @@ local function update_grid(state, listname)
 	local name = state.location.rootState.location.player
 	local inventory = minetest.get_player_by_name(name):get_inventory()
 	local invlist = inventory:get_list(listname)
+	if not invlist then --timing issue. The list is not created
+		return
+	end
 
 	for stack_index, stack in ipairs(invlist) do
 		local itemdef = stack:get_definition()
