@@ -73,7 +73,6 @@ filter.base_group_config = {
 	unicolor = true,
 	food = 1,
 	customnode = true,
-	leafdecay = false,
 }
 
 -- hide this groups
