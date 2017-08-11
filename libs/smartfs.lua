@@ -182,7 +182,17 @@ smartfs._ldef.player = {
 			type = "player",
 			player = player,
 			_show_ = function(state)
-				minetest.show_formspec(state.location.player, state.def.name, state:_buildFormspec_(true))
+				if not state._show_queued then
+					state._show_queued = true
+					minetest.after(0, function(state)
+						if state then
+							state._show_queued = nil
+							if (not state.closed) and (not state.obsolete) then
+								minetest.show_formspec(state.location.player, state.def.name, state:_buildFormspec_(true))
+							end
+						end
+					end, state) -- state given as reference. Maybe additional updates are done in the meantime or the form is obsolete
+				end
 			end
 		}
 	end
@@ -200,9 +210,7 @@ smartfs._ldef.inventory = {
 			local state = smartfs._makeState_(form, nil, statelocation, name)
 			if form.form_setup_callback(state) ~= false then
 				smartfs.inv[name] = state
--- can be back to direct call if the issue is solved https://github.com/minetest/minetest_game/issues/1546
---				state:show()
-				minetest.after(1, state.show, state)
+				state:show()
 			end
 		end)
 		minetest.register_on_leaveplayer(function(player)
@@ -216,9 +224,17 @@ smartfs._ldef.inventory = {
 			type = "inventory",
 			player = name,
 			_show_ = function(state)
-				local player = minetest.get_player_by_name(state.location.player)
-				--print("smartfs formspec:", state:_buildFormspec_(true))
-				player:set_inventory_formspec(state:_buildFormspec_(true))
+				if not state._show_queued then
+					state._show_queued = true
+					minetest.after(0, function(state)
+						if state then
+							state._show_queued = nil
+							local player = minetest.get_player_by_name(state.location.player)
+							--print("smartfs formspec:", state:_buildFormspec_(true))
+							player:set_inventory_formspec(state:_buildFormspec_(true))
+						end
+					end, state)
+				end
 			end
 		}
 	end
@@ -231,9 +247,17 @@ smartfs._ldef.nodemeta = {
 			type = "nodemeta",
 			pos = nodepos,
 			_show_ = function(state)
-				local meta = minetest.get_meta(state.location.pos)
-				meta:set_string("formspec", state:_buildFormspec_(true))
-				meta:set_string("smartfs_name", state.def.name)
+				if not state._show_queued then
+					state._show_queued = true
+					minetest.after(0, function(state)
+						if state then
+							state._show_queued = nil
+							local meta = minetest.get_meta(state.location.pos)
+							meta:set_string("formspec", state:_buildFormspec_(true))
+							meta:set_string("smartfs_name", state.def.name)
+						end
+					end, state)
+				end
 			end,
 		}
 	end
