@@ -128,6 +128,8 @@ function maininv.get(playername)
 	local self = setmetatable({}, maininvClass)
 	self.playername = playername
 	self.inventory = minetest.get_player_by_name(playername):get_inventory()
+	self.inventory:set_width("craft", 3)
+	self.inventory:set_size("craft", 9)
 	return self
 end
 
