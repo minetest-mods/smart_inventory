@@ -43,10 +43,18 @@ Supported version: current stable 0.4.8
 tested only with my fork https://github.com/bell07/minetest-skinsdb
 But it should be work with any fork that uses skins.skins[] and have *_preview.png files
 
+## Doc page
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170812_012249.png)
+The vision is to get all ingame documentation available in a fast way. So navigation from crafting page is possible directly to the doc_item entry
+The doc and doc_items mods required to get the page
+
+
 ## Dependencies: 
 Screen size at least 1024x768 / big screen. On my mobile with "full HD" it does not work.
 Minetest stable 0.4.15 or newer
 default mod (some graphics are used from this mod)
+
+
 
 ## Settings
 ```
