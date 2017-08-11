@@ -317,6 +317,9 @@ local function player_callback(state)
 		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
 		grid_skins:onClick(function(self, state, index, player)
 			local cur_skin = state.param.skins_list[index]
+			if state.location.rootState.location.type ~= "inventory" and cur_skin._key:sub(1,17) == "character_creator" then
+				state.location.rootState.obsolete = true  -- other screen appears, obsolete the inventory session
+			end
 			skins.set_player_skin(player_obj, cur_skin)
 			if smart_inventory.armor_mod then
 				armor.textures[name].skin = cur_skin:get_texture()
