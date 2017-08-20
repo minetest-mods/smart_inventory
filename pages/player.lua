@@ -8,13 +8,6 @@ local ui_tools = smart_inventory.ui_tools
 local txt = smart_inventory.txt
 local creative = minetest.setting_getbool("creative_mode")
 
-local armor_type = {}
-if smart_inventory.armor_mod then
-	for _,v in ipairs(armor.elements) do
-		armor_type["armor:"..v] = true
-	end
-end
-
 local function update_grid(state, listname)
 -- Update the users inventory grid
 	local list = {}
@@ -26,30 +19,43 @@ local function update_grid(state, listname)
 		return
 	end
 
+	local list_dedup = {}
 	for stack_index, stack in ipairs(invlist) do
 		local itemdef = stack:get_definition()
 		local is_armor = false
-		if itemdef and cache.citems[itemdef.name] then
-			for groupname, groupinfo in pairs(cache.citems[itemdef.name].cgroups) do
-				if armor_type[groupname] then
-					local wear = stack:get_wear()
+		if itemdef and itemdef.armor_groups then
+			local wear = stack:get_wear()
 
-					local entry = {
-							itemdef = itemdef,
-							stack_index = stack_index,
-							-- buttons_grid related
-							item = itemdef.name,
-							is_button = true
-						}
-					if wear > 0 then
-						entry.text = tostring(math.floor((1 - wear / 65535) * 100 + 0.5)).." %"
-					end
-					table.insert(list, entry)
-					break
-				end
+			local entry = {
+					itemdef = itemdef,
+					stack_index = stack_index,
+					-- buttons_grid related
+					item = itemdef.name,
+					is_button = true
+				}
+			if wear > 0 then
+				entry.text = tostring(math.floor((1 - wear / 65535) * 100 + 0.5)).." %"
+			end
+			table.insert(list, entry)
+			list_dedup[itemdef.name] = itemdef
+		end
+	end
+
+	-- add all usable in creative available armor to the main list
+	if listname == "main" and creative == true then
+		for _, itemdef in pairs(cache.cgroups["armor"].items) do
+			if not list_dedup[itemdef.name] and not itemdef.groups.not_in_creative_inventory then
+				list_dedup[itemdef.name] = itemdef
+				table.insert(list, {
+						itemdef = itemdef,
+						-- buttons_grid related
+						item = itemdef.name,
+						is_button = true
+					})
 			end
 		end
 	end
+
 	table.sort(list, function(a,b)
 		return a.item < b.item
 	end)
@@ -66,6 +72,9 @@ local function update_selected_item(state, listentry)
 	end
 	local i_list = state:get("i_list")
 	i_list:clearItems()
+	if not cache.citems[listentry.itemdef.name] then -- not in creative (admin) armor are not in cache at the first
+		cache.add_item(listentry.itemdef)
+	end
 	for _, groupdef in ipairs(ui_tools.get_tight_groups(cache.citems[listentry.itemdef.name].cgroups)) do
 		i_list:addItem(groupdef.group_desc)
 	end
@@ -81,9 +90,7 @@ local function update_page(state)
 		skin_obj = skins.get_player_skin(player_obj)
 	end
 	if smart_inventory.armor_mod then
-		if creative == false then
-			update_grid(state, "main")
-		end
+		update_grid(state, "main")
 		update_grid(state, "armor")
 		state:get("preview"):setImage(armor.textures[name].preview)
 		state.location.parentState:get("player_button"):setImage(armor.textures[name].preview)
@@ -284,30 +291,6 @@ local function player_callback(state)
 			move_item_to_armor(state, state.param.armor_main_list[index])
 			update_page(state)
 		end)
-
-		if creative == true then
-			-- fill creative list once, not each page update
-			local list = {}
-			local list_dedup = {}
-			for armor_group, _ in pairs(armor_type) do
-				for _, itemdef in pairs(cache.cgroups[armor_group].items) do
-					list_dedup[itemdef.name] = itemdef
-				end
-			end
-			for _, itemdef in pairs(list_dedup) do
-				table.insert(list, {
-						itemdef = itemdef,
-						-- buttons_grid related
-						item = itemdef.name,
-						is_button = true
-					})
-			end
-			table.sort(list, function(a,b)
-				return a.item < b.item
-			end)
-			grid_main:setList(list)
-			state.param.armor_main_list = list
-		end
 	end
 
 	if smart_inventory.skins_mod then
