@@ -313,7 +313,7 @@ local function crafting_callback(state)
 	--Inventorys / left site
 	state:inventory(1, 5, 8, 4,"main")
 	state:inventory(1.2, 0.2, 3, 3,"craft")
-	state:inventory(4.2, 2.2, 1, 1,"craftpreview")
+	state:inventory(4.3, 1.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
 
 	-- swap slots buttons
