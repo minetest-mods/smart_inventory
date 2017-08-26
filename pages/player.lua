@@ -23,21 +23,24 @@ local function update_grid(state, listname)
 	for stack_index, stack in ipairs(invlist) do
 		local itemdef = stack:get_definition()
 		local is_armor = false
-		if itemdef and itemdef.armor_groups then
-			local wear = stack:get_wear()
+		if itemdef then
+			cache.add_item(itemdef) -- analyze groups in case of hidden armor
+			if cache.citems[itemdef.name].cgroups["armor"] then
+				local wear = stack:get_wear()
 
-			local entry = {
-					itemdef = itemdef,
-					stack_index = stack_index,
-					-- buttons_grid related
-					item = itemdef.name,
-					is_button = true
-				}
-			if wear > 0 then
-				entry.text = tostring(math.floor((1 - wear / 65535) * 100 + 0.5)).." %"
+				local entry = {
+						itemdef = itemdef,
+						stack_index = stack_index,
+						-- buttons_grid related
+						item = itemdef.name,
+						is_button = true
+					}
+				if wear > 0 then
+					entry.text = tostring(math.floor((1 - wear / 65535) * 100 + 0.5)).." %"
+				end
+				table.insert(list, entry)
+				list_dedup[itemdef.name] = itemdef
 			end
-			table.insert(list, entry)
-			list_dedup[itemdef.name] = itemdef
 		end
 	end
 
@@ -72,9 +75,6 @@ local function update_selected_item(state, listentry)
 	end
 	local i_list = state:get("i_list")
 	i_list:clearItems()
-	if not cache.citems[listentry.itemdef.name] then -- not in creative (admin) armor are not in cache at the first
-		cache.add_item(listentry.itemdef)
-	end
 	for _, groupdef in ipairs(ui_tools.get_tight_groups(cache.citems[listentry.itemdef.name].cgroups)) do
 		i_list:addItem(groupdef.group_desc)
 	end

@@ -116,9 +116,7 @@ local function update_crafting_preview(state)
 		end
 
 		group_list:clearItems()
-		if not cache.citems[listentry.itemdef.name] then -- not in creative items maybe not in the list.
-			cache.add_item(listentry.itemdef)            -- Note: this addition does not affect the already prepared root lists
-		end
+		cache.add_item(listentry.itemdef)            -- Note: this addition does not affect the already prepared root lists
 		if cache.citems[itemdef.name] then
 			for _, groupdef in ipairs(ui_tools.get_tight_groups(cache.citems[itemdef.name].cgroups)) do
 				group_list:addItem(groupdef.group_desc)
