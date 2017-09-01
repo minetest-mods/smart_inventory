@@ -17,26 +17,15 @@ function maininvClass:save_to_slot(slot)
 			savedata[idx] = stack:to_string()
 		end
 	end
-	local path = minetest.get_worldpath().."/smart_inventory_creative_"..self.playername.."_slot_"..tostring(slot)
-	local fd = io.open( path, 'w' )
-	if( fd ) then
-		fd:write( minetest.serialize(savedata))
-		fd:close()
-	end
+
+	local player = minetest.get_player_by_name(self.playername)
+	player:set_attribute("inv_save_slot_"..tostring(slot), minetest.serialize(savedata))
 end
 
 -- Get restore the inventory content from a slot (file)
 function maininvClass:restore_from_slot(slot)
-	local savedata
-	local path = minetest.get_worldpath().."/smart_inventory_creative_"..self.playername.."_slot_"..tostring(slot)
-	local fd = io.open( path, 'r' )
-	if( fd ) then
-		local data = fd:read("*all");
-		fd:close()
-		if data then
-			savedata = minetest.deserialize( data );
-		end
-	end
+	local player = minetest.get_player_by_name(self.playername)
+	local savedata = minetest.deserialize(player:get_attribute("inv_save_slot_"..tostring(slot)))
 	if savedata then
 		for idx = 1, self.inventory:get_size("main") do
 			self.inventory:set_stack("main", idx, savedata[idx])
