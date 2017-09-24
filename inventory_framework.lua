@@ -36,8 +36,7 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	state:size(20,12)
 	state:label(1,0.2,"header","Smart Inventory")
 	state:image(0,0,1,1,"header_logo", "logo.png")
---	state:image_button(19,0,1,1,"exit", "Exit","???.png", true)
-	state:button(19,0,1,1,"exit", "Exit", true)
+	state:image_button(19,0,1,1,"exit", "","smart_inventory_exit_button.png", true):setTooltip("Close the inventory")
 	local button_x = 0.1
 	table.sort(smart_inventory.registered_pages, function(a,b)
 		if not a.sequence then

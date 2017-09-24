@@ -426,5 +426,24 @@ local function prepare_root_lists()
 end
 cache.register_on_cache_filled(prepare_root_lists)
 
+-----------------------------------------------------
+-- Take a visual feedback on pressing button since the minetest client does nothing visible on pressing button
+-----------------------------------------------------
+function ui_tools.image_button_feedback(playername, page, element)
+	local function reset_background(playername, page, element)
+		local state = smart_inventory.get_page_state(page, playername)
+		if state then
+			state:get(element):setBackground(nil)
+			state.location.rootState:show()
+		end
+	end
+
+	local state = smart_inventory.get_page_state(page, playername)
+	if state then
+		state:get(element):setBackground("halo.png")
+		minetest.after(0.3, reset_background, playername, page, element)
+	end
+
+end
 --------------------------------
 return ui_tools

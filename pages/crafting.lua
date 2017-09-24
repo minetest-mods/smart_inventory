@@ -332,11 +332,17 @@ local function crafting_callback(state)
 	state:image(8,9,1,1,"trash_icon","creative_trash_icon.png")
 	state:inventory(8, 9, 1, 1, "trash"):useDetached(player.."_trash_inv")
 
-	state:button(1, 4.2, 2, 0.5, "compress", "Compress"):onClick(function(self, state, player)
+	local btn_compress = state:image_button(1, 3.8, 1, 1, "compress", "","smart_inventory_compress_button.png")
+	btn_compress:setTooltip("Merge stacks with same items to get free place")
+	btn_compress:onClick(function(self, state, player)
+		ui_tools.image_button_feedback(player, "crafting", "compress")
 		state.param.invobj:compress()
 	end)
 
-	state:button(3, 4.2, 2, 0.5, "clear", "Sweep"):onClick(function(self, state, player)
+	local btn_sweep = state:image_button(2, 3.8, 1, 1, "clear", "", "smart_inventory_sweep_button.png")
+	btn_sweep:setTooltip("Move all items from crafting grid back to inventory")
+	btn_sweep:onClick(function(self, state, player)
+		ui_tools.image_button_feedback(player, "crafting", "clear")
 		state.param.invobj:sweep_crafting_inventory()
 	end)
 
@@ -416,12 +422,15 @@ local function crafting_callback(state)
 
 	-- Lookup
 	create_lookup_inv(state, player)
-	state:image(10, 4, 1, 1,"lookup_icon", "default_bookshelf_slot.png")
-	state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
+	state:image(10, 4, 1, 1,"lookup_icon", "smart_inventory_lookup_field.png")
+	local inv_lookup = state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
+
 
 	-- Get craftable by items in inventory
-	local craftable_button = state:button(11, 4.2, 2, 0.5, "craftable", "Craftable")
-	craftable_button:onClick(function(self, state, player)
+	local btn_craftable = state:image_button(11, 4, 1, 1, "craftable", "", "smart_inventory_craftable_button.png")
+	btn_craftable:setTooltip("Show items crafteable by items in inventory")
+	btn_craftable:onClick(function(self, state, player)
+		ui_tools.image_button_feedback(player, "crafting", "craftable")
 		-- reset group selection and search field on proposal mode change
 		if state.param.survival_proposal_mode ~= "craftable" then
 			state.param.survival_proposal_mode = "craftable"
@@ -482,7 +491,7 @@ local function crafting_callback(state)
 	end)
 
 	-- initial values
-	craftable_button:submit("not used fieldname", state.location.rootState.location.player)
+	btn_craftable:submit("not used fieldname", state.location.rootState.location.player)
 end
 
 -----------------------------------------------------
