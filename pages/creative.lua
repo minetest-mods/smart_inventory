@@ -147,7 +147,7 @@ local function creative_callback(state)
 
 	-- trash button
 	local trash_all = state:button(7,9,1,1, "trash_all", "Trash all")
-	trash_all:setImage("creative_trash_icon.png")
+	trash_all:setImage("smart_inventory_trash_all_button.png")
 	trash_all:onClick(function(self, state, player)
 		state.param.invobj:remove_all()
 	end)
@@ -184,7 +184,7 @@ end
 smart_inventory.register_page({
 	name = "creative",
 	tooltip = "The creative way to get items",
-	icon = "default_chest_front.png",
+	icon = "smart_inventory_creative_button.png",
 	smartfs_callback = creative_callback,
 	sequence = 15
 })

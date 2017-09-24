@@ -500,7 +500,7 @@ end
 smart_inventory.register_page({
 	name = "crafting",
 	tooltip = "Craft new items",
-	icon = "inventory_btn.png",
+	icon = "smart_inventory_crafting_inventory_button.png",
 	smartfs_callback = crafting_callback,
 	sequence = 10
 })
