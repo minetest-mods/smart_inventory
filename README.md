@@ -71,4 +71,6 @@ smart_inventory_workbench_mode (Use workbench instead of players inventory) bool
 ```
 
 License: [LGPL-3](https://github.com/bell07/minetest-smart_inventory/blob/master/LICENSE)
-Textures: Workbench: WTFPL (credits: to xdecor project)
+Textures:
+  - Workbench: WTFPL (credits: to xdecor project)
+  - Buttons: WTFPL (credits to Stix (Minetest-forum))
