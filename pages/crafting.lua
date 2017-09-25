@@ -401,25 +401,6 @@ local function crafting_callback(state)
 	inf_state:listbox(12, 2, 5.7, 1.3, "item_groups",nil, true)
 	inf_area:setVisible(false)
 
-	-- Reveal tipps button
-	if smart_inventory.doc_items_mod then
-		local reveal_button = state:button(7, 4.2, 2, 0.5, "reveal_tipp", "Reveal tipps")
-		reveal_button:onClick(function(self, state, player)
-			local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player)
-			local top_revealed = ui_tools.filter_by_top_reveal(all_revealed, player)
-			state.param.crafting_recipes_preview_selected = 1
-			state.param.crafting_recipes_preview_listentry = top_revealed[1] or {}
-			update_crafting_preview(state)
-			state.param.crafting_grouped_items = ui_tools.get_list_grouped(top_revealed)
-			-- reset group selection if proposal mode is changed
-			if state.param.survival_proposal_mode ~= "tipp" then
-				state.param.survival_proposal_mode = "tipp"
-				state:get("groups_sel"):setSelected(1)
-			end
-			update_group_selection(state, true)
-		end)
-	end
-
 	-- Lookup
 	create_lookup_inv(state, player)
 	state:image(10, 4, 1, 1,"lookup_icon", "smart_inventory_lookup_field.png")
@@ -444,6 +425,26 @@ local function crafting_callback(state)
 			state:get("info_tog"):submit()
 		end
 	end)
+
+	-- Reveal tipps button
+	if smart_inventory.doc_items_mod then
+		local reveal_button = state:image_button(12, 4, 1, 1, "reveal_tipp", "", "smart_inventory_reveal_tips_button.png")
+		reveal_button:setTooltip("Show proposal what should be crafted to reveal more items")
+		reveal_button:onClick(function(self, state, player)
+			local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player)
+			local top_revealed = ui_tools.filter_by_top_reveal(all_revealed, player)
+			state.param.crafting_recipes_preview_selected = 1
+			state.param.crafting_recipes_preview_listentry = top_revealed[1] or {}
+			update_crafting_preview(state)
+			state.param.crafting_grouped_items = ui_tools.get_list_grouped(top_revealed)
+			-- reset group selection if proposal mode is changed
+			if state.param.survival_proposal_mode ~= "tipp" then
+				state.param.survival_proposal_mode = "tipp"
+				state:get("groups_sel"):setSelected(1)
+			end
+			update_group_selection(state, true)
+		end)
+	end
 
 	-- search
 	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")

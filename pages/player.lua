@@ -260,17 +260,17 @@ end
 
 local function player_callback(state)
 	local name = state.location.rootState.location.player
-	state:background(0, 2.3, 6, 4.6, "it_bg", "minimap_overlay_square.png")
-	state:label(2,5,"item_name", "")
-	state:listbox(2.2,2.5,3.2,2.5,"i_list", nil, true)
-	state:item_image(0,3.5,2,2,"item_image","")
+	state:background(0, 1.2, 6, 6.6, "it_bg", "smart_inventory_background_border.png")
+	state:item_image(0.8, 1.5,2,2,"item_image","")
+	state:label(2.5,1.2,"item_name", "")
+	state:listbox(0.8,3.3,5.1,4,"i_list", nil, true)
 
-	state:background(6.7, 2.3, 6, 4.6, "pl_bg", "minimap_overlay_square.png")
-	state:image(7,3.0,2,4,"preview","")
-	state:listbox(9.2,2.5,3.2,2.5,"a_list", nil, true)
-	state:label(9,5.0,"skinname","")
-	state:label(9,5.5,"skinauthor", "")
-	state:label(9,6.0, "skinlicense", "")
+	state:background(6.2, 1.2, 6, 6.6, "pl_bg", "smart_inventory_background_border.png")
+	state:image(6.7,1.7,2,4,"preview","")
+	state:listbox(8.6,1.7,3.5,3,"a_list", nil, true)
+	state:label(6.7,5.5,"skinname","")
+	state:label(6.7,6.0,"skinauthor", "")
+	state:label(6.7,6.5, "skinlicense", "")
 
 	state:background(0, 0, 20, 1, "top_bg", "halo.png")
 	state:background(0, 8, 20, 2, "bottom_bg", "halo.png")
@@ -296,8 +296,8 @@ local function player_callback(state)
 	if smart_inventory.skins_mod then
 		local player_obj = minetest.get_player_by_name(name)
 		-- Skins Grid
-		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 13.1, 1.3, 7 , 7, "skins_grid", 0.87, 1.30)
-		state:background(13, 1, 7 , 7, "bg_skins", "minimap_overlay_square.png")
+		local grid_skins = smart_inventory.smartfs_elements.buttons_grid(state, 12.9, 1.5, 7 , 7, "skins_grid", 0.80, 1.20)
+		state:background(12.4, 1.2, 7.5 , 6.6, "bg_skins", "smart_inventory_background_border.png")
 		grid_skins:onClick(function(self, state, index, player)
 			local cur_skin = state.param.skins_list[index]
 			if state.location.rootState.location.type ~= "inventory" and cur_skin._key:sub(1,17) == "character_creator" then
