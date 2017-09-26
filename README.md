@@ -6,7 +6,7 @@ A fast Minetest inventory with focus on a great number of items and big screens.
 The mod is organized in multiple pages, each page does have own focus and follow own vision.
 
 ## Crafting page
-![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot.png)
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_crafting.png)
 The vision is to not affect the gameplay trough crafting helpers. The dynamic search helper display currently relevant craft recipes only based on inventory content by default.
 - Contains the usual player-, and crafting inventory
 - Additional view of "craftable items" based on players inventory content
@@ -22,7 +22,7 @@ A lookup button is available on already known items to jump to the documntation 
 
 
 ## Creative page
-![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170408_221250.png)
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_creative.png)
 The vision is to get items fast searchable and gettable
 - 3 dynamic filters + text search field for fast items search
 - Sort out "mass"-groups to a special "Shaped" group
@@ -32,7 +32,7 @@ The vision is to get items fast searchable and gettable
 - save and restore inventory content in 3x save slots
 
 ## Player page
-![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170317_175415.png)
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_player.png)
 The vision is to get all skins and player customizations visual exposed.
 
 ### 3d_armor
@@ -44,7 +44,7 @@ tested only with my fork https://github.com/bell07/minetest-skinsdb
 But it should be work with any fork that uses skins.skins[] and have *_preview.png files
 
 ## Doc page
-![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_20170812_012249.png)
+![Screenshot](https://github.com/bell07/minetest-smart_inventory/blob/master/screenshot_doc.png)
 The vision is to get all ingame documentation available in a fast way. So navigation from crafting page is possible directly to the doc_item entry
 The doc and doc_items mods required to get the page
 
