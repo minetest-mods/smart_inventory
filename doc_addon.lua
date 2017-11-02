@@ -52,9 +52,11 @@ function doc_addon.get_category_list()
 				local entries_data = {}
 				for _, eid in ipairs(doc.get_sorted_entry_names(category_name)) do
 					local entry = doc.data.categories[category_name].entries[eid]
-					local edata = {cid = category_name, cid_data = category, eid = eid, data = entry}
-					table.insert(entries_data, edata)
-					if entry.data.itemstring then
+					if entry.data.itemstring and
+							minetest.registered_items[entry.data.itemstring] and
+							entry.data.def == minetest.registered_items[entry.data.itemstring] then
+						local edata = {cid = category_name, cid_data = category, eid = eid, data = entry}
+						table.insert(entries_data, edata)
 						doc_item_entries[entry.data.itemstring] = edata
 					end
 				end
