@@ -75,9 +75,9 @@ end
 -- Smartfs Interface - Returns the name of an installed and supported inventory mod that will be used above, or nil
 ------------------------------------------------------
 function smartfs.inventory_mod()
-	if unified_inventory then
+	if minetest.global_exists("unified_inventory") then
 		return "unified_inventory"
-	elseif inventory_plus then
+	elseif minetest.global_exists("inventory_plus") then
 		return "inventory_plus"
 	else
 		return nil
@@ -424,12 +424,6 @@ function smartfs._makeState_(form, params, location, newplayer)
 		return self
 	end
 
-	local compat_is_inv
-	if location.type == "inventory" then
-		compat_is_inv = true
-	else
-		compat_is_inv = false
-	end
 
 	------------------------------------------------------
 	-- State - create returning state object
@@ -439,8 +433,8 @@ function smartfs._makeState_(form, params, location, newplayer)
 		def = form,
 		players = _make_players_(newplayer),
 		location = location,
-		is_inv = compat_is_inv, -- obsolete / compatibility
-		player = newplayer, -- obsolete / compatibility
+		is_inv = (location.type == "inventory"), -- obsolete. Please use location.type="inventory" instead
+		player = newplayer, -- obsolete. Please use location.player
 		param = params or {},
 		get = function(self,name)
 			return self._ele[name]
@@ -513,20 +507,24 @@ function smartfs._makeState_(form, params, location, newplayer)
 		end,
 		-- Receive fields and actions from formspec
 		_sfs_on_receive_fields_ = function(self, player, fields)
-			-- fields assignment
+
+			local fields_todo = {}
 			for field, value in pairs(fields) do
 				local element = self:_get_element_recursive_(field)
 				if element then
-					element:setValue(value)
+					fields_todo[field] = { element = element, value = value }
 				end
 			end
-			-- process onInput hooks
+
+			for field, todo in pairs(fields_todo) do
+				todo.element:setValue(todo.value)
+			end
+
 			self:_sfs_process_oninput_(fields, player)
-			-- do actions
-			for field, value in pairs(fields) do
-				local element = self:_get_element_recursive_(field)
-				if element and element.submit then
-					element:submit(value, player)
+
+			for field, todo in pairs(fields_todo) do
+				if todo.element.submit then
+					todo.element:submit(todo.value, player)
 				end
 			end
 			-- handle key_enter
@@ -536,7 +534,7 @@ function smartfs._makeState_(form, params, location, newplayer)
 					element:submit_key_enter(fields[fields.key_enter_field], player)
 				end
 			end
-			-- handle quit/exit
+
 			if not fields.quit and not self.closed and not self.obsolete then
 				self:show()
 			else
