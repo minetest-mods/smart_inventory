@@ -209,9 +209,9 @@ filter.register_filter({
 local shaped_groups = {}
 local shaped_list = minetest.setting_get("smart_inventory_shaped_groups") or "carpet,door,fence,stair,slab,wall,micro,panel,slope"
 if shaped_list then
-	shaped_list:gsub("[^,]+", function(z)
+	for z in shaped_list:gmatch("[^,]+") do
 		shaped_groups[z] = true
-	end)
+	end
 end
 
 filter.register_filter({

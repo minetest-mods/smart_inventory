@@ -97,11 +97,12 @@ local function update_crafting_preview(state)
 		inf_state:get("doc_btn"):setVisible(false)
 		local outitem = craft_result:getImage()
 		if outitem then
-			outitem:gsub("[^%s]+", function(z)
+			for z in outitem:gmatch("[^%s]+") do
 				if doc_addon.is_revealed_item(z, player) then
 					inf_state:get("doc_btn"):setVisible(true)
 				end
-			end)
+				break
+			end
 		end
 	end
 
@@ -391,11 +392,12 @@ local function crafting_callback(state)
 		doc_btn:onClick(function(self, state, player)
 			local outitem = state:get("craft_result"):getImage()
 			if outitem then
-				outitem:gsub("[^%s]+", function(z)
+				for z in outitem:gmatch("[^%s]+") do
 					if minetest.registered_items[z] then
 						doc_addon.show(z, player)
 					end
-				end)
+					break
+				end
 			end
 		end)
 	end

@@ -22,12 +22,13 @@ function crecipe_class:analyze()
 		out_itemname = minetest.registered_aliases[out_itemname] or out_itemname
 		self.out_item = minetest.registered_items[out_itemname]
 		if not self.out_item then
-			out_itemname:gsub("[^%s]+", function(z)
+			for z in out_itemname:gmatch("[^%s]+") do
 				local item = minetest.registered_aliases[z] or z
 				if minetest.registered_items[item] then
 					self.out_item = minetest.registered_items[item]
 				end
-			end)
+				break
+			end
 		end
 	else
 		return false
