@@ -80,6 +80,35 @@ end
 local function creative_callback(state)
 	local player = state.location.rootState.location.player
 
+	-- build up UI controller
+	local ui_controller = {}
+	ui_controller.state = state
+	state.param.creative_ui_controller = ui_controller
+
+	function ui_controller:set_ui_variant(new_ui)
+		-- check if change needed
+		if new_ui == self.ui_toggle then
+			return
+		end
+
+		-- toggle show/hide elements
+		if new_ui == 'list_small' then
+			self.ui_toggle = new_ui
+			self.state:get("groups_sel2"):setVisible(true)
+			self.state:get("groups_sel3"):setVisible(true)
+			self.state:get("buttons_grid"):reset(9.55, 3.75, 9.0 , 6.5)
+			self.state:get("buttons_grid_bg"):setPosition(9.2, 3.5)
+			self.state:get("buttons_grid_bg"):setSize(9.5, 6.5)
+		elseif new_ui == 'list_big' then
+			self.ui_toggle = new_ui
+			self.state:get("groups_sel2"):setVisible(false)
+			self.state:get("groups_sel3"):setVisible(false)
+			self.state:get("buttons_grid"):reset(9.55, 0.25, 9.0 , 10)
+			self.state:get("buttons_grid_bg"):setPosition(9.2, 0)
+			self.state:get("buttons_grid_bg"):setSize(9.5, 10)
+		end
+	end
+
 	-- groups 1-3
 	local group_sel1 = state:listbox(1, 0.15, 5.6, 3, "groups_sel1",nil, false)
 	group_sel1:onClick(function(self, state, player)
@@ -109,7 +138,7 @@ local function creative_callback(state)
 	end)
 
 	-- functions
-	local searchfield = state:field(5.3, 4.2, 4, 0.5, "search")
+	local searchfield = state:field(1.3, 4.1, 5.8, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -118,6 +147,17 @@ local function creative_callback(state)
 		filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_shape, search_string)
 		state.param.creative_grouped_shape_items = filtered_list
 		update_group_selection(state, 0)
+	end)
+
+	-- groups toggle
+	local btn_toggle = state:toggle(7, 3.8,2,0.5, "btn_tog", {"Groups", "Hide"})
+	btn_toggle:onToggle(function(self, state, player)
+		local id = self:getId()
+		if id == 1 then
+			state.param.creative_ui_controller:set_ui_variant("list_small")
+		elseif id == 2 then
+			state.param.creative_ui_controller:set_ui_variant("list_big")
+		end
 	end)
 
 	-- craftable items grid

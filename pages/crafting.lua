@@ -255,7 +255,7 @@ end
 -----------------------------------------------------
 -- Lookup inventory
 -----------------------------------------------------
-local function create_lookup_inv(state, name)
+local function create_lookup_inv(name)
 	local player = minetest.get_player_by_name(name)
 	local invname = name.."_crafting_inv"
 	local plistname = "crafting_inv_lookup"
@@ -312,6 +312,71 @@ end
 -----------------------------------------------------
 local function crafting_callback(state)
 	local player = state.location.rootState.location.player
+
+	-- build up UI controller
+	local ui_controller = {}
+	ui_controller.state = state
+	state.param.crafting_ui_controller = ui_controller
+
+	function ui_controller:set_ui_variant(new_ui)
+		-- check if change needed
+		if new_ui == self.toggle1 or new_ui == self.toggle2 then
+			return
+		end
+
+		-- toggle show/hide elements
+		if new_ui == 'list_small' then
+			self.toggle1 = new_ui
+			self.state:get("craft_img2"):setVisible(true)  --rahmen oben
+			self.state:get("lookup_icon"):setPosition(10, 4)
+			self.state:get("lookup"):setPosition(10, 4)
+			self.state:get("craftable"):setPosition(11, 4)
+			if smart_inventory.doc_items_mod then
+				self.state:get("reveal_tipp"):setPosition(12, 4)
+			end
+			self.state:get("search"):setPosition(13.3, 4.5)
+			self.state:get("info_tog"):setPosition(16, 4.2)
+
+			self.state:get("buttons_grid_Bg"):setPosition(10, 5)
+			self.state:get("buttons_grid_Bg"):setSize(8, 4)
+			self.state:get("buttons_grid"):reset(10.25, 5.15, 8, 4)
+
+		elseif new_ui == 'list_big' then
+			self.toggle1 = new_ui
+			self.state:get("craft_img2"):setVisible(false)  --rahmen oben
+			self.state:get("lookup_icon"):setPosition(10, 0)
+			self.state:get("lookup"):setPosition(10, 0)
+			self.state:get("craftable"):setPosition(11, 0)
+			if smart_inventory.doc_items_mod then
+				self.state:get("reveal_tipp"):setPosition(12, 0)
+			end
+			self.state:get("search"):setPosition(13.3, 0.5)
+			self.state:get("info_tog"):setPosition(16, 0.2)
+
+			self.state:get("groups_sel"):setVisible(false)
+			self.state:get("inf_area"):setVisible(false)
+
+			self.state:get("buttons_grid_Bg"):setPosition(10, 1)
+			self.state:get("buttons_grid_Bg"):setSize(8, 8)
+			self.state:get("buttons_grid"):reset(10.25, 1.15, 8, 8)
+			self.state:get("info_tog"):setId(3)
+		else
+			self.toggle2 = new_ui
+		end
+
+		if self.toggle1 == 'list_small' then
+			if self.toggle2 == 'info' then
+				self.state:get("groups_sel"):setVisible(false)
+				self.state:get("inf_area"):setVisible(true)
+				self.state:get("info_tog"):setId(1)
+			elseif self.toggle2 == 'groups' then
+				self.state:get("groups_sel"):setVisible(true)
+				self.state:get("inf_area"):setVisible(false)
+				self.state:get("info_tog"):setId(2)
+			end
+		end
+	end
+
 
 	-- set inventory style
 	state:element("code", {name = "inventory_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
@@ -422,7 +487,7 @@ local function crafting_callback(state)
 	inf_area:setVisible(false)
 
 	-- Lookup
-	create_lookup_inv(state, player)
+	create_lookup_inv(player)
 	state:image(10, 4, 1, 1,"lookup_icon", "smart_inventory_lookup_field.png")
 	local inv_lookup = state:inventory(10, 4.0, 1, 1,"lookup"):useDetached(player.."_crafting_inv")
 
@@ -441,9 +506,7 @@ local function crafting_callback(state)
 		state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 		local craftable = crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
-		if state:get("info_tog"):getId() == 2 then
-			state:get("info_tog"):submit()
-		end
+		state.param.crafting_ui_controller:set_ui_variant("groups")
 	end)
 
 	-- Reveal tipps button
@@ -487,14 +550,17 @@ local function crafting_callback(state)
 	end)
 
 	-- groups toggle
-	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups"})
+	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups", "Hide"})
 	info_tog:onToggle(function(self, state, player)
-		if self:getId() == 2 then
-			state:get("inf_area"):setVisible(true)
-			state:get("groups_sel"):setVisible(false)
-		else
-			state:get("inf_area"):setVisible(false)
-			state:get("groups_sel"):setVisible(true)
+		local id = self:getId()
+		if id == 1 then
+			state.param.crafting_ui_controller:set_ui_variant("list_small")
+			state.param.crafting_ui_controller:set_ui_variant("info")
+		elseif id == 2 then
+			state.param.crafting_ui_controller:set_ui_variant("list_small")
+			state.param.crafting_ui_controller:set_ui_variant("groups")
+		elseif id == 3 then
+			state.param.crafting_ui_controller:set_ui_variant("list_big")
 		end
 	end)
 
@@ -506,12 +572,11 @@ local function crafting_callback(state)
 		state.param.crafting_recipes_preview_selected = 1
 		state.param.crafting_recipes_preview_listentry = listentry
 		update_crafting_preview(state)
-		if state:get("info_tog"):getId() == 1 then
-			state:get("info_tog"):submit()
-		end
+		state.param.crafting_ui_controller:set_ui_variant("info")
 	end)
 
 	-- initial values
+	state.param.crafting_ui_controller:set_ui_variant("groups")
 	btn_craftable:submit("not used fieldname", state.location.rootState.location.player)
 end
 

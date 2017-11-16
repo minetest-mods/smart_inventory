@@ -138,8 +138,8 @@ function buttons_grid:onCreate()
 	end
 	self:setSize(self.data.size.w, self.data.size.h) -- view size for background
 	self.data.grid_size = {w = math.floor(self.data.size.w/self.data.cell_size.w), h = math.floor(self.data.size.h/self.data.cell_size.h)}
-	self.data.list_start = 1
-	self.data.list = {}
+	self.data.list_start = self.data.list_start  or 1
+	self.data.list = self.data.list or {}
 	for x = 1, self.data.grid_size.w do
 		for y=1, self.data.grid_size.h do
 			local button = self._state:button(
@@ -182,6 +182,21 @@ function buttons_grid:onCreate()
 		end
 	end
 end
+
+function buttons_grid:reset(x, y, w, h, col_size, row_size)
+	self._state = nil
+
+	self.data.pos.x = x or self.data.pos.x
+	self.data.pos.y = y or self.data.pos.y
+	self.data.size.w = w or self.data.size.w
+	self.data.size.h = h or self.data.size.h
+	self.data.cell_size.w = col_size or self.data.cell_size.w
+	self.data.cell_size.h = row_size or self.data.cell_size.h
+
+	self:onCreate()
+	self:update()
+end
+
 function buttons_grid:onClick(func)
 	self._click = func
 end
