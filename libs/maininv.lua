@@ -88,6 +88,25 @@ function maininvClass:compress()
 	end
 end
 
+-- move items to crafting grid to craft item
+function maininvClass:craft_item(grid)
+	for idx_main, stack_main in ipairs(self.inventory:get_list("main")) do
+		for x, col in pairs(grid) do
+			for y, item in pairs(col) do
+				local idx_craft = (y-1)*3+x
+				local stack_craft = self.inventory:get_stack("craft", idx_craft )
+				if not stack_main:is_empty() and stack_main:get_name() == item then --right item
+					local left = stack_craft:add_item(stack_main:take_item(1))
+					stack_main:add_item(left)
+					self.inventory:set_stack("craft", idx_craft, stack_craft)
+					self.inventory:set_stack("main", idx_main, stack_main)
+				end
+			end
+		end
+	end
+end
+
+
 -- move all items from crafting inventory back to main inventory
 function maininvClass:sweep_crafting_inventory()
 	for idx = 1, self.inventory:get_size("craft") do

@@ -73,17 +73,21 @@ local function update_crafting_preview(state)
 			state:get("cr_type"):setText("")
 			cr_type_img:setVisible(true)
 			cr_type_img:setImage("default_furnace_front.png")
+			state:get("ac1"):setVisible(false)
 		else
 			state:get("cr_type"):setText(recipe.type)
 			cr_type_img:setVisible(false)
+			state:get("ac1"):setVisible(false)
 		end
 		craft_result:setImage(recipe.output)
 		craft_result:setVisible()
 		state:get("craft_preview"):setCraft(recipe)
+		state:get("ac1"):setVisible(true)
 	else
 		state:get("cr_type"):setText("")
 		state:get("craft_preview"):setCraft(nil)
 		cr_type_img:setVisible(false)
+		state:get("ac1"):setVisible(false)
 		if itemdef then
 			craft_result:setVisible(true)
 			craft_result:setImage(itemdef.name)
@@ -317,6 +321,17 @@ local function crafting_callback(state)
 	state:inventory(1.2, 0.2, 3, 3,"craft")
 	state:inventory(4.3, 1.2, 1, 1,"craftpreview")
 	state:background(1, 0, 4.5, 3.5, "img1", "menu_bg.png")
+
+
+	-- crafting helper buttons
+--	local btn_ac1 = state:image_button(4.3, 0.2, 1, 1, "ac1", "", "???.png")
+	local btn_ac1 = state:button(4.3, 0.2, 1, 1, "ac1", "Craft")
+	btn_ac1:onClick(function(self, state, player)
+--		ui_tools.image_button_feedback(player, "crafting", "ac1")
+		local grid = state:get("craft_preview"):getCraft()
+		state.param.invobj:craft_item(grid)
+	end)
+	btn_ac1:setVisible(false)
 
 	-- swap slots buttons
 	state:image_button(0, 6, 1, 1, "swap1", "", "smart_inventory_swapline_button.png"):onClick(function(self, state, player)

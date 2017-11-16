@@ -82,6 +82,21 @@ function craft_preview:setCraft(craft)
 	end
 end
 
+-- get the preview as table
+function craft_preview:getCraft()
+	local grid = {}
+	for x = 1, 3 do
+		grid[x] = {}
+		for y = 1, 3 do
+			local button = self._state:get("craft:"..x..":"..y)
+			if button:getVisible() then
+				grid[x][y] = button:getItem()
+			end
+		end
+	end
+	return grid
+end
+
 smartfs.element("craft_preview", craft_preview)
 
 function elements:craft_preview(x, y, name, zoom, recipe)
