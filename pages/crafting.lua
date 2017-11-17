@@ -68,6 +68,7 @@ local function update_crafting_preview(state)
 		if recipe.type == "normal" then
 			state:get("cr_type"):setText("")
 			cr_type_img:setVisible(false)
+			state:get("ac1"):setVisible(true)
 		elseif recipe.type == "cooking" then
 			state:get("cr_type"):setText(recipe.type)
 			state:get("cr_type"):setText("")
@@ -82,7 +83,6 @@ local function update_crafting_preview(state)
 		craft_result:setImage(recipe.output)
 		craft_result:setVisible()
 		state:get("craft_preview"):setCraft(recipe)
-		state:get("ac1"):setVisible(true)
 	else
 		state:get("cr_type"):setText("")
 		state:get("craft_preview"):setCraft(nil)
