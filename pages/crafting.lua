@@ -243,13 +243,7 @@ local function do_lookup_item(state, playername, lookup_item)
 	-- get all craftable recipes with lookup-item as ingredient. Add recipes of lookup item to the list
 	local recipes = crecipes.get_revealed_recipes_with_items(playername, {[lookup_item] = true })
 	update_from_recipelist(state, recipes, lookup_item)
-
-	-- reset group selection and search field on proposal mode change
-	if state.param.survival_proposal_mode ~= "lookup" then
-		state.param.survival_proposal_mode = "lookup"
-		state:get("groups_sel"):setSelected(1)
-		state:get("search"):setText("")
-	end
+	state.param.crafting_ui_controller:update_list_variant("lookup", lookup_item)
 end
 
 -----------------------------------------------------
@@ -316,6 +310,7 @@ local function crafting_callback(state)
 	-- build up UI controller
 	local ui_controller = {}
 	ui_controller.state = state
+	ui_controller.player =  minetest.get_player_by_name(state.location.rootState.location.player)
 	state.param.crafting_ui_controller = ui_controller
 
 	function ui_controller:set_ui_variant(new_ui)
@@ -377,9 +372,13 @@ local function crafting_callback(state)
 				self.state:get("info_tog"):setId(2)
 			end
 		end
+		self:save()
 	end
 
-	function ui_controller:update_list_variant(list_variant)
+	function ui_controller:update_list_variant(list_variant, add_info)
+
+		self.add_info = add_info
+
 		-- reset group selection and search field on proposal mode change
 		if self.list_variant ~= list_variant then
 			self.list_variant = list_variant
@@ -391,6 +390,45 @@ local function crafting_callback(state)
 
 		-- switch to the groups view
 		state.param.crafting_ui_controller:set_ui_variant("groups")
+		self:save()
+	end
+
+	function ui_controller:save()
+		local savedata = minetest.deserialize(self.player:get_attribute("smart_inventory_settings")) or {}
+		savedata.survival_list_variant = self.list_variant
+		savedata.survival_toggle1 = self.toggle1
+		savedata.survival_toggle2 = self.toggle2
+		savedata.survival_lookup_item = self.lookup_item
+		savedata.survival_add_info = self.add_info
+		self.player:set_attribute("smart_inventory_settings", minetest.serialize(savedata))
+	end
+
+	function ui_controller:restore()
+		local savedata = minetest.deserialize(self.player:get_attribute("smart_inventory_settings")) or {}
+
+		if savedata.survival_toggle1 then
+			self:set_ui_variant(savedata.survival_toggle1)
+		end
+		if savedata.survival_toggle2 then
+			self:set_ui_variant(savedata.survival_toggle2)
+		end
+		if savedata.survival_list_variant then
+			if savedata.survival_list_variant == "search" then
+				local ui_text = self.state:get(savedata.survival_list_variant)
+				ui_text:setText(savedata.survival_add_info)
+				ui_text:submit_key_enter("unused", self.state.location.rootState.location.player)
+			elseif savedata.survival_list_variant == "lookup" then
+				do_lookup_item(self.state, self.state.location.rootState.location.player, savedata.survival_add_info)
+			else
+				local ui_button = self.state:get(savedata.survival_list_variant)
+				if ui_button then
+					ui_button:submit("unused", self.state.location.rootState.location.player)
+				end
+			end
+		else
+			self.state:get("craftable"):submit("unused", self.state.location.rootState.location.player)
+			self:set_ui_variant("groups")
+		end
 	end
 
 	-- set inventory style
@@ -535,7 +573,7 @@ local function crafting_callback(state)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(all_revealed)
 
 		update_group_selection(state, true)
-		ui_controller:update_list_variant("groups")
+		ui_controller:update_list_variant("btn_all")
 	end)
 
 	-- Reveal tipps button
@@ -568,7 +606,7 @@ local function crafting_callback(state)
 		filtered_list = ui_tools.filter_by_revealed(filtered_list, player)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		update_group_selection(state, true)
-		ui_controller:update_list_variant("search")
+		ui_controller:update_list_variant("search", search_string)
 	end)
 
 	-- groups toggle
@@ -597,9 +635,7 @@ local function crafting_callback(state)
 		state.param.crafting_ui_controller:set_ui_variant("info")
 	end)
 
-	-- initial values
-	state.param.crafting_ui_controller:set_ui_variant("groups")
-	btn_craftable:submit("not used fieldname", state.location.rootState.location.player)
+	ui_controller:restore()
 end
 
 -----------------------------------------------------
@@ -638,14 +674,11 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 
 	if items_hash ~= state.param.survival_grid_items_hash then
 		state.param.survival_grid_items_hash = items_hash
-		if not next(reference_items) then
-			state:get("craftable"):submit("not used fieldname", name)
-		else
+		if next(reference_items) then
 			-- update the grid with matched recipe items
-			state.param.survival_proposal_mode = "grid"
-			state:get("search"):setText("") -- reset search field because of mode change
 			local recipes = crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
 			update_from_recipelist(state, recipes, stack:get_name(), true)  -- replace_not_in_list=true
+			state.param.crafting_ui_controller:update_list_variant("grid")
 		end
 		state.location.rootState:show()
 	end

@@ -84,6 +84,7 @@ local function creative_callback(state)
 	local ui_controller = {}
 	ui_controller.state = state
 	state.param.creative_ui_controller = ui_controller
+	ui_controller.player =  minetest.get_player_by_name(state.location.rootState.location.player)
 
 	function ui_controller:set_ui_variant(new_ui)
 		-- check if change needed
@@ -99,6 +100,7 @@ local function creative_callback(state)
 			self.state:get("buttons_grid"):reset(9.55, 3.75, 9.0 , 6.5)
 			self.state:get("buttons_grid_bg"):setPosition(9.2, 3.5)
 			self.state:get("buttons_grid_bg"):setSize(9.5, 6.5)
+			self.state:get("btn_tog"):setId(1)
 		elseif new_ui == 'list_big' then
 			self.ui_toggle = new_ui
 			self.state:get("groups_sel2"):setVisible(false)
@@ -106,6 +108,21 @@ local function creative_callback(state)
 			self.state:get("buttons_grid"):reset(9.55, 0.25, 9.0 , 10)
 			self.state:get("buttons_grid_bg"):setPosition(9.2, 0)
 			self.state:get("buttons_grid_bg"):setSize(9.5, 10)
+			self.state:get("btn_tog"):setId(2)
+		end
+		self:save()
+	end
+	function ui_controller:save()
+		local savedata = minetest.deserialize(self.player:get_attribute("smart_inventory_settings")) or {}
+		savedata.creative_ui_toggle = self.ui_toggle
+		self.player:set_attribute("smart_inventory_settings", minetest.serialize(savedata))
+	end
+
+	function ui_controller:restore()
+		local savedata = minetest.deserialize(self.player:get_attribute("smart_inventory_settings")) or {}
+
+		if savedata.creative_ui_toggle then
+			ui_controller:set_ui_variant(savedata.creative_ui_toggle)
 		end
 	end
 
@@ -238,6 +255,7 @@ local function creative_callback(state)
 	state.param.creative_grouped_items = ui_tools.get_list_grouped(ui_tools.root_list)
 	state.param.creative_grouped_shape_items = ui_tools.root_list_shape
 	update_group_selection(state, 0)
+	ui_controller:restore()
 end
 
 -----------------------------------------------------
