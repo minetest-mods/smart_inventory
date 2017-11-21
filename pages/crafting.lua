@@ -332,9 +332,10 @@ local function crafting_callback(state)
 			self.state:get("lookup"):setPosition(10, 4)
 			self.state:get("craftable"):setPosition(11, 4)
 			if smart_inventory.doc_items_mod then
-				self.state:get("reveal_tipp"):setPosition(12, 4)
+				self.state:get("reveal_tipp"):setPosition(11.5, 4.5)
 			end
-			self.state:get("search"):setPosition(13.3, 4.5)
+			self.state:get("btn_all"):setPosition(11, 4.5)
+			self.state:get("search"):setPosition(12.3, 4.5)
 			self.state:get("info_tog"):setPosition(16, 4.2)
 
 			self.state:get("buttons_grid_Bg"):setPosition(10, 5)
@@ -348,9 +349,10 @@ local function crafting_callback(state)
 			self.state:get("lookup"):setPosition(10, 0)
 			self.state:get("craftable"):setPosition(11, 0)
 			if smart_inventory.doc_items_mod then
-				self.state:get("reveal_tipp"):setPosition(12, 0)
+				self.state:get("reveal_tipp"):setPosition(11.5, 0.5)
 			end
-			self.state:get("search"):setPosition(13.3, 0.5)
+			self.state:get("btn_all"):setPosition(11, 0.5)
+			self.state:get("search"):setPosition(12.3, 0.5)
 			self.state:get("info_tog"):setPosition(16, 0.2)
 
 			self.state:get("groups_sel"):setVisible(false)
@@ -377,6 +379,19 @@ local function crafting_callback(state)
 		end
 	end
 
+	function ui_controller:update_list_variant(list_variant)
+		-- reset group selection and search field on proposal mode change
+		if self.list_variant ~= list_variant then
+			self.list_variant = list_variant
+			self.state:get("groups_sel"):setSelected(1)
+			if list_variant ~= "search" then
+				self.state:get("search"):setText("")
+			end
+		end
+
+		-- switch to the groups view
+		state.param.crafting_ui_controller:set_ui_variant("groups")
+	end
 
 	-- set inventory style
 	state:element("code", {name = "inventory_bg_code", code = "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"})
@@ -493,25 +508,39 @@ local function crafting_callback(state)
 
 
 	-- Get craftable by items in inventory
-	local btn_craftable = state:image_button(11, 4, 1, 1, "craftable", "", "smart_inventory_craftable_button.png")
+	local btn_craftable = state:image_button(11, 4, 0.5, 0.5, "craftable", "", "smart_inventory_craftable_button.png")
 	btn_craftable:setTooltip("Show items crafteable by items in inventory")
 	btn_craftable:onClick(function(self, state, player)
 		ui_tools.image_button_feedback(player, "crafting", "craftable")
-		-- reset group selection and search field on proposal mode change
-		if state.param.survival_proposal_mode ~= "craftable" then
-			state.param.survival_proposal_mode = "craftable"
-			state:get("groups_sel"):setSelected(1)
-			state:get("search"):setText("")
-		end
+
 		state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 		local craftable = crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
-		state.param.crafting_ui_controller:set_ui_variant("groups")
+		ui_controller:update_list_variant("craftable")
+	end)
+
+	-- Get craftable by items in inventory
+	local btn_all = state:image_button(11, 4.5, 0.5, 0.5, "btn_all", "", "smart_inventory_creative_button.png")
+	if smart_inventory.doc_items_mod then
+		btn_all:setTooltip("Show all already revealed items")
+	else
+		btn_all:setTooltip("Show all items")
+	end
+	btn_all:onClick(function(self, state, player)
+		ui_tools.image_button_feedback(player, "crafting", "btn_all")
+		local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player, true)
+		state.param.crafting_recipes_preview_selected = 1
+		state.param.crafting_recipes_preview_listentry = all_revealed[1] or {}
+		update_crafting_preview(state)
+		state.param.crafting_grouped_items = ui_tools.get_list_grouped(all_revealed)
+
+		update_group_selection(state, true)
+		ui_controller:update_list_variant("groups")
 	end)
 
 	-- Reveal tipps button
 	if smart_inventory.doc_items_mod then
-		local reveal_button = state:image_button(12, 4, 1, 1, "reveal_tipp", "", "smart_inventory_reveal_tips_button.png")
+		local reveal_button = state:image_button(11.5, 4.5, 0.5, 0.5, "reveal_tipp", "", "smart_inventory_reveal_tips_button.png")
 		reveal_button:setTooltip("Show proposal what should be crafted to reveal more items")
 		reveal_button:onClick(function(self, state, player)
 			local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player)
@@ -520,17 +549,14 @@ local function crafting_callback(state)
 			state.param.crafting_recipes_preview_listentry = top_revealed[1] or {}
 			update_crafting_preview(state)
 			state.param.crafting_grouped_items = ui_tools.get_list_grouped(top_revealed)
-			-- reset group selection if proposal mode is changed
-			if state.param.survival_proposal_mode ~= "tipp" then
-				state.param.survival_proposal_mode = "tipp"
-				state:get("groups_sel"):setSelected(1)
-			end
+
 			update_group_selection(state, true)
+			ui_controller:update_list_variant("reveal_tipp")
 		end)
 	end
 
 	-- search
-	local searchfield = state:field(13.3, 4.5, 3, 0.5, "search")
+	local searchfield = state:field(12.3, 4.5, 4, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -541,12 +567,8 @@ local function crafting_callback(state)
 		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, search_string)
 		filtered_list = ui_tools.filter_by_revealed(filtered_list, player)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
-		-- reset group selection if proposal mode is changed
-		if state.param.survival_proposal_mode ~= "search" then
-			state.param.survival_proposal_mode = "search"
-			state:get("groups_sel"):setSelected(1)
-		end
 		update_group_selection(state, true)
+		ui_controller:update_list_variant("search")
 	end)
 
 	-- groups toggle
