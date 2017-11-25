@@ -388,8 +388,12 @@ local function crafting_callback(state)
 			end
 		end
 
-		-- switch to the groups view
-		state.param.crafting_ui_controller:set_ui_variant("groups")
+		-- auto-switch to the groups
+		if list_variant == "lookup" then
+			state.param.crafting_ui_controller:set_ui_variant("info")
+		else
+			state.param.crafting_ui_controller:set_ui_variant("groups")
+		end
 		self:save()
 	end
 
