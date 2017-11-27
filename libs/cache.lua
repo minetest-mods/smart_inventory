@@ -1,7 +1,8 @@
 local filter = smart_inventory.filter
 
 local cache = {}
-cache.cgroups = {}
+cache.cgroups = {}    -- cache groups
+cache.itemgroups = {} -- raw item groups for recipe checks
 cache.citems = {}
 
 -----------------------------------------------------
@@ -30,6 +31,12 @@ function cache.add_item(def)
 	-- already in cache. Skip duplicate processing
 	if cache.citems[item_def.name] then
 		return
+	end
+
+	-- fill raw groups cache for recipes
+	for group, value in pairs(item_def.groups) do
+		cache.itemgroups[group] = cache.itemgroups[group] or {}
+		cache.itemgroups[group][item_def.name] = item_def
 	end
 
 	local entry = {

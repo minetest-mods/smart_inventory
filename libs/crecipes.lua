@@ -57,46 +57,28 @@ function crecipe_class:analyze()
 					return false
 				end
 			else
-				if cache.cgroups[recipe_item] then
-					iteminfo.items = cache.cgroups[recipe_item].items
-				else
-					local retitems
-					for groupname in string.gmatch(recipe_item:sub(7), '([^,]+)') do
-						if not retitems then --first entry
-							if cache.cgroups[groupname] then
-								retitems = table.copy(cache.cgroups[groupname].items)
-							else
-								groupname = groupname:gsub("_", ":")
-								if cache.cgroups[groupname] then
-									retitems = table.copy(cache.cgroups[groupname].items)
-								else
-									minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname.." for result "..self.out_item.name)
-								end
-							end
+				local retitems
+				for groupname in string.gmatch(recipe_item:sub(7), '([^,]+)') do
+					if not retitems then --first entry
+						if cache.itemgroups[groupname] then
+							retitems = table.copy(cache.itemgroups[groupname])
 						else
-							for itemname, itemdef in pairs(retitems) do
-								local item_in_group = false
-								for _, item_group in pairs(cache.citems[itemname].cgroups) do
-									if item_group.name == groupname or
-											item_group.name == groupname:gsub("_", ":")
-									then
-										item_in_group = true
-										break
-									end
-								end
-								if item_in_group == false then
-									retitems[itemname] = nil
-								end
+							minetest.log("[smartfs_inventory] unknown group description in recipe: "..recipe_item.." / "..groupname.." for result "..self.out_item.name)
+							return false
+						end
+					else
+						for itemname, itemdef in pairs(retitems) do
+							if not minetest.registered_items[itemname].groups[groupname] then
+								retitems[itemname] = nil
 							end
 						end
 					end
 					if not retitems or not next(retitems) then
 						minetest.log("[smartfs_inventory] no items matches group: "..recipe_item.." for result "..self.out_item.name)
 						return false
-					else
-						iteminfo.items = retitems
 					end
 				end
+				iteminfo.items = retitems
 			end
 		end
 	end
