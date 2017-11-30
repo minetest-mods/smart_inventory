@@ -446,10 +446,9 @@ local function crafting_callback(state)
 
 
 	-- crafting helper buttons
---	local btn_ac1 = state:image_button(4.3, 0.2, 1, 1, "ac1", "", "???.png")
-	local btn_ac1 = state:button(4.3, 0.2, 1, 1, "ac1", "Craft")
+	local btn_ac1 = state:image_button(4.4, 0.3, 0.8, 0.8, "ac1", "", "smart_inventory_preview_to_crafting_field.png")
 	btn_ac1:onClick(function(self, state, player)
---		ui_tools.image_button_feedback(player, "crafting", "ac1")
+		ui_tools.image_button_feedback(player, "crafting", "ac1")
 		local grid = state:get("craft_preview"):getCraft()
 		state.param.invobj:craft_item(grid)
 	end)
