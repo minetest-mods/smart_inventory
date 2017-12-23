@@ -235,6 +235,34 @@ local function update_from_recipelist(state, recipelist, preview_item, replace_n
 end
 
 -----------------------------------------------------
+-- Build list matching the placed grid
+-----------------------------------------------------
+local function update_from_grid(state, craft_grid, lookup_item)
+	-- get all grid items for reference
+	local player = state.location.rootState.location.player
+	local reference_items = {}
+	local items_hash = ""
+	for _, stack in ipairs(craft_grid) do
+		local name = stack:get_name()
+		if name and name ~= "" then
+			reference_items[name] = true
+			items_hash=items_hash.."|"..name
+		else
+			items_hash=items_hash.."|empty"
+		end
+	end
+
+	if items_hash ~= state.param.survival_grid_items_hash then
+		state.param.survival_grid_items_hash = items_hash
+		if next(reference_items) then
+			-- update the grid with matched recipe items
+			local recipes = crecipes.get_recipes_started_craft(player, craft_grid, reference_items)
+			update_from_recipelist(state, recipes, lookup_item, true)  -- replace_not_in_list=true
+		end
+	end
+end
+
+-----------------------------------------------------
 -- Lookup for item lookup_item
 -----------------------------------------------------
 local function do_lookup_item(state, playername, lookup_item)
@@ -376,9 +404,7 @@ local function crafting_callback(state)
 	end
 
 	function ui_controller:update_list_variant(list_variant, add_info)
-
 		self.add_info = add_info
-
 		-- reset group selection and search field on proposal mode change
 		if self.list_variant ~= list_variant then
 			self.list_variant = list_variant
@@ -393,6 +419,24 @@ local function crafting_callback(state)
 			state.param.crafting_ui_controller:set_ui_variant("info")
 		else
 			state.param.crafting_ui_controller:set_ui_variant("groups")
+		end
+
+
+		state:get("craftable"):setBackground()
+		state:get("btn_grid"):setBackground()
+		state:get("btn_all"):setBackground()
+		if smart_inventory.doc_items_mod then
+			state:get("reveal_tipp"):setBackground()
+		end
+		-- highlight the right button
+		if list_variant == "craftable" then
+			state:get("craftable"):setBackground("halo.png")
+		elseif list_variant == "grid" then
+			state:get("btn_grid"):setBackground("halo.png")
+		elseif list_variant == "btn_all" then
+		state:get("btn_all"):setBackground("halo.png")
+		elseif list_variant == "reveal_tipp" then
+			state:get("reveal_tipp"):setBackground("halo.png")
 		end
 		self:save()
 	end
@@ -432,6 +476,7 @@ local function crafting_callback(state)
 		else
 			self.state:get("craftable"):submit("unused", self.state.location.rootState.location.player)
 			self:set_ui_variant("groups")
+			self:update_list_variant("craftable")
 		end
 	end
 
@@ -552,12 +597,20 @@ local function crafting_callback(state)
 	local btn_craftable = state:image_button(11, 4, 0.5, 0.5, "craftable", "", "smart_inventory_craftable_button.png")
 	btn_craftable:setTooltip("Show items crafteable by items in inventory")
 	btn_craftable:onClick(function(self, state, player)
-		ui_tools.image_button_feedback(player, "crafting", "craftable")
-
 		state.param.crafting_items_in_inventory = state.param.invobj:get_items()
 		local craftable = crecipes.get_recipes_craftable(player, state.param.crafting_items_in_inventory)
 		update_from_recipelist(state, craftable)
 		ui_controller:update_list_variant("craftable")
+	end)
+
+	local grid_btn = state:image_button(11.5, 4, 0.5, 0.5, "btn_grid", "", "smart_inventory_craftable_button.png")
+	grid_btn:setTooltip("Search for recipes matching the grid")
+	grid_btn:onClick(function(self, state, player)
+		local player = state.location.rootState.location.player
+		state.param.crafting_ui_controller:update_list_variant("grid")
+		local craft_grid = state.param.invobj.inventory:get_list("craft")
+		local ret_item = state.param.invobj.inventory:get_list("craftpreview")[1]
+		update_from_grid(state, craft_grid, ret_item:get_name())
 	end)
 
 	-- Get craftable by items in inventory
@@ -568,7 +621,6 @@ local function crafting_callback(state)
 		btn_all:setTooltip("Show all items")
 	end
 	btn_all:onClick(function(self, state, player)
-		ui_tools.image_button_feedback(player, "crafting", "btn_all")
 		local all_revealed = ui_tools.filter_by_revealed(ui_tools.root_list_all, player, true)
 		state.param.crafting_recipes_preview_selected = 1
 		state.param.crafting_recipes_preview_listentry = all_revealed[1] or {}
@@ -662,27 +714,9 @@ minetest.register_craft_predict(function(stack, player, old_craft_grid, craft_in
 		return
 	end
 
-	-- get all grid items for reference
-	local reference_items = {}
-	local items_hash = ""
-	for _, stack in ipairs(old_craft_grid) do
-		local name = stack:get_name()
-		if name and name ~= "" then
-			reference_items[name] = true
-			items_hash=items_hash.."|"..name
-		else
-			items_hash=items_hash.."|empty"
-		end
+	if state.param.crafting_ui_controller.list_variant ~= 'grid' then
+		return
 	end
-
-	if items_hash ~= state.param.survival_grid_items_hash then
-		state.param.survival_grid_items_hash = items_hash
-		if next(reference_items) then
-			-- update the grid with matched recipe items
-			local recipes = crecipes.get_recipes_started_craft(name, old_craft_grid, reference_items)
-			update_from_recipelist(state, recipes, stack:get_name(), true)  -- replace_not_in_list=true
-			state.param.crafting_ui_controller:update_list_variant("grid")
-		end
-		state.location.rootState:show()
-	end
+	update_from_grid(state, old_craft_grid, stack:get_name())
+	state.location.rootState:show()
 end)
