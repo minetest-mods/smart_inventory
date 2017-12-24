@@ -354,11 +354,13 @@ local function crafting_callback(state)
 			self.state:get("lookup_icon"):setPosition(10, 4)
 			self.state:get("lookup"):setPosition(10, 4)
 			self.state:get("craftable"):setPosition(11, 4)
+			self.state:get("btn_all"):setPosition(11, 4.5)
+			self.state:get("btn_grid"):setPosition(11.5, 4.0)
 			if smart_inventory.doc_items_mod then
 				self.state:get("reveal_tipp"):setPosition(11.5, 4.5)
 			end
-			self.state:get("btn_all"):setPosition(11, 4.5)
 			self.state:get("search"):setPosition(12.3, 4.5)
+			self.state:get("search_bg"):setPosition(12, 4)
 			self.state:get("info_tog"):setPosition(16, 4.2)
 
 			self.state:get("buttons_grid_Bg"):setPosition(10, 5)
@@ -371,11 +373,13 @@ local function crafting_callback(state)
 			self.state:get("lookup_icon"):setPosition(10, 0)
 			self.state:get("lookup"):setPosition(10, 0)
 			self.state:get("craftable"):setPosition(11, 0)
+			self.state:get("btn_all"):setPosition(11, 0.5)
+			self.state:get("btn_grid"):setPosition(11.5, 0.0)
 			if smart_inventory.doc_items_mod then
 				self.state:get("reveal_tipp"):setPosition(11.5, 0.5)
 			end
-			self.state:get("btn_all"):setPosition(11, 0.5)
 			self.state:get("search"):setPosition(12.3, 0.5)
+			self.state:get("search_bg"):setPosition(12, 0)
 			self.state:get("info_tog"):setPosition(16, 0.2)
 
 			self.state:get("groups_sel"):setVisible(false)
@@ -422,6 +426,8 @@ local function crafting_callback(state)
 		end
 
 
+		state:get("lookup_icon"):setBackground()
+		state:get("search_bg"):setBackground()
 		state:get("craftable"):setBackground()
 		state:get("btn_grid"):setBackground()
 		state:get("btn_all"):setBackground()
@@ -429,7 +435,11 @@ local function crafting_callback(state)
 			state:get("reveal_tipp"):setBackground()
 		end
 		-- highlight the right button
-		if list_variant == "craftable" then
+		if list_variant == "lookup" then
+			state:get("lookup_icon"):setBackground("halo.png")
+		elseif list_variant == "search" then
+			state:get("search_bg"):setBackground("halo.png")
+		elseif list_variant == "craftable" then
 			state:get("craftable"):setBackground("halo.png")
 		elseif list_variant == "grid" then
 			state:get("btn_grid"):setBackground("halo.png")
@@ -649,6 +659,7 @@ local function crafting_callback(state)
 	end
 
 	-- search
+	state:background(12, 4, 4, 0.9, "search_bg", nil) --field background not usable
 	local searchfield = state:field(12.3, 4.5, 4, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
