@@ -336,12 +336,8 @@ filter.register_filter({
 			end
 		end,
 		get_keyword = function(self, group)
-			if group.name ~= self.name then
-				local itemname = group.name:sub(12)
-				if minetest.registered_items[itemname] then
-					return itemname.." "..minetest.registered_items[itemname].description
-				end
-			end
+			-- not searchable by ingedient
+			return nil
 		end
 })
 
