@@ -697,9 +697,13 @@ local function crafting_callback(state)
 	local grid = smart_inventory.smartfs_elements.buttons_grid(state, 10.25, 5.15, 8 , 4, "buttons_grid", 0.75,0.75)
 	grid:onClick(function(self, state, index, player)
 		local listentry = state.param.crafting_craftable_list[index]
-		state.param.crafting_recipes_preview_selected = 1
-		state.param.crafting_recipes_preview_listentry = listentry
-		update_crafting_preview(state)
+		if ui_controller.list_variant == "lookup" then
+			do_lookup_item(state, state.location.rootState.location.player, listentry.item)
+		else
+			state.param.crafting_recipes_preview_selected = 1
+			state.param.crafting_recipes_preview_listentry = listentry
+			update_crafting_preview(state)
+		end
 		state.param.crafting_ui_controller:set_ui_variant("info")
 	end)
 
