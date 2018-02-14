@@ -845,6 +845,15 @@ function smartfs._makeState_(form, params, location, newplayer)
 				relative = true
 			})
 		end,
+		scrollbar = function(self, x, y, w, h, orientation , name, selected)
+			return self:element("scrollbar", {
+				pos  = {x=x, y=y},
+				size = {w=w, h=h},
+				orientation = orientation,
+				name = name,
+				selected = selected
+			})
+		end,
 	}
 end
 
@@ -1353,6 +1362,44 @@ smartfs.element("inventory", {
 	getIndex = function(self)
 		return self.data.index
 	end
+})
+
+smartfs.element("scrollbar", {
+	onCreate = function(self)
+		assert(self.data.pos and self.data.pos.x and self.data.pos.y, "scrollbar needs valid pos")
+		assert(self.data.size and self.data.size.w and self.data.size.h, "scrollbar needs valid size")
+		assert(self.data.orientation, "scrollbar needs orientation vertical or horizontal")
+		assert(self.name, "scrollbar needs name")
+		self.data.selected = tonumber(self.data.selected or 0)
+	end,
+	build = function(self)
+		self.data.old_value = self.data.selected
+		return "scrollbar["..
+			self.data.pos.x..","..self.data.pos.y..";"..
+			self.data.size.w..","..self.data.size.h..";"..
+			self.data.orientation..";"..
+			self:getAbsName()..";"..
+			tostring(self.data.selected) .."]"
+	end,
+	submit = function(self, field, player)
+		local field_data = minetest.explode_scrollbar_event(field)
+		if self.data.old_value == self.data.selected and -- unchanged from lua
+				self.data.selected ~= field_data.value then
+			self.data.selected = field_data.value
+			if self._scroll then
+				self:_scroll(self.root, player, self.data.selected)
+			end
+		end
+	end,
+	setSelected = function(self, selected)
+		self.data.selected = tonumber(selected)
+	end,
+	getSelected = function(self)
+		return self.data.selected
+	end,
+	onScroll = function(self,func)
+		self._scroll = func
+	end,
 })
 
 smartfs.element("code", {

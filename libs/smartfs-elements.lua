@@ -129,6 +129,7 @@ end
 		}
 ]]
 local buttons_grid = table.copy(smartfs._edef.container)
+	local scrollbar_w = 0.5
 function buttons_grid:onCreate()
 	self.data.relative = true
 	assert(self.data.size and self.data.size.w and self.data.size.h, "button needs valid size")
@@ -137,9 +138,10 @@ function buttons_grid:onCreate()
 		self.data.cell_size = {w=1, h=1}
 	end
 	self:setSize(self.data.size.w, self.data.size.h) -- view size for background
-	self.data.grid_size = {w = math.floor(self.data.size.w/self.data.cell_size.w), h = math.floor(self.data.size.h/self.data.cell_size.h)}
+	self.data.grid_size = {w = math.floor((self.data.size.w-scrollbar_w)/self.data.cell_size.w), h = math.floor(self.data.size.h/self.data.cell_size.h)}
 	self.data.list_start = self.data.list_start  or 1
 	self.data.list = self.data.list or {}
+	self.data.list_count = #self.data.list
 	for x = 1, self.data.grid_size.w do
 		for y=1, self.data.grid_size.h do
 			local button = self._state:button(
@@ -177,10 +179,29 @@ function buttons_grid:onCreate()
 						parent_element:_click(parent_element.root, idx, player)
 					end
 				end
+				local start_row = parent_element.data.list_start / parent_element.data.grid_size.w
+				local rows = math.floor(parent_element.data.list_count / parent_element.data.grid_size.w) - parent_element.data.grid_size.h + 1
+				local new_value = start_row / rows * 1000
+print(parent_element.data.list_start, start_row, rows, new_value)
+				parent_element._state:get('scroll'):setSelected(new_value)
 			end)
 			button:setVisible(false)
 		end
 	end
+	local scrollbar = self._state:scrollbar(self.data.pos.x+self.data.size.w - scrollbar_w, self.data.pos.y-0.2, scrollbar_w, self.data.size.h, 'vertical' , 'scroll')
+	scrollbar:onScroll(function(self, state, player, new_value)
+		local parent_element = state.location.containerElement
+		local rows = math.floor(parent_element.data.list_count / parent_element.data.grid_size.w) - parent_element.data.grid_size.h + 1
+		local start_row = math.floor(new_value / 1000 * rows)
+		parent_element.data.list_start = start_row * parent_element.data.grid_size.w
+
+		if parent_element.data.list_start <= 0 then
+			parent_element.data.list_start = 1
+		elseif parent_element.data.list_start <= parent_element.data.grid_size.w then
+			parent_element.data.list_start = parent_element.data.list_start + 2
+		end
+		parent_element:update()
+	end)
 end
 
 function buttons_grid:reset(x, y, w, h, col_size, row_size)
@@ -208,6 +229,7 @@ function buttons_grid:setFirstVisible(idx)
 end
 function buttons_grid:setList(iconlist)
 	self.data.list = iconlist or {}
+	self.data.list_count = #self.data.list
 	self:update()
 end
 
@@ -215,8 +237,8 @@ function buttons_grid:update()
 	--init pagesize
 	self.data.pagesize = self.data.grid_size.w * self.data.grid_size.h
 	--adjust start position
-	if self.data.list_start > #self.data.list then
-		self.data.list_start = #self.data.list - self.data.pagesize
+	if self.data.list_start > self.data.list_count then
+		self.data.list_start = self.data.list_count - self.data.pagesize
 	end
 	if self.data.list_start < 1 then
 		self.data.list_start = 1
