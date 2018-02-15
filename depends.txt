@@ -1,5 +1,5 @@
 creative?
 sfinv?
 3d_armor?
-skins?
+skinsdb?
 doc_items?
