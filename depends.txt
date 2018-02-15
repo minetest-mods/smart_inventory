@@ -1,4 +1,3 @@
-default?
 creative?
 sfinv?
 3d_armor?
