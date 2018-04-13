@@ -437,7 +437,7 @@ if minetest.global_exists("unifieddyes") then
 	function unifieddyes_getpaletteidx(entry)
 		local ret = unifieddyes.getpaletteidx(entry.item, "extended")
 		if ret then
-			local ret2= string.format("%02X", ret)
+			local ret2 = string.format("%02X", ret)
 			return 'dye '..ret2
 		end
 	end
@@ -462,8 +462,8 @@ local function prepare_root_lists()
 		}
 
 		entry.sort_value = unifieddyes_getpaletteidx(entry) or itemname
-
-		if cache.citems[itemname].cgroups["shape"] then
+		citem.ui_item = entry
+		if citem.cgroups["shape"] then
 			table.insert(ui_tools.root_list_shape, entry)
 		else
 			table.insert(ui_tools.root_list, entry)
