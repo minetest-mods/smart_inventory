@@ -258,7 +258,7 @@ local function move_item_to_inv(state, item)
 	local itemstack = armor_inv:get_stack("armor", item.stack_index)
 	if creative == true then
 		-- trash armor item in creative
-		itemstack = ItemStack()
+		itemstack = ItemStack("")
 	else
 		itemstack = inventory:add_item("main", itemstack)
 	end
