@@ -95,6 +95,7 @@ local function creative_callback(state)
 		-- toggle show/hide elements
 		if new_ui == 'list_small' then
 			self.ui_toggle = new_ui
+			self.state:get("groups_sel1"):setSize(5.6, 3)
 			self.state:get("groups_sel2"):setVisible(true)
 			self.state:get("groups_sel3"):setVisible(true)
 			self.state:get("buttons_grid"):reset(9.55, 3.75, 9.0 , 6.5)
@@ -103,6 +104,7 @@ local function creative_callback(state)
 			self.state:get("btn_tog"):setId(1)
 		elseif new_ui == 'list_big' then
 			self.ui_toggle = new_ui
+			self.state:get("groups_sel1"):setSize(7.8, 3)
 			self.state:get("groups_sel2"):setVisible(false)
 			self.state:get("groups_sel3"):setVisible(false)
 			self.state:get("buttons_grid"):reset(9.55, 0.25, 9.0 , 10)
