@@ -370,9 +370,10 @@ local function crafting_callback(state)
 			if smart_inventory.doc_items_mod then
 				self.state:get("reveal_tipp"):setPosition(11.5, 4.5)
 			end
-			self.state:get("search"):setPosition(12.3, 4.5)
+			self.state:get("search"):setPosition(12.2, 4.5)
 			self.state:get("search_bg"):setPosition(12, 4)
-			self.state:get("info_tog"):setPosition(16, 4.2)
+			self.state:get("search_btn"):setPosition(15.2, 4.2)
+			self.state:get("info_tog"):setPosition(16.2, 4.2)
 
 			self.state:get("buttons_grid_Bg"):setPosition(10, 5)
 			self.state:get("buttons_grid_Bg"):setSize(8, 4)
@@ -389,9 +390,10 @@ local function crafting_callback(state)
 			if smart_inventory.doc_items_mod then
 				self.state:get("reveal_tipp"):setPosition(11.5, 0.5)
 			end
-			self.state:get("search"):setPosition(12.3, 0.5)
+			self.state:get("search"):setPosition(12.2, 0.5)
 			self.state:get("search_bg"):setPosition(12, 0)
-			self.state:get("info_tog"):setPosition(16, 0.2)
+			self.state:get("search_btn"):setPosition(15.2, 0.2)
+			self.state:get("info_tog"):setPosition(16.2, 0.2)
 
 			self.state:get("groups_sel"):setVisible(false)
 			self.state:get("inf_area"):setVisible(false)
@@ -675,7 +677,7 @@ local function crafting_callback(state)
 
 	-- search
 	state:background(12, 4, 4, 0.9, "search_bg", nil) --field background not usable
-	local searchfield = state:field(12.3, 4.5, 4, 0.5, "search")
+	local searchfield = state:field(12.2, 4.5, 3.4, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -690,8 +692,14 @@ local function crafting_callback(state)
 		ui_controller:update_list_variant("search", search_string)
 	end)
 
+	local search_button = state:button(15.2, 4.2, 0.8, 0.5, "search_btn", "Go")
+	search_button:setTooltip("Perform search action")
+	search_button:onClick(function(self, state, player)
+		state:get("search"):submit_key_enter("", player)
+	end)
+
 	-- groups toggle
-	local info_tog = state:toggle(16,4.2,2,0.5, "info_tog", {"Info", "Groups", "Hide"})
+	local info_tog = state:toggle(16.2,4.2,1.8,0.5, "info_tog", {"Info", "Groups", "Hide"})
 	info_tog:onToggle(function(self, state, player)
 		local id = self:getId()
 		if id == 1 then

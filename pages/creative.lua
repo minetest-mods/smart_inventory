@@ -155,7 +155,7 @@ local function creative_callback(state)
 	end)
 
 	-- functions
-	local searchfield = state:field(1.3, 4.1, 4.8, 0.5, "search")
+	local searchfield = state:field(1.3, 4.1, 4.2, 0.5, "search")
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
@@ -165,6 +165,13 @@ local function creative_callback(state)
 		state.param.creative_grouped_shape_items = filtered_list
 		update_group_selection(state, 0)
 	end)
+
+	local search_button = state:button(5.0, 3.8, 1, 0.5, "search_btn", "Go")
+	search_button:setTooltip("Perform search action")
+	search_button:onClick(function(self, state, player)
+		state:get("search"):submit_key_enter("", player)
+	end)
+
 
 	-- action mode toggle
 	state:toggle(6, 3.8,1.5,0.5, "btn_tog_mode", {"Give 1", "Give stack"})
