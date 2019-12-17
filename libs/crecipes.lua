@@ -374,8 +374,11 @@ function crecipes.add_recipes_from_list(recipelist)
 				for _, entry in pairs(recipe_obj._items) do
 					for itemname, itemdef in pairs(entry.items) do
 						cache.add_item(itemdef) -- probably hidden therefore not indexed previous. But Items with recipe should be allways visible
-						table.insert(cache.citems[itemdef.name].in_craft_recipe, recipe)
-						cache.assign_to_group("ingredient:"..itemdef.name, recipe_obj.out_item, filter.get("ingredient"))
+						if (cache.citems[itemdef.name] ~= nil) then --This fix makes unified dyes run with this, and not crash the server on boot
+							table.insert(cache.citems[itemdef.name].in_craft_recipe, recipe)
+							cache.assign_to_group("ingredient:"..itemdef.name, recipe_obj.out_item, filter.get("ingredient"))
+						end
+						
 					end
 				end
 			end
