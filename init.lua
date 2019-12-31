@@ -22,3 +22,10 @@ dofile(modpath.."/pages/creative.lua")
 dofile(modpath.."/pages/player.lua")
 dofile(modpath.."/pages/doc.lua")
 dofile(modpath.."/pages/awards.lua")
+
+-- Cleanup inventories
+minetest.register_on_leaveplayer(function(player)
+	local player_name = player:get_player_name()
+	minetest.remove_detached_inventory(player_name.."_crafting_inv")
+	minetest.remove_detached_inventory(player_name.."_trash_inv")
+end)

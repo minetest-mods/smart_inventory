@@ -287,8 +287,3 @@ smart_inventory.register_page({
 	smartfs_callback = creative_callback,
 	sequence = 15
 })
-
-minetest.register_on_leaveplayer(function(player)
-	local invname = player:get_player_name().."_trash_inv"
-	minetest.remove_detached_inventory(invname)
-end)
