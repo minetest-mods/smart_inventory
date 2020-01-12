@@ -74,3 +74,4 @@ License: [LGPL-3](https://github.com/bell07/minetest-smart_inventory/blob/master
 Textures:
   - Workbench: WTFPL (credits: to xdecor project)
   - Buttons: WTFPL (credits to Stix (Minetest-forum))
+  - Arrow buttons: WTFPL (credits to daretmavi)

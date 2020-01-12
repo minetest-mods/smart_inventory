@@ -228,14 +228,14 @@ function buttons_grid:update()
 		if btnid == 1 and self.data.list_start > 1 then
 			-- setup back button
 			button:setVisible(true)
-			button:setImage("left_arrow.png")
+			button:setImage("smart_inventory_left_arrow.png")
 			button:setText(tostring(self.data.list_start-1))
 			button:setSize(self.data.cell_size.w, self.data.cell_size.h)
 			self.data.pagesize = self.data.pagesize - 1
 		elseif btnid == self.data.grid_size.w * self.data.grid_size.h and self.data.list[itemindex+1] then
 			-- setup next button
 			button:setVisible(true)
-			button:setImage("right_arrow.png")
+			button:setImage("smart_inventory_right_arrow.png")
 			self.data.pagesize = self.data.pagesize - 1
 			button:setText(tostring(#self.data.list-self.data.list_start-self.data.pagesize+1))
 			button:setSize(self.data.cell_size.w, self.data.cell_size.h)
