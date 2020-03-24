@@ -8,26 +8,7 @@ cache.citems = {}
 -----------------------------------------------------
 -- Add an Item to the cache
 -----------------------------------------------------
-function cache.add_item(def)
-
-	-- special handling for doors. In inventory the item should be displayed instead of the node_a/node_b
-	local item_def
-
-	if def.groups and def.groups.door then
-		if def.door then
-			item_def = minetest.registered_items[def.door.name]
-		elseif def.drop and type(def.drop) == "string" then
-			item_def = minetest.registered_items[def.drop]
-		else
-			item_def = def
-		end
-		if not item_def then
-			minetest.log("[smart_inventory] Buggy door found: "..def.name)
-			item_def = def
-		end
-	else
-		item_def = def
-	end
+function cache.add_item(item_def)
 
 	-- already in cache. Skip duplicate processing
 	if cache.citems[item_def.name] then
@@ -49,7 +30,7 @@ function cache.add_item(def)
 	cache.citems[item_def.name] = entry
 	-- classify the item
 	for _, flt in pairs(filter.registered_filter) do
-		local filter_result = flt:check_item_by_def(def)
+		local filter_result = flt:check_item_by_def(item_def)
 		if filter_result then
 			if filter_result == true then
 				cache.assign_to_group(flt.name, item_def, flt)

@@ -216,8 +216,17 @@ end
 filter.register_filter({
 		name = "shape",
 		check_item_by_def = function(self, def)
+			local door_groups
+			if shaped_groups["door"] then
+				local door_filter = filter.get("door")
+				door_groups = door_filter:check_item_by_def(def)
+				if door_groups and door_groups.door then
+					return true
+				end
+			end
+
 			for k, v in pairs(def.groups) do
-				if shaped_groups[k] then
+				if k ~= "door" and shaped_groups[k] then
 					return true
 				end
 			end
@@ -352,6 +361,45 @@ filter.register_filter({
 			local itemname = groupname:sub(12)
 			if itemname ~= "" and minetest.registered_items[itemname] then
 				return true
+			end
+		end
+	})
+
+
+local door_groups
+local function fill_door_groups()
+	door_groups = {}
+	for _, extend_def in pairs(minetest.registered_items) do
+		local base_def
+		if extend_def.groups and extend_def.groups.door then
+			if extend_def.door then
+				base_def = minetest.registered_items[extend_def.door.name]
+			elseif extend_def.drop and type(extend_def.drop) == "string" then
+				base_def = minetest.registered_items[extend_def.drop]
+			end
+		end
+		if base_def then
+			door_groups[base_def.name] = extend_def
+			door_groups[extend_def.name] = false
+		end
+	end
+end
+
+filter.register_filter({
+		name = "door",
+		check_item_by_def = function(self, def)
+			if not door_groups then
+				fill_door_groups()
+			end
+			if not door_groups[def.name] then
+				return
+			end
+
+			local group_filter = filter.get("group")
+			local ret = group_filter:check_item_by_def(door_groups[def.name])
+			if ret then
+				ret["not_in_creative_inventory"] = nil
+				return ret
 			end
 		end
 	})
