@@ -13,6 +13,7 @@ smart_inventory.register_page({
                 smartfs_callback = function,
                 sequence         = number,
                 on_button_click  = function,
+                is_visible_func  = function,
         })
 ```
 - name - unique short name, used for identification
@@ -22,6 +23,7 @@ smart_inventory.register_page({
 - smartfs_callback(state) - smartfs callback function See [smartfs documentation](https://github.com/minetest-mods/smartfs/blob/master/docs) and existing pages implementations for reference.
 - sequence - The buttons are sorted by this number (crafting=10, creative=15, player=20)
 - on_button_click(state) - function called each page button click
+- is_visible_func(state) - function for dynamic page enabelling. Should return bool value.
 
 ### Get the definition for registered smart_inventory page
 ```smart_inventory.get_registered_page(pagename)```

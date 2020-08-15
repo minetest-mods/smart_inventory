@@ -52,29 +52,31 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 	for _, def in ipairs(smart_inventory.registered_pages) do
 		assert(def.smartfs_callback, "Callback function needed")
 		assert(def.name, "Name is needed")
-		local tabdef = {}
-		local label
-		if not def.label then
-			label = ""
-		else
-			label = def.label
-		end
-		tabdef.button = state:button(button_x,11.2,1,1,def.name.."_button",label)
-		if def.icon then
-			tabdef.button:setImage(def.icon)
-		end
-		tabdef.button:setTooltip(def.tooltip)
-		tabdef.button:onClick(function(self)
-			tab_controller:set_active(def.name)
-			if def.on_button_click then
-				def.on_button_click(tabdef.viewstate)
+		if not def.is_visible_func or def.is_visible_func(state) then
+			local tabdef = {}
+			local label
+			if not def.label then
+				label = ""
+			else
+				label = def.label
 			end
-		end)
-		tabdef.view = state:container(0,1,def.name.."_container")
-		tabdef.viewstate = tabdef.view:getContainerState()
-		def.smartfs_callback(tabdef.viewstate)
-		tab_controller:tab_add(def.name, tabdef)
-		button_x = button_x + 1
+			tabdef.button = state:button(button_x,11.2,1,1,def.name.."_button",label)
+			if def.icon then
+				tabdef.button:setImage(def.icon)
+			end
+			tabdef.button:setTooltip(def.tooltip)
+			tabdef.button:onClick(function(self)
+				tab_controller:set_active(def.name)
+				if def.on_button_click then
+					def.on_button_click(tabdef.viewstate)
+				end
+			end)
+			tabdef.view = state:container(0,1,def.name.."_container")
+			tabdef.viewstate = tabdef.view:getContainerState()
+			def.smartfs_callback(tabdef.viewstate)
+			tab_controller:tab_add(def.name, tabdef)
+			button_x = button_x + 1
+		end
 	end
 	tab_controller:set_active(smart_inventory.registered_pages[1].name)
 end)
