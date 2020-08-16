@@ -1,6 +1,6 @@
-if not minetest.setting_getbool("creative_mode") then
-	return
-end
+--if not minetest.setting_getbool("creative_mode") then
+--      return
+--end
 
 local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools
@@ -78,6 +78,12 @@ end
 -- Page layout definition
 -----------------------------------------------------
 local function creative_callback(state)
+    local name = state.location.rootState.location.player
+    local privs = minetest.get_player_privs(name)
+    if privs.creative ~= true then
+        return
+    end
+
 	local player = state.location.rootState.location.player
 
 	-- build up UI controller
@@ -277,6 +283,15 @@ local function creative_callback(state)
 	ui_controller:restore()
 end
 
+local function player_has_creative(state)
+    local name = state.location.player
+    local privs = minetest.get_player_privs(name)
+    if privs.creative == true then
+        return true
+    end
+    return false
+end
+
 -----------------------------------------------------
 -- Register page in smart_inventory
 -----------------------------------------------------
@@ -285,5 +300,6 @@ smart_inventory.register_page({
 	tooltip = "The creative way to get items",
 	icon = "smart_inventory_creative_button.png",
 	smartfs_callback = creative_callback,
+	is_visible_func  = player_has_creative,
 	sequence = 15
 })

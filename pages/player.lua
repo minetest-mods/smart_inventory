@@ -12,7 +12,14 @@ local filter = smart_inventory.filter
 local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools
 local txt = smart_inventory.txt
-local creative = minetest.setting_getbool("creative_mode")
+local creative = {}
+
+minetest.register_on_joinplayer(function(player)
+    local name = player:get_player_name()
+	local privs = minetest.get_player_privs(name)
+    if privs.creative == true then creative[name] = true return end
+    creative[name] = false
+end)
 
 local function update_grid(state, listname)
 -- Update the users inventory grid
@@ -69,7 +76,7 @@ local function update_grid(state, listname)
 	end
 
 	-- add all usable in creative available armor to the main list
-	if listname == "main" and creative == true then
+	if listname == "main" and creative[name] == true then
 		if smart_inventory.armor_mod then
 			for _, itemdef in pairs(cache.cgroups["armor"].items) do
 				if not list_dedup[itemdef.name] and not itemdef.groups.not_in_creative_inventory then
@@ -232,7 +239,7 @@ local function move_item_to_armor(state, item)
 
 	-- get item to be moved to armor inventory
 	local itemstack, itemname, itemdef
-	if creative == true then
+	if creative[name] == true then
 		itemstack = ItemStack(item.item)
 		itemname = item.item
 	else
@@ -273,7 +280,7 @@ local function move_item_to_armor(state, item)
 	end
 
 	-- handle put backs in non-creative to not lost items
-	if creative == false then
+	if creative[name] == false then
 		inventory:set_stack("main", item.stack_index, itemstack)
 		for _, stack in ipairs(removed_items) do
 			stack = inventory:add_item("main", stack)
@@ -304,7 +311,7 @@ local function move_item_to_clothing(state, item)
 		clothing:set_player_clothing(player)
 		state.param.player_clothing_data = clothes_ordered
 		-- handle put backs in non-creative to not lost items
-		if creative == false then
+		if creative[name] == false then
 			local itemstack = inventory:get_stack("main", item.stack_index)
 			itemstack:take_item()
 			inventory:set_stack("main", item.stack_index, itemstack)
@@ -320,7 +327,7 @@ local function move_item_to_inv(state, item)
 	if cache.cgroups["armor"] and cache.cgroups["armor"].items[item.item] then
 		local armor_inv = minetest.get_inventory({type="detached", name=name.."_armor"})
 		local itemstack = armor_inv:get_stack("armor", item.stack_index)
-		if creative == true then
+		if creative[name] == true then
 			-- trash armor item in creative
 			itemstack = ItemStack("")
 		else
@@ -332,7 +339,7 @@ local function move_item_to_inv(state, item)
 	elseif cache.cgroups["clothing"] and cache.cgroups["clothing"].items[item.item] then
 		local clothes = state.param.player_clothing_data
 
-		if creative ~= true and clothes[item.stack_index] then
+		if creative[name] ~= true and clothes[item.stack_index] then
 			local itemstack = inventory:add_item("main", ItemStack(clothes[item.stack_index]))
 			if itemstack:is_empty() then
 				clothes[item.stack_index] = nil
