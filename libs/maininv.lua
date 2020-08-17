@@ -152,4 +152,12 @@ function maininv.get(playername)
 	return self
 end
 
+-- Check if player has creative privilege.
+function maininvClass:get_has_creative()
+    if self.has_creative == nil then
+        self.has_creative = minetest.get_player_privs(self.playername).creative
+    end
+    return self.has_creative
+end
+
 return maininv

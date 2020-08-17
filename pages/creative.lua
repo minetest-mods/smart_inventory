@@ -78,9 +78,7 @@ end
 -- Page layout definition
 -----------------------------------------------------
 local function creative_callback(state)
-    local name = state.location.rootState.location.player
-    local privs = minetest.get_player_privs(name)
-    if privs.creative ~= true then
+    if state.param.invobj:get_has_creative() ~= true then
         return
     end
 
@@ -284,12 +282,7 @@ local function creative_callback(state)
 end
 
 local function player_has_creative(state)
-    local name = state.location.player
-    local privs = minetest.get_player_privs(name)
-    if privs.creative == true then
-        return true
-    end
-    return false
+    return state.param.invobj:get_has_creative()
 end
 
 -----------------------------------------------------
