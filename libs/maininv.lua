@@ -154,6 +154,7 @@ end
 
 -- Check if player has creative privilege.
 function maininvClass:get_has_creative()
+    if minetest.setting_getbool("creative_mode") then return true end -- Ensure creative mode overides player privlage.
     if self.has_creative == nil then
         self.has_creative = minetest.get_player_privs(self.playername).creative
     end
