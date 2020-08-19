@@ -291,17 +291,19 @@ smart_inventory.register_page({
 })
 
 -- Redefinition for sfinv method maybe called from other mods
-function sfinv.set_player_inventory_formspec(player, context)
-	local playername = player:get_player_name()
+if minetest.global_exists("sfinv") then
+	function sfinv.set_player_inventory_formspec(player, context)
+		local playername = player:get_player_name()
 
-	local page_state = smart_inventory.get_page_state("creative", playername)
-	if page_state then
-		local state = page_state.location.parentState
-		local has_creative = player_has_creative(state)
-		state:get("creative_button"):setVisible(has_creative)
-		if not has_creative then
-			state:get("crafting_button"):submit(nil, playername)
+		local page_state = smart_inventory.get_page_state("creative", playername)
+		if page_state then
+			local state = page_state.location.parentState
+			local has_creative = player_has_creative(state)
+			state:get("creative_button"):setVisible(has_creative)
+			if not has_creative then
+				state:get("crafting_button"):submit(nil, playername)
+			end
+			state:show()
 		end
-		state:show()
 	end
 end
