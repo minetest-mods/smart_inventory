@@ -1,7 +1,3 @@
-if not minetest.setting_getbool("creative_mode") then
-	return
-end
-
 local cache = smart_inventory.cache
 local ui_tools = smart_inventory.ui_tools
 
@@ -78,6 +74,7 @@ end
 -- Page layout definition
 -----------------------------------------------------
 local function creative_callback(state)
+
 	local player = state.location.rootState.location.player
 
 	-- build up UI controller
@@ -277,6 +274,10 @@ local function creative_callback(state)
 	ui_controller:restore()
 end
 
+local function player_has_creative(state)
+    return state.param.invobj:get_has_creative()
+end
+
 -----------------------------------------------------
 -- Register page in smart_inventory
 -----------------------------------------------------
@@ -285,5 +286,22 @@ smart_inventory.register_page({
 	tooltip = "The creative way to get items",
 	icon = "smart_inventory_creative_button.png",
 	smartfs_callback = creative_callback,
+	is_visible_func  = player_has_creative,
 	sequence = 15
 })
+
+-- Redefinition for sfinv method maybe called from other mods
+function sfinv.set_player_inventory_formspec(player, context)
+	local playername = player:get_player_name()
+
+	local page_state = smart_inventory.get_page_state("creative", playername)
+	if page_state then
+		local state = page_state.location.parentState
+		local has_creative = player_has_creative(state)
+		state:get("creative_button"):setVisible(has_creative)
+		if not has_creative then
+			state:get("crafting_button"):submit(nil, playername)
+		end
+		state:show()
+	end
+end
