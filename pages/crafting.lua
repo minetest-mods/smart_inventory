@@ -685,7 +685,7 @@ local function crafting_callback(state)
 			return
 		end
 
-		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, search_string)
+		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_all, search_string, state.location.rootState.lang_code)
 		filtered_list = ui_tools.filter_by_revealed(filtered_list, player)
 		state.param.crafting_grouped_items = ui_tools.get_list_grouped(filtered_list)
 		update_group_selection(state, true)

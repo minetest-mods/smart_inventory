@@ -104,19 +104,32 @@ end
 -----------------------------------------------------
 -- Filter a list by search string
 -----------------------------------------------------
-function ui_tools.filter_by_searchstring(list, search_string)
+function ui_tools.filter_by_searchstring(list, search_string, lang_code)
 	local filtered_list = {}
 	search_string = search_string:lower()
 	for _, entry in ipairs(list) do
 		local def = minetest.registered_items[entry.item]
-		if string.find(def.description:lower(), search_string) or
-			string.find(def.name:lower(), search_string) then
+		local description = def.description
+		if lang_code then
+			description = minetest.get_translated_string(lang_code, description)
+		end
+		if string.find(description:lower(), search_string) or
+				string.find(def.name:lower(), search_string) then
 			table.insert(filtered_list, entry)
 		else
 			for _, cgroup in pairs(entry.citem.cgroups) do
-				if cgroup.keyword and string.find(cgroup.keyword:lower():gsub("_", ":"), search_string:gsub("_", ":")) then
-					table.insert(filtered_list, entry)
-					break
+				if cgroup.keyword then
+					if string.find(cgroup.keyword:lower():gsub("_", ":"), search_string:gsub("_", ":"))then
+						table.insert(filtered_list, entry)
+						break
+					end
+				end
+				if cgroup.group_desc then
+					local group_desc =txt[cgroup.group_desc] or cgroup.group_desc
+					if string.find(group_desc:lower(), search_string)then
+						table.insert(filtered_list, entry)
+						break
+					end
 				end
 			end
 		end

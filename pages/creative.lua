@@ -158,9 +158,10 @@ local function creative_callback(state)
 	searchfield:setCloseOnEnter(false)
 	searchfield:onKeyEnter(function(self, state, player)
 		local search_string = self:getText()
-		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list, search_string)
+		local lang_code = state.location.rootState.lang_code
+		local filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list, search_string, lang_code)
 		state.param.creative_grouped_items = ui_tools.get_list_grouped(filtered_list)
-		filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_shape, search_string)
+		filtered_list = ui_tools.filter_by_searchstring(ui_tools.root_list_shape, search_string, lang_code)
 		state.param.creative_grouped_shape_items = filtered_list
 		update_group_selection(state, 0)
 	end)

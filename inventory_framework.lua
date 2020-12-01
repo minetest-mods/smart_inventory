@@ -7,6 +7,13 @@ local inventory_form = smartfs.create("smart_inventory:main", function(state)
 
 	-- enhanced object to the main inventory functions
 	state.param.invobj = maininv.get(state.location.player)
+
+	-- Set language code
+	local player_info = minetest.get_player_information(state.location.player)
+	if player_info and player_info.lang_code ~= "" then
+		state.lang_code = player_info.lang_code
+	end
+
 	-- tabbed view controller
 	local tab_controller = {
 		_tabs = {},
